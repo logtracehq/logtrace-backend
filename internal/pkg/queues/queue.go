@@ -1,0 +1,62 @@
+package queue
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io"
+
+	"github.com/google/uuid"
+	"github.com/terra-consults/logbase"
+)
+
+// ENUM(billing_trial_ending,billing_create_customer,
+// invite_team_member, share_dashboard,subscription_expired, verify_email)
+type QueueTopic string
+
+type Message struct {
+	ID       string
+	Metadata map[string]string
+	Data     []byte
+}
+
+type QueueHandler interface {
+	io.Closer
+	Add(context.Context, QueueTopic, any) error
+	Start(context.Context)
+}
+
+func ToPayload(m any) []byte {
+	b := new(bytes.Buffer)
+
+	_ = json.NewEncoder(b).Encode(m)
+
+	return b.Bytes()
+}
+
+type BillingCreateCustomerOptions struct {
+	Organization *logbase.Organization
+	Email        logbase.Email
+}
+
+type SendEmailOptions struct {
+	Organization *logbase.Organization
+	Token        string
+	Recipient    logbase.Email
+}
+
+type SendBillingTrialEmailOptions struct {
+	Organization *logbase.Organization
+	Expiration   string
+	Recipient    logbase.Email
+}
+
+type SubscriptionExpiredOptions struct {
+	Organization *logbase.Organization
+	Recipient    logbase.Email
+}
+
+type EmailVerificationOptions struct {
+	UserID uuid.UUID
+	Token  string
+}

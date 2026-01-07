@@ -1,0 +1,167 @@
+basePath: /
+definitions:
+  logbase.Organization:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_subscription_active:
+        type: boolean
+      name:
+        type: string
+      plan:
+        $ref: '#/definitions/logbase.Plan'
+      plan_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  logbase.Plan:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  logbase.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      email_verified_at:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/logbase.UserMetaData'
+      other_names:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/logbase.UserRole'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  logbase.UserMetaData:
+    properties:
+      organization_id:
+        type: string
+    type: object
+  logbase.UserRole:
+    properties:
+      assigned_at:
+        type: string
+      id:
+        type: string
+      role_name:
+        type: string
+      user_id:
+        type: string
+    type: object
+  server.APIStatus:
+    properties:
+      message:
+        type: string
+    required:
+    - message
+    type: object
+  server.fetchUserResponse:
+    properties:
+      message:
+        type: string
+      organization:
+        $ref: '#/definitions/logbase.Organization'
+      organizations:
+        items:
+          $ref: '#/definitions/logbase.Organization'
+        type: array
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/logbase.User'
+    required:
+    - message
+    type: object
+  server.loginRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Logbase API documentation
+  title: Logbase API
+  version: 0.1.0
+paths:
+  /auth/login/{provider}:
+    post:
+      consumes:
+      - application/json
+      description: Login handles user authentication via OAuth2 providers.
+      parameters:
+      - description: OAuth2 Provider (e.g., google)
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: Login Request Body
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/server.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/server.fetchUserResponse'
+        "400":
+          description: Bad request or invalid credentials
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      tags:
+      - Authenticating
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: FetchCurrentUser retrieves the currently authenticated user's details.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fetched current user
+          schema:
+            $ref: '#/definitions/server.fetchUserResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/server.APIStatus'
+      tags:
+      - Users
+schemes:
+- http
+- https
+swagger: "2.0"

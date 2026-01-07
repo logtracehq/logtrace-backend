@@ -1,0 +1,163 @@
+package server
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
+	"github.com/google/uuid"
+	"github.com/terra-consults/logbase"
+	"github.com/terra-consults/logbase/config"
+	"github.com/terra-consults/logbase/internal/pkg/util"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
+)
+
+type sessionHandler struct {
+	cfg         config.Config
+	userRepo    logbase.UserRepository
+	sessionRepo logbase.SessionRepository
+	orgRepo     logbase.OrganizationRepository
+}
+
+const (
+	SessionStatusActive   = "ACTIVE"
+	SessionStatusInactive = "INACTIVE"
+)
+
+type sessionRequest struct {
+	GenericRequest
+
+	UserID         string
+	OrganizationID string
+	LoginAt        string
+	DeviceInfo     string
+	IPAddress      string
+	Location       string
+	Status         string
+}
+
+func (sr *sessionRequest) Validate() error {
+	if util.IsStringEmpty(sr.UserID) {
+		return errors.New("user ID is required")
+	}
+	if util.IsStringEmpty(sr.OrganizationID) {
+		return errors.New("organization ID is required")
+	}
+	if sr.Status != "ACTIVE" && sr.Status != "INACTIVE" && sr.Status != "EXPIRED" {
+		return errors.New("invalid status")
+	}
+	return nil
+}
+
+func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("creating the session ")
+
+	req := new(sessionRequest)
+	if err := render.Bind(r, req); err != nil {
+		logger.Error("failed to bind create session request", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid request payload"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		logger.Error("create session request validation failed", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	user := getUserFromContext(ctx)
+	organization := getOrganizationFromContext(ctx)
+
+	if user == nil {
+		logger.Error("user not found in context")
+		return newAPIStatus(http.StatusUnauthorized, "user not found"), StatusFailed
+	}
+
+	if organization == nil {
+		logger.Error("organization not found in context")
+		return newAPIStatus(http.StatusUnauthorized, "organization not found"), StatusFailed
+	}
+
+	loginAt, err := time.Parse("2006-01-02T15:04:05Z07:00", req.LoginAt)
+	if err != nil {
+		logger.Error("invalid login at format", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid login at format"), StatusFailed
+	}
+
+	session := logbase.Session{
+		UserID:     user.ID,
+		DeviceInfo: req.DeviceInfo,
+		IPAddress:  req.IPAddress,
+		Location:   req.Location,
+		Status:     req.Status,
+		LoginAt:    loginAt,
+	}
+
+	err = sh.sessionRepo.Create(ctx, &session)
+	if err != nil {
+		logger.Error("an error occurred while creating session", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not create session at this time. an error occurred",
+		), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusCreated, "Session created successfully"), StatusSuccess
+}
+
+func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	sessionID := chi.URLParam(r, "reference")
+
+	sessionIdentifier, _ := uuid.Parse(sessionID)
+
+	opts := &logbase.FindSessionOptions{
+		ID:             sessionIdentifier,
+		UserID:         getUserFromContext(ctx).ID,
+		OrganizationID: getOrganizationFromContext(ctx).ID,
+	}
+
+	session, err := sh.sessionRepo.List(ctx, opts)
+	if err != nil {
+		logger.Error("failed to fetch a session by ID", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to list the session by its ID"), StatusFailed
+	}
+
+	return fetchSessionResponse{
+		Session:   session,
+		APIStatus: newAPIStatus(http.StatusOK, "Session has been fetched successfully"),
+	}, StatusSuccess
+}
+
+func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	opts := &logbase.ListSessionsOptions{
+		Paginator: logbase.PaginatorFromRequest(r),
+	}
+
+	span.SetAttributes(opts.Paginator.OTELAttributes()...)
+
+	sessions, totalCount, err := sh.sessionRepo.ListAll(ctx, opts)
+	if err != nil {
+		logger.Error("failed to fetch all sessions", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch all sessions"), StatusFailed
+	}
+
+	return fetchAllSessionsResponse{
+		Sessions: sessions,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total:   totalCount,
+				PerPage: int64(opts.Paginator.PerPage),
+				Page:    int64(opts.Paginator.Page),
+			},
+		},
+		APIStatus: newAPIStatus(http.StatusOK, "Sessions have been fetched successfully"),
+	}, StatusSuccess
+}
