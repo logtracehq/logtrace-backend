@@ -73,11 +73,12 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	event := logbase.Event{
+	event := &logbase.Event{
 		ActionName:      req.ActionName,
 		HTTPMethod:      req.HTTPMethod,
 		HTTPStatus:      req.HTTPStatus,
 		ClientIP:        req.ClientIP,
+		OrganizationID:  getOrganizationFromContext(r.Context()).ID,
 		ClientUserAgent: req.ClientUserAgent,
 		GeoIPLocation:   req.GeoIpLocation,
 		Type:            req.Type,
@@ -92,17 +93,22 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 	return newAPIStatus(http.StatusCreated, "event has been created successfully"), StatusSuccess
 }
 
-func (e *eventHander) ListByID(ctx context.Context, span trace.Span, logger *zap.Logger,
+func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("fetch an event by id")
 
 	eventID := chi.URLParam(r, "reference")
 
-	eventIdentifier, _ := uuid.Parse(eventID)
+	eventIdentifier, err := uuid.Parse(eventID)
+	if err != nil {
+		logger.Error("invalid event ID format", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid event ID format"), StatusFailed
+	}
 
-	opts := logbase.EventFindOptions{
-		ID: eventIdentifier,
+	opts := logbase.ListEventOptions{
+		ID:             eventIdentifier,
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 	}
 
 	event, err := e.eventRepo.List(ctx, opts)
@@ -117,16 +123,30 @@ func (e *eventHander) ListByID(ctx context.Context, span trace.Span, logger *zap
 	}, StatusSuccess
 }
 
-func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Logger,
+func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
-	events, err := e.eventRepo.ListAll(ctx, 10, 10)
+	opts := logbase.ListEventOptions{
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+		Paginator:      logbase.PaginatorFromRequest(r),
+	}
+
+	events := []*logbase.Event{}
+
+	events, totalCount, err := e.eventRepo.ListAll(ctx, &opts)
 	if err != nil {
 		return newAPIStatus(http.StatusInternalServerError, "failed to fetch the events"), StatusFailed
 	}
 
 	return fetchEventsResponse{
-		Events:    events,
+		Events: events,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total:   totalCount,
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+			},
+		},
 		APIStatus: newAPIStatus(http.StatusOK, "Fetch the events successfully"),
 	}, StatusSuccess
 }

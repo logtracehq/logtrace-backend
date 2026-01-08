@@ -195,7 +195,8 @@ func setUpRoutes(
 		r.Route("/events", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Post("/", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
-			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, event.ListByID, cfg, "Event.getByID"))
+			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, event.List, cfg, "Event.list"))
+			r.Get("/", WrapLogbaseHTTPHandler(logger, event.ListAll, cfg, "Event.listAll"))
 		})
 
 		r.Route("/sessions", func(r chi.Router) {

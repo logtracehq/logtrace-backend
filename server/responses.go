@@ -43,7 +43,7 @@ func newAPIStatus(code int, s string) APIStatus {
 }
 
 type fetchEventResponse struct {
-	Event logbase.Event `json:"event"`
+	Event *logbase.Event `json:"event"`
 	APIStatus
 }
 
@@ -53,7 +53,8 @@ type fetchPlanResponse struct {
 }
 
 type fetchEventsResponse struct {
-	Events []logbase.Event `json:"events"`
+	Events []*logbase.Event `json:"events"`
+	Meta   meta             `json:"meta"`
 	APIStatus
 }
 

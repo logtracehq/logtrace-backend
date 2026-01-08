@@ -22,7 +22,7 @@ func (s *sessionRepo) Create(ctx context.Context, session *logbase.Session) erro
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := s.inner.NewInsert().Model(&session).Exec(ctx)
+	_, err := s.inner.NewInsert().Model(session).Exec(ctx)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (s *sessionRepo) List(ctx context.Context, opts *logbase.FindSessionOptions
 
 	session := &logbase.Session{}
 
-	sel := s.inner.NewSelect().Model(&session)
+	sel := s.inner.NewSelect().Model(session)
 
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("id = ?", opts.ID.String())
@@ -64,11 +64,15 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOpt
 	sessions := []*logbase.Session{}
 	count := int64(0)
 
-	totalCount := s.inner.NewSelect().Model(&sessions).Offset(int(opts.Paginator.Offset())).Limit(int(opts.Paginator.PerPage))
-	err := totalCount.Scan(ctx)
+	totalCount, err := s.inner.NewSelect().Model(&sessions).Where("deleted_at IS NULL").Count(ctx)
 	if err != nil {
-		return nil, 0, err
+		return nil, count, err
 	}
+	count = int64(totalCount)
 
-	return sessions, count, nil
+	return sessions, count, s.inner.NewSelect().
+		Model(&sessions).
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
+		Scan(ctx)
 }
