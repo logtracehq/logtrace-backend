@@ -183,6 +183,12 @@ func setUpRoutes(
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", WrapLogbaseHTTPHandler(logger, auth.login, cfg, "Auth.provider"))
 			r.Post("/register", WrapLogbaseHTTPHandler(logger, auth.emailSignUp, cfg, "Auth.register"))
+			r.Post("/me", WrapLogbaseHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.logout"))
+		})
+
+		r.Route("/auth/me", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
+			r.Get("/", WrapLogbaseHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.me"))
 		})
 
 		r.Route("/audit-logs", func(r chi.Router) {

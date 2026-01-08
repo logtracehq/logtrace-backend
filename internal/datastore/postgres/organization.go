@@ -98,10 +98,13 @@ func (org *orgRepo) List(ctx context.Context, user *logbase.User) ([]logbase.Org
 
 	orgs := make([]logbase.Organization, 0)
 
+	if user.MetaData == nil {
+		return orgs, nil
+	}
+
 	return orgs, org.inner.NewSelect().
-		Model(orgs).
-		Join("JOIN user_organizations uo ON uo.organization_id = organization.id").
-		Where("uo.user_id = ?", user.ID).
-		Order("organization.created_at DESC").Relation("Plan").
+		Model(&orgs).
+		Where("id = ? AND is_active = ?", user.MetaData.OrganizationID, true).
+		Order("created_at DESC").
 		Scan(ctx)
 }
