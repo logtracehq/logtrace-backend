@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	queue "github.com/terra-consults/logbase/internal/pkg/queues"
+	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
 	gomock "go.uber.org/mock/gomock"
 )
 

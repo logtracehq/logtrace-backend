@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/internal/pkg/util"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -44,9 +44,6 @@ func (a *createAuditLogRequest) Validate() error {
 	}
 	if util.IsStringEmpty(a.ResourceID) {
 		return errors.New("resource id is required")
-	}
-	if util.IsStringEmpty(a.UserID) {
-		return errors.New("user id is required")
 	}
 
 	return nil

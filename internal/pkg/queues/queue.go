@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase"
+	"gitlab.com/logbase/logbase"
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,

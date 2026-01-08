@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/config"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/config"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )

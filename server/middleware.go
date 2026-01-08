@@ -15,10 +15,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/config"
-	"github.com/terra-consults/logbase/internal/pkg/jwttoken"
-	"github.com/terra-consults/logbase/internal/pkg/util"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 	"go.uber.org/zap"
 )
 

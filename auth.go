@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase/internal/pkg/util"
 	"github.com/uptrace/bun"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 )
 
 type EmailVerification struct {

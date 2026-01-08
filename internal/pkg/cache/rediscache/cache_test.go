@@ -7,9 +7,9 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
-	"github.com/terra-consults/logbase/internal/pkg/cache"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"gitlab.com/logbase/logbase/internal/pkg/cache"
 )
 
 func setupRedis(t *testing.T) (*redis.Client, func()) {

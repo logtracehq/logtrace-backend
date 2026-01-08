@@ -8,9 +8,9 @@ import (
 	"text/template"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/internal/pkg/email"
-	queue "github.com/terra-consults/logbase/internal/pkg/queues"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/internal/pkg/email"
+	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
 	"go.uber.org/zap"
 )
 

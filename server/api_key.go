@@ -8,9 +8,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/config"
-	"github.com/terra-consults/logbase/internal/pkg/util"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -125,9 +125,11 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 ) (render.Renderer, Status) {
 	logger.Debug("listing api keys")
 
-	organization := getOrganizationFromContext(r.Context())
+	opts := logbase.APIKeyOptions{
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+	}
 
-	keys, err := d.apiKeyRepo.List(ctx, organization.ID)
+	keys, err := d.apiKeyRepo.List(ctx, opts)
 	if err != nil {
 		logger.Error("could not list keys",
 			zap.Error(err))
@@ -215,7 +217,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "api key already revoked"), StatusFailed
 	}
 
-	opts := logbase.RevokeAPIKeyOptions{
+	opts := logbase.APIKeyOptions{
 		APIKey:         key,
 		RevocationType: req.Strategy,
 	}

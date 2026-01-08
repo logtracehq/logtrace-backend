@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	logbase "github.com/terra-consults/logbase"
+	logbase "gitlab.com/logbase/logbase"
 	gomock "go.uber.org/mock/gomock"
 )
 

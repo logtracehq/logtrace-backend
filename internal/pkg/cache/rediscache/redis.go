@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/terra-consults/logbase/internal/pkg/cache"
+	"gitlab.com/logbase/logbase/internal/pkg/cache"
 )
 
 func makeKey(s string) string {

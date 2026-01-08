@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/terra-consults/logbase/internal/pkg/util"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 )
 

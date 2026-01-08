@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"github.com/terra-consults/logbase"
+	"gitlab.com/logbase/logbase"
 )
 
 type GenericRequest struct{}
@@ -12,9 +12,9 @@ type GenericRequest struct{}
 func (g GenericRequest) Bind(_ *http.Request) error { return nil }
 
 type pagingInfo struct {
-	Total   int64 `json:"total,omitempty" validate:"required"`
-	PerPage int64 `json:"per_page,omitempty" validate:"required"`
-	Page    int64 `json:"page,omitempty" validate:"required"`
+	Total   int64 `json:"total" validate:"required"`
+	PerPage int64 `json:"per_page" validate:"required"`
+	Page    int64 `json:"page" validate:"required"`
 }
 
 type meta struct {
@@ -23,7 +23,7 @@ type meta struct {
 
 type APIStatus struct {
 	statusCode int
-	Message    string `json:"message,omitempty" validate:"required"`
+	Message    string `json:"message," validate:"required"`
 }
 
 func (a APIStatus) Render(w http.ResponseWriter, r *http.Request) error {
@@ -67,7 +67,7 @@ type fetchUserResponse struct {
 	User          logbase.User           `json:"user"`
 	Organization  *logbase.Organization  `json:"organization"`
 	Organizations []logbase.Organization `json:"organizations"`
-	Token         string                 `json:"token,omitempty"`
+	Token         string                 `json:"token"`
 	APIStatus
 }
 
@@ -89,11 +89,11 @@ type fetchResource struct {
 
 type createdAPIKeyResponse struct {
 	APIStatus
-	Value string `json:"value,omitempty" validate:"required"`
+	Value string `json:"value" validate:"required"`
 }
 
 type listAPIKeysResponse struct {
-	Keys []logbase.APIKey `json:"keys,omitempty" validate:"required"`
+	Keys []*logbase.APIKey `json:"keys" validate:"required"`
 	APIStatus
 }
 
