@@ -12,7 +12,7 @@ package jwttoken_mocks
 import (
 	reflect "reflect"
 
-	jwttoken "github.com/terra-consults/logbase/internal/pkg/jwttoken"
+	jwttoken "gitlab.com/logbase/logbase/internal/pkg/jwttoken"
 	gomock "go.uber.org/mock/gomock"
 )
 

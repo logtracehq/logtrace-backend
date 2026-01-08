@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"github.com/terra-consults/logbase"
+	"gitlab.com/logbase/logbase"
 )
 
 // ENUM(prod,dev)
@@ -80,13 +80,7 @@ type Email struct {
 	Provider   string        `yaml:"provider" mapstructure:"provider"`
 	Sender     logbase.Email `yaml:"sender" mapstructure:"sender"`
 	SenderName string        `yaml:"sender_name" mapstructure:"sender_name"`
-	SMTP       struct {
-		Host     string `yaml:"host" mapstructure:"host"`
-		Port     int    `yaml:"port" mapstructure:"port"`
-		Username string `yaml:"username" mapstructure:"username"`
-		Password string `yaml:"password" mapstructure:"password"`
-	} `yaml:"smtp" mapstructure:"smtp"`
-	Resend struct {
+	Resend     struct {
 		APIKey        string `yaml:"api_key" mapstructure:"api_key"`
 		WebhookSecret string `yaml:"webhook_secret" mapstructure:"webhook_secret"`
 	} `yaml:"resend" mapstructure:"resend"`

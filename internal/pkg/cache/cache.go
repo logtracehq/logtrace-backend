@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/terra-consults/logbase"
+	"gitlab.com/logbase/logbase"
 )
 
 const (

@@ -43,26 +43,20 @@ type RevocationType string
 
 func (a *APIKey) IsRevoked() bool { return a.ExpiresAt != nil }
 
-type RevokeAPIKeyOptions struct {
-	APIKey         *APIKey
-	RevocationType RevocationType
-}
-
-type FetchAPIKeyOptions struct {
+type APIKeyOptions struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID
 	OrganizationID uuid.UUID
-}
-
-type ListAPIKeyOptions struct {
-	Paginator Paginator `json:"paginator"`
+	APIKey         *APIKey
+	RevocationType RevocationType
+	Paginator      Paginator `json:"paginator"`
 }
 
 type APIKeyRepository interface {
 	Create(context.Context, *APIKey) error
-	Revoke(context.Context, RevokeAPIKeyOptions) error
-	List(context.Context, uuid.UUID) ([]APIKey, error)
-	Fetch(context.Context, FetchAPIKeyOptions) (*APIKey, error)
+	Revoke(context.Context, APIKeyOptions) error
+	List(context.Context, APIKeyOptions) ([]*APIKey, error)
+	Fetch(context.Context, APIKeyOptions) (*APIKey, error)
 	FetchByValue(context.Context, string) (*APIKey, error)
 	FetchByName(context.Context, string, uuid.UUID) (*APIKey, error)
 }

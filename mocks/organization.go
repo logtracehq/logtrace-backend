@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
-	logbase "github.com/terra-consults/logbase"
+	logbase "gitlab.com/logbase/logbase"
 	gomock "go.uber.org/mock/gomock"
 )
 

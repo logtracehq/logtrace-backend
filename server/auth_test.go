@@ -15,13 +15,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/config"
-	"github.com/terra-consults/logbase/internal/pkg/googleauth"
-	googleauth_mocks "github.com/terra-consults/logbase/internal/pkg/googleauth/mocks"
-	"github.com/terra-consults/logbase/internal/pkg/jwttoken"
-	jwttoken_mocks "github.com/terra-consults/logbase/internal/pkg/jwttoken/mocks"
-	logbase_mocks "github.com/terra-consults/logbase/mocks"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logbase/logbase/internal/pkg/googleauth"
+	googleauth_mocks "gitlab.com/logbase/logbase/internal/pkg/googleauth/mocks"
+	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
+	jwttoken_mocks "gitlab.com/logbase/logbase/internal/pkg/jwttoken/mocks"
+	logbase_mocks "gitlab.com/logbase/logbase/mocks"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/oauth2"
 )
@@ -137,17 +137,6 @@ func getConfig() config.Config {
 			Provider:   "resend",
 			Sender:     logbase.Email("test@example.com"),
 			SenderName: "Test Sender",
-			SMTP: struct {
-				Host     string `yaml:"host" mapstructure:"host"`
-				Port     int    `yaml:"port" mapstructure:"port"`
-				Username string `yaml:"username" mapstructure:"username"`
-				Password string `yaml:"password" mapstructure:"password"`
-			}{
-				Host:     "localhost",
-				Port:     1025,
-				Username: "test",
-				Password: "test",
-			},
 			Resend: struct {
 				APIKey        string `yaml:"api_key" mapstructure:"api_key"`
 				WebhookSecret string `yaml:"webhook_secret" mapstructure:"webhook_secret"`

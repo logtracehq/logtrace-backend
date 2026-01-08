@@ -3,9 +3,9 @@ package postgres
 import (
 	"context"
 
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/internal/pkg/util"
 	"github.com/uptrace/bun"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 )
 
 type sessionRepo struct {

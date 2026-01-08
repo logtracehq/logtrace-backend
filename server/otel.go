@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terra-consults/logbase/config"
+	"gitlab.com/logbase/logbase/config"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

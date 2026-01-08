@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/terra-consults/logbase"
-	logbase_mocks "github.com/terra-consults/logbase/mocks"
+	"gitlab.com/logbase/logbase"
+	logbase_mocks "gitlab.com/logbase/logbase/mocks"
 	"go.uber.org/mock/gomock"
 )
 

@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/internal/pkg/jwttoken"
-	jwttoken_mocks "github.com/terra-consults/logbase/internal/pkg/jwttoken/mocks"
-	logbase_mocks "github.com/terra-consults/logbase/mocks"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
+	jwttoken_mocks "gitlab.com/logbase/logbase/internal/pkg/jwttoken/mocks"
+	logbase_mocks "gitlab.com/logbase/logbase/mocks"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )

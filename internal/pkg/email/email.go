@@ -6,8 +6,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/internal/pkg/util"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 )
 
 // TODO: migrate these to embed.Fs instead
@@ -78,5 +78,4 @@ func (s SendOptions) Validate() error {
 type Client interface {
 	io.Closer
 	Send(context.Context, SendOptions) (string, error)
-	Name() logbase.UpdateRecipientLogProvider
 }

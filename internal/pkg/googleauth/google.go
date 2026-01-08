@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/terra-consults/logbase/config"
+	"gitlab.com/logbase/logbase/config"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"

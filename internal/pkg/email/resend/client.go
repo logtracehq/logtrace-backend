@@ -6,10 +6,9 @@ import (
 	"fmt"
 
 	resendclient "github.com/resend/resend-go/v2"
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/config"
-	"github.com/terra-consults/logbase/internal/pkg/email"
-	"github.com/terra-consults/logbase/internal/pkg/util"
+	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logbase/logbase/internal/pkg/email"
+	"gitlab.com/logbase/logbase/internal/pkg/util"
 )
 
 type client struct {
@@ -54,8 +53,4 @@ func (s *client) Send(ctx context.Context,
 	}
 
 	return res.Id, nil
-}
-
-func (s *client) Name() logbase.UpdateRecipientLogProvider {
-	return logbase.UpdateRecipientLogProviderResend
 }

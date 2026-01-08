@@ -6,8 +6,8 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase"
 	"github.com/uptrace/bun"
+	"gitlab.com/logbase/logbase"
 )
 
 type passwordRepo struct {

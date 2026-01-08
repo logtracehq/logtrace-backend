@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/terra-consults/logbase"
 	"github.com/uptrace/bun"
+	"gitlab.com/logbase/logbase"
 )
 
 type apiKeyRepo struct {
@@ -37,13 +37,12 @@ func (a *apiKeyRepo) FetchByValue(ctx context.Context, val string) (
 	return apiKey, err
 }
 
-func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.FetchAPIKeyOptions) (
+func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.APIKeyOptions) (
 	*logbase.APIKey, error,
 ) {
 	apiKey := new(logbase.APIKey)
 	query := a.inner.NewSelect().Model(apiKey)
 
-	// Apply filters based on which options are provided
 	if opts.ID != uuid.Nil {
 		query = query.Where("id = ?", opts.ID)
 	}
@@ -61,11 +60,11 @@ func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.FetchAPIKeyOptions)
 	return apiKey, err
 }
 
-func (r *apiKeyRepo) List(ctx context.Context, organizationID uuid.UUID) ([]logbase.APIKey, error) {
-	apiKeys := make([]logbase.APIKey, 0, 10)
+func (r *apiKeyRepo) List(ctx context.Context, opts logbase.APIKeyOptions) ([]*logbase.APIKey, error) {
+	var apiKeys []*logbase.APIKey
 
 	return apiKeys, r.inner.NewSelect().Model(&apiKeys).
-		Where("organization_id = ?", organizationID).
+		Where("organization_id = ?", opts.OrganizationID).
 		Scan(ctx)
 }
 
@@ -92,7 +91,7 @@ func (r *apiKeyRepo) Create(ctx context.Context, apiKey *logbase.APIKey) error {
 	})
 }
 
-func (r *apiKeyRepo) Revoke(ctx context.Context, opts logbase.RevokeAPIKeyOptions) error {
+func (r *apiKeyRepo) Revoke(ctx context.Context, opts logbase.APIKeyOptions) error {
 	now := time.Now()
 
 	q := r.inner.NewUpdate().

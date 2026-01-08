@@ -3,7 +3,7 @@ package googleauth
 import (
 	"context"
 
-	"github.com/terra-consults/logbase"
+	"gitlab.com/logbase/logbase"
 	"golang.org/x/oauth2"
 )
 

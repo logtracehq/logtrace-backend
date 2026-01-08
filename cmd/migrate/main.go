@@ -9,7 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/spf13/viper"
-	"github.com/terra-consults/logbase/config"
+	"gitlab.com/logbase/logbase/config"
 )
 
 func main() {

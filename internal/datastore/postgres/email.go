@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 
-	"github.com/terra-consults/logbase"
 	"github.com/uptrace/bun"
+	"gitlab.com/logbase/logbase"
 )
 
 type emailRepo struct {

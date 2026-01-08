@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/alexlast/bunzap"
-	"github.com/terra-consults/logbase/config"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bunotel"
+	"gitlab.com/logbase/logbase/config"
 	"go.uber.org/zap"
 )
 

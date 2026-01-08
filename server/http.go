@@ -12,13 +12,13 @@ import (
 	"github.com/riandyrn/otelchi"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 
-	"github.com/terra-consults/logbase"
-	"github.com/terra-consults/logbase/config"
-	"github.com/terra-consults/logbase/internal/pkg/cache"
-	"github.com/terra-consults/logbase/internal/pkg/googleauth"
-	"github.com/terra-consults/logbase/internal/pkg/jwttoken"
-	queue "github.com/terra-consults/logbase/internal/pkg/queues"
-	_ "github.com/terra-consults/logbase/swagger"
+	"gitlab.com/logbase/logbase"
+	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logbase/logbase/internal/pkg/cache"
+	"gitlab.com/logbase/logbase/internal/pkg/googleauth"
+	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
+	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
+	_ "gitlab.com/logbase/logbase/swagger"
 	"go.uber.org/zap"
 )
 
