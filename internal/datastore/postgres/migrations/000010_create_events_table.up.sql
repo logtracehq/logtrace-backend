@@ -5,6 +5,7 @@ CREATE TABLE
         user_name VARCHAR,
         http_method VARCHAR,
         http_status VARCHAR,
+        organization_id UUID NOT NULL,
         http_endpoint VARCHAR,
         client_ip VARCHAR,
         client_user_agent VARCHAR,

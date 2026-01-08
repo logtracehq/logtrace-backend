@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/terra-consults/logbase"
 	"github.com/terra-consults/logbase/config"
-	"github.com/terra-consults/logbase/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -31,22 +30,14 @@ const (
 type sessionRequest struct {
 	GenericRequest
 
-	UserID         string
-	OrganizationID string
-	LoginAt        string
-	DeviceInfo     string
-	IPAddress      string
-	Location       string
-	Status         string
+	LoginAt    string `json:"login_at"`
+	DeviceInfo string `json:"device_info"`
+	IPAddress  string `json:"ip_address"`
+	Location   string `json:"location"`
+	Status     string `json:"status"`
 }
 
 func (sr *sessionRequest) Validate() error {
-	if util.IsStringEmpty(sr.UserID) {
-		return errors.New("user ID is required")
-	}
-	if util.IsStringEmpty(sr.OrganizationID) {
-		return errors.New("organization ID is required")
-	}
 	if sr.Status != "ACTIVE" && sr.Status != "INACTIVE" && sr.Status != "EXPIRED" {
 		return errors.New("invalid status")
 	}
@@ -69,35 +60,23 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	user := getUserFromContext(ctx)
-	organization := getOrganizationFromContext(ctx)
-
-	if user == nil {
-		logger.Error("user not found in context")
-		return newAPIStatus(http.StatusUnauthorized, "user not found"), StatusFailed
-	}
-
-	if organization == nil {
-		logger.Error("organization not found in context")
-		return newAPIStatus(http.StatusUnauthorized, "organization not found"), StatusFailed
-	}
-
 	loginAt, err := time.Parse("2006-01-02T15:04:05Z07:00", req.LoginAt)
 	if err != nil {
 		logger.Error("invalid login at format", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "invalid login at format"), StatusFailed
 	}
 
-	session := logbase.Session{
-		UserID:     user.ID,
-		DeviceInfo: req.DeviceInfo,
-		IPAddress:  req.IPAddress,
-		Location:   req.Location,
-		Status:     req.Status,
-		LoginAt:    loginAt,
+	session := &logbase.Session{
+		UserID:         getUserFromContext(r.Context()).ID,
+		DeviceInfo:     req.DeviceInfo,
+		IPAddress:      req.IPAddress,
+		Location:       req.Location,
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+		Status:         req.Status,
+		LoginAt:        loginAt,
 	}
 
-	err = sh.sessionRepo.Create(ctx, &session)
+	err = sh.sessionRepo.Create(ctx, session)
 	if err != nil {
 		logger.Error("an error occurred while creating session", zap.Error(err))
 		return newAPIStatus(
@@ -114,7 +93,11 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 ) (render.Renderer, Status) {
 	sessionID := chi.URLParam(r, "reference")
 
-	sessionIdentifier, _ := uuid.Parse(sessionID)
+	sessionIdentifier, err := uuid.Parse(sessionID)
+	if err != nil {
+		logger.Error("invalid session ID format", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid session ID format"), StatusFailed
+	}
 
 	opts := &logbase.FindSessionOptions{
 		ID:             sessionIdentifier,

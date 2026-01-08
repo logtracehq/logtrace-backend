@@ -20,11 +20,11 @@ func NewEventRepository(db *bun.DB) logbase.EventRepository {
 	}
 }
 
-func (e *eventRepo) Create(ctx context.Context, event logbase.Event) error {
+func (e *eventRepo) Create(ctx context.Context, event *logbase.Event) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := e.inner.NewInsert().Model(&event).Exec(ctx)
+	_, err := e.inner.NewInsert().Model(event).Exec(ctx)
 	if err != nil {
 		return err
 	}
@@ -32,13 +32,13 @@ func (e *eventRepo) Create(ctx context.Context, event logbase.Event) error {
 	return nil
 }
 
-func (e *eventRepo) List(ctx context.Context, opts logbase.EventFindOptions) (logbase.Event, error) {
+func (e *eventRepo) List(ctx context.Context, opts logbase.ListEventOptions) (*logbase.Event, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	event := logbase.Event{}
+	event := &logbase.Event{}
 
-	sel := e.inner.NewSelect().Model(&event)
+	sel := e.inner.NewSelect().Model(event).Where("organization_id = ?", opts.OrganizationID)
 
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("id = ?", opts.ID.String())
@@ -55,17 +55,24 @@ func (e *eventRepo) List(ctx context.Context, opts logbase.EventFindOptions) (lo
 	return event, err
 }
 
-func (e *eventRepo) ListAll(ctx context.Context, page int, limit int) ([]logbase.Event, error) {
+func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions) ([]*logbase.Event, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	events := []logbase.Event{}
+	events := []*logbase.Event{}
+	count := int64(0)
 
-	// TODO: Get the offset and limit from the URL params
-	sel := e.inner.NewSelect().Model(&events).Offset(page).Limit(limit)
-	err := sel.Scan(ctx)
-	if errors.Is(err, sql.ErrNoRows) {
-		return events, logbase.ErrEventsNotFound
+	totalCount, err := e.inner.NewSelect().Model(&logbase.Event{}).Where("deleted_at IS NULL").Count(ctx)
+	if err != nil {
+		return events, count, err
 	}
-	return events, err
+
+	count = int64(totalCount)
+
+	return events, count, e.inner.NewSelect().
+		Model(&events).
+		Offset(int(opts.Paginator.Offset())).
+		Limit(int(opts.Paginator.PerPage)).
+		Order("created_at DESC").
+		Scan(ctx)
 }
