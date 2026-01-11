@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/uptrace/bun"
 	"gitlab.com/logbase/logbase"
@@ -62,15 +63,64 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 	events := []*logbase.Event{}
 	count := int64(0)
 
-	totalCount, err := e.inner.NewSelect().Model(&logbase.Event{}).Where("deleted_at IS NULL").Count(ctx)
+	countSelect := e.inner.NewSelect().Model(&logbase.Event{}).Where("deleted_at IS NULL")
+
+	if !util.IsStringEmpty(opts.OrganizationID.String()) {
+		countSelect = countSelect.Where("organization_id = ?", opts.OrganizationID)
+	}
+
+	if !util.IsStringEmpty(opts.HTTPStatus) {
+		// Support grouped status filters like "2xx", "4xx", "5xx" by matching prefix.
+		if len(opts.HTTPStatus) == 3 && strings.HasSuffix(opts.HTTPStatus, "xx") {
+			prefix := string(opts.HTTPStatus[0])
+			countSelect = countSelect.Where("http_status LIKE ?", prefix+"%")
+		} else {
+			countSelect = countSelect.Where("http_status = ?", opts.HTTPStatus)
+		}
+	}
+
+	if !util.IsStringEmpty(opts.HTTPMethod) {
+		countSelect = countSelect.Where("http_method = ?", opts.HTTPMethod)
+	}
+
+	if !util.IsStringEmpty(opts.Action) {
+		countSelect = countSelect.Where("action_name = ?", opts.Action)
+	}
+
+	totalCount, err := countSelect.Count(ctx)
 	if err != nil {
 		return events, count, err
 	}
 
 	count = int64(totalCount)
 
-	return events, count, e.inner.NewSelect().
+	// Selector for fetching paginated events with the same filters.
+	listSelect := e.inner.NewSelect().
 		Model(&events).
+		Where("deleted_at IS NULL")
+
+	if !util.IsStringEmpty(opts.OrganizationID.String()) {
+		listSelect = listSelect.Where("organization_id = ?", opts.OrganizationID)
+	}
+
+	if !util.IsStringEmpty(opts.HTTPStatus) {
+		if len(opts.HTTPStatus) == 3 && strings.HasSuffix(opts.HTTPStatus, "xx") {
+			prefix := string(opts.HTTPStatus[0])
+			listSelect = listSelect.Where("http_status LIKE ?", prefix+"%")
+		} else {
+			listSelect = listSelect.Where("http_status = ?", opts.HTTPStatus)
+		}
+	}
+
+	if !util.IsStringEmpty(opts.HTTPMethod) {
+		listSelect = listSelect.Where("http_method = ?", opts.HTTPMethod)
+	}
+
+	if !util.IsStringEmpty(opts.Action) {
+		listSelect = listSelect.Where("action_name = ?", opts.Action)
+	}
+
+	return events, count, listSelect.
 		Offset(int(opts.Paginator.Offset())).
 		Limit(int(opts.Paginator.PerPage)).
 		Order("created_at DESC").

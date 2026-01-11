@@ -64,14 +64,26 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOpt
 	sessions := []*logbase.Session{}
 	count := int64(0)
 
-	totalCount, err := s.inner.NewSelect().Model(&sessions).Where("deleted_at IS NULL").Count(ctx)
+	countSelect := s.inner.NewSelect().Model(&logbase.Session{}).Where("deleted_at IS NULL")
+	if opts.Status != "" && opts.Status != "all" {
+		countSelect = countSelect.Where("status = ?", opts.Status)
+	}
+
+	totalCount, err := countSelect.Count(ctx)
 	if err != nil {
 		return nil, count, err
 	}
 	count = int64(totalCount)
 
-	return sessions, count, s.inner.NewSelect().
+	listSelect := s.inner.NewSelect().
 		Model(&sessions).
+		Where("deleted_at IS NULL")
+
+	if opts.Status != "" && opts.Status != "all" {
+		listSelect = listSelect.Where("status = ?", opts.Status)
+	}
+
+	return sessions, count, listSelect.
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)

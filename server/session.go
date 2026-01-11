@@ -120,8 +120,11 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
+	status := r.URL.Query().Get("status")
+
 	opts := &logbase.ListSessionsOptions{
 		Paginator: logbase.PaginatorFromRequest(r),
+		Status:    status,
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)

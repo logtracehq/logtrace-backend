@@ -36,6 +36,8 @@ type ListEventOptions struct {
 	Action         string `json:"action"`
 	OrganizationID uuid.UUID
 	Paginator      Paginator
+	HTTPStatus     string
+	HTTPMethod     string
 }
 
 type EventRepository interface {

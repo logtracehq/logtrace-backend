@@ -126,9 +126,15 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
+	query := r.URL.Query()
+	httpStatus := query.Get("http_status")
+	httpMethod := query.Get("http_method")
+
 	opts := logbase.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		Paginator:      logbase.PaginatorFromRequest(r),
+		HTTPStatus:     httpStatus,
+		HTTPMethod:     httpMethod,
 	}
 
 	events := []*logbase.Event{}

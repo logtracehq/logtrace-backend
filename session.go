@@ -33,6 +33,7 @@ type FindSessionOptions struct {
 
 type ListSessionsOptions struct {
 	Paginator Paginator
+	Status    string
 }
 
 type SessionRepository interface {
