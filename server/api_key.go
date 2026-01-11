@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"gitlab.com/logbase/logbase"
 	"gitlab.com/logbase/logbase/config"
@@ -106,7 +107,7 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 
 	return createdAPIKeyResponse{
 		APIStatus: newAPIStatus(http.StatusOK, "api key created"),
-		Value:     value,
+		Value:     encrypted,
 	}, StatusSuccess
 }
 
@@ -195,7 +196,17 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "invalid api key reference"), StatusFailed
 	}
 
-	key, err := d.apiKeyRepo.FetchByValue(ctx, ref)
+	apiKeyID, err := uuid.Parse(ref)
+	if err != nil {
+		logger.Error("invalid api key reference", zap.String("reference", ref), zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid api key reference"), StatusFailed
+	}
+
+	opts := logbase.APIKeyOptions{
+		ID: apiKeyID,
+	}
+
+	key, err := d.apiKeyRepo.Fetch(ctx, opts)
 	if err != nil {
 		msg := "could not fetch api key"
 		status := http.StatusInternalServerError
@@ -217,7 +228,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "api key already revoked"), StatusFailed
 	}
 
-	opts := logbase.APIKeyOptions{
+	opts = logbase.APIKeyOptions{
 		APIKey:         key,
 		RevocationType: req.Strategy,
 	}

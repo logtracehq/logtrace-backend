@@ -220,7 +220,7 @@ func setUpRoutes(
 			r.Delete("/{reference}", WrapLogbaseHTTPHandler(logger, resource.Delete, cfg, "Resource.delete"))
 		})
 
-		r.Route("/api-keys", func(r chi.Router) {
+		r.Route("/developers/keys", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Post("/", WrapLogbaseHTTPHandler(logger, apiKey.create, cfg, "APIKeys.create"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, apiKey.list, cfg, "APIKeys.list"))

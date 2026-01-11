@@ -50,7 +50,7 @@ func (cfg *Config) SetDefaultValues() {
 	viper.SetDefault("http.metrics.password", "password")
 	viper.SetDefault("auth.jwt.key", "thisisaweaksecret")
 	viper.SetDefault("auth.jwt.audience", "logbase")
-	viper.SetDefault("api_key.hash_secret", "thisisahashsecret")
+	viper.SetDefault("api_key.hash_secret", "hash_secret")
 }
 
 func (c *Config) Validate() error {
