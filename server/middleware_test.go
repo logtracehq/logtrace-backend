@@ -229,7 +229,7 @@ func TestRequireAuthentication(t *testing.T) {
 
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
 		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		workspaceRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -239,7 +239,7 @@ func TestRequireAuthentication(t *testing.T) {
 			jwtManager,
 			cfg,
 			userRepo,
-			workspaceRepo,
+			orgRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -254,7 +254,7 @@ func TestRequireAuthentication(t *testing.T) {
 
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
 		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		workspaceRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("invalid-token").
@@ -269,7 +269,7 @@ func TestRequireAuthentication(t *testing.T) {
 			jwtManager,
 			cfg,
 			userRepo,
-			workspaceRepo,
+			orgRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
 		}))
@@ -285,7 +285,7 @@ func TestRequireAuthentication(t *testing.T) {
 		userID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
 		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		workspaceRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("invalid-token").
@@ -300,7 +300,7 @@ func TestRequireAuthentication(t *testing.T) {
 			jwtManager,
 			cfg,
 			userRepo,
-			workspaceRepo,
+			orgRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -316,7 +316,7 @@ func TestRequireAuthentication(t *testing.T) {
 		userID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
 		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		workspaceRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
@@ -335,7 +335,7 @@ func TestRequireAuthentication(t *testing.T) {
 			jwtManager,
 			cfg,
 			userRepo,
-			workspaceRepo,
+			orgRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
@@ -351,7 +351,7 @@ func TestRequireAuthentication(t *testing.T) {
 		userID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
 		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		workspaceRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
@@ -378,7 +378,7 @@ func TestRequireAuthentication(t *testing.T) {
 			jwtManager,
 			cfg,
 			userRepo,
-			workspaceRepo,
+			orgRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// For auth/connect route, we should still have user in context
 			user := getUserFromContext(r.Context())

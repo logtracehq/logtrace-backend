@@ -290,7 +290,7 @@ func TestOrganizationRepository(t *testing.T) {
 
 		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
-		opts := &logbase.FindOrganizationOptions{ID: orgID}
+		opts := logbase.FindOrganizationOptions{ID: orgID}
 		expectedOrg := &logbase.Organization{
 			ID:                   orgID,
 			Name:                 "Test Organization",
@@ -317,7 +317,7 @@ func TestOrganizationRepository(t *testing.T) {
 
 		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 
-		opts := &logbase.FindOrganizationOptions{ID: uuid.New()}
+		opts := logbase.FindOrganizationOptions{ID: uuid.New()}
 
 		orgRepo.EXPECT().
 			Get(gomock.Any(), opts).

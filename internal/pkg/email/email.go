@@ -2,7 +2,7 @@ package email
 
 import (
 	"context"
-	_ "embed"
+	"embed"
 	"errors"
 	"io"
 
@@ -10,23 +10,24 @@ import (
 	"gitlab.com/logbase/logbase/internal/pkg/util"
 )
 
-// TODO: migrate these to embed.Fs instead
+//go:embed templates/*
+var templatesFS embed.FS
+
 var (
-	// //go:embed templates/updates/view.html
-	// UpdateHTMLEmailTemplate string
-	//
-	// //go:embed templates/sharing/dashboard_share.html
-	DashboardSharingTemplate string
-	//
-	// //go:embed templates/billing/trial.html
-	BillingTrialTemplate string
-
-	//go:embed templates/billing/expired.html
-	BillingEndedTemplate string
-
-	//go:embed templates/auth/email_verify.html
-	EmailVerificationTemplate string
+	DashboardSharingTemplate  = mustReadTemplate("templates/sharing/dashboard_share.html")
+	BillingTrialTemplate      = mustReadTemplate("templates/billing/trial.html")
+	BillingEndedTemplate      = mustReadTemplate("templates/billing/expired.html")
+	EmailVerificationTemplate = mustReadTemplate("templates/auth/email_verify.html")
 )
+
+func mustReadTemplate(path string) string {
+	b, err := templatesFS.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(b)
+}
 
 type SendOptionsBatch []SendOptions
 

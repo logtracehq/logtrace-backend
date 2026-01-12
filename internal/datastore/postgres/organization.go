@@ -33,7 +33,7 @@ func (org *orgRepo) Create(ctx context.Context, organization *logbase.Organizati
 	return organization, nil
 }
 
-func (org *orgRepo) Get(ctx context.Context, opts *logbase.FindOrganizationOptions) (*logbase.Organization, error) {
+func (org *orgRepo) Get(ctx context.Context, opts logbase.FindOrganizationOptions) (*logbase.Organization, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 

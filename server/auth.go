@@ -210,9 +210,6 @@ func (a *authHandler) loginWithEmail(ctx context.Context, logger *zap.Logger, re
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while logging in"), StatusFailed
 	}
 
-	logger.Info("user password from req", zap.String("password", req.Password))
-	logger.Info("hash", zap.String("hash", userPassword.UserPassword))
-
 	_, err = logbase.ComparePasswordAndHash(req.Password, userPassword.UserPassword)
 	if err != nil {
 		logger.Debug("invalid password", zap.String("email", req.Email))

@@ -284,7 +284,7 @@ func requireAuthentication(
 				return
 			}
 
-			org, err := orgRepo.Get(ctx, &logbase.FindOrganizationOptions{
+			org, err := orgRepo.Get(ctx, logbase.FindOrganizationOptions{
 				ID: user.MetaData.OrganizationID,
 			})
 			if err != nil {

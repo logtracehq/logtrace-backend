@@ -72,7 +72,7 @@ func (mr *MockOrganizationRepositoryMockRecorder) Delete(arg0, arg1 any) *gomock
 }
 
 // Get mocks base method.
-func (m *MockOrganizationRepository) Get(arg0 context.Context, arg1 *logbase.FindOrganizationOptions) (*logbase.Organization, error) {
+func (m *MockOrganizationRepository) Get(arg0 context.Context, arg1 logbase.FindOrganizationOptions) (*logbase.Organization, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(*logbase.Organization)

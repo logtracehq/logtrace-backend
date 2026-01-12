@@ -40,7 +40,7 @@ type User struct {
 	Email           Email         `json:"email"             bun:"email,unique"`
 	FullName        string        `json:"full_name" bun:"full_name,notnull"`
 	EmailVerifiedAt *time.Time    `json:"email_verified_at" bun:"email_verified_at,nullzero"`
-	MetaData        *UserMetaData `json:"metadata"`
+	MetaData        *UserMetaData `json:"metadata"   bun:"type:jsonb"`
 	Roles           []UserRole    `json:"roles"       bun:"rel:has-many,join:id=user_id"`
 	CreatedAt       time.Time     `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	UpdatedAt       time.Time     `json:"updated_at"  bun:"default:current_timestamp,notnull"`
