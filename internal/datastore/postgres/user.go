@@ -33,6 +33,42 @@ func (r *userRepo) Create(ctx context.Context, u *logbase.User) (*logbase.User, 
 	return u, nil
 }
 
+func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) ([]*logbase.User, int64, error) {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	var users []*logbase.User
+
+	countSelect := r.inner.NewSelect().Model(&logbase.User{}).Where("deleted_at IS NULL")
+
+	if !util.IsStringEmpty(opts.Email.String()) {
+		countSelect = countSelect.Where("email = ?", opts.Email)
+	}
+	if opts.OrganizationID != uuid.Nil {
+		countSelect = countSelect.Where("meta_data->>'organization_id' = ?", opts.OrganizationID.String())
+	}
+
+	selectUser := r.inner.NewSelect().Model(&users).Relation("Roles")
+	if !util.IsStringEmpty(opts.Email.String()) {
+		selectUser = selectUser.Where("email = ?", opts.Email)
+	}
+	if opts.OrganizationID != uuid.Nil {
+		selectUser = selectUser.Where("meta_data->>'organization_id' = ?", opts.OrganizationID.String())
+	}
+
+	totalCount, err := countSelect.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = selectUser.Scan(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, int64(totalCount), nil
+}
+
 func (r *userRepo) Get(ctx context.Context, opts *logbase.FindUserOptions) (*logbase.User, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
@@ -47,6 +83,9 @@ func (r *userRepo) Get(ctx context.Context, opts *logbase.FindUserOptions) (*log
 	}
 	if opts.ID != uuid.Nil {
 		selectUser = selectUser.Where("id = ?", opts.ID)
+	}
+	if opts.OrganizationID != uuid.Nil {
+		selectUser = selectUser.Where("meta_data->>'organization_id' = ?", opts.OrganizationID.String())
 	}
 
 	err := selectUser.Scan(ctx)
@@ -65,7 +104,7 @@ func (r *userRepo) Update(ctx context.Context, u *logbase.User) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := r.inner.NewUpdate().Model(&u).Where("id = ?", u.ID).Exec(ctx)
+	_, err := r.inner.NewUpdate().Model(u).Where("id = ?", u.ID).Exec(ctx)
 	if err != nil {
 		return err
 	}

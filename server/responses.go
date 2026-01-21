@@ -113,3 +113,9 @@ type listAuditLog struct {
 	AuditLog *logbase.AuditLog `json:"audit_log"`
 	APIStatus
 }
+
+type listUsersResponse struct {
+	Users []*logbase.User `json:"users"`
+	Meta  meta            `json:"meta"`
+	APIStatus
+}

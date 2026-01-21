@@ -8,6 +8,7 @@ import (
 	"github.com/badoux/checkmail"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"github.com/theopenlane/utils/passwd"
 	"gitlab.com/logbase/logbase"
 	"gitlab.com/logbase/logbase/config"
@@ -345,9 +346,11 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 	user := &logbase.User{
 		Email:    req.Email,
 		FullName: req.FullName,
+		Status:   logbase.UserStatusActive.String(),
 		Roles:    []logbase.UserRole{},
 		MetaData: &logbase.UserMetaData{
 			OrganizationID: org.ID,
+			UserRole:       "admin",
 		},
 	}
 
@@ -414,4 +417,176 @@ func (a *authHandler) sendVerificationEmail(user *logbase.User, logger *zap.Logg
 		UserID: user.ID,
 		Token:  token.Token,
 	})
+}
+
+type inviteUserRequest struct {
+	GenericRequest
+
+	Email    logbase.Email `json:"email"`
+	FullName string        `json:"full_name"`
+	Role     string        `json:"role"`
+}
+
+func (ir *inviteUserRequest) Validate() error {
+	if util.IsStringEmpty(ir.Email.String()) {
+		return errors.New("email is required")
+	}
+	if err := checkmail.ValidateFormat(ir.Email.String()); err != nil {
+		return errors.New("invalid email format")
+	}
+	if util.IsStringEmpty(ir.Role) {
+		return errors.New("role is required")
+	}
+	if util.IsStringEmpty(ir.FullName) {
+		return errors.New("full name is required")
+	}
+	return nil
+}
+
+// @Description Invite a user by email.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param inviteUserRequest body inviteUserRequest true "Invite User Request Body"
+// @Success 200 {object} APIStatus "Invitation sent successfully"
+// @Failure 400 {object} APIStatus "invalid request body"
+// @Failure 500 {object} APIStatus "internal server error"
+// @Router /auth/invite [post]
+func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("inviting user by email")
+
+	req := new(inviteUserRequest)
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	findOpts := &logbase.FindUserOptions{Email: req.Email}
+	_, err := a.userRepo.Get(ctx, findOpts)
+	if err == nil {
+		return newAPIStatus(http.StatusConflict, "User already exists"), StatusFailed
+	}
+	if !errors.Is(err, logbase.ErrUserNotFound) {
+		logger.Error("error checking user existence", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not check user existence"), StatusFailed
+	}
+	user := &logbase.User{
+		Email:    req.Email,
+		FullName: req.FullName,
+		Status:   logbase.UserStatusPending.String(),
+		MetaData: &logbase.UserMetaData{
+			OrganizationID: getOrganizationFromContext(ctx).ID,
+			UserRole:       logbase.RoleName(req.Role),
+		},
+	}
+
+	_, err = a.userRepo.Create(ctx, user)
+	if errors.Is(err, logbase.ErrUserExists) {
+		return newAPIStatus(http.StatusConflict, "User already exists"), StatusFailed
+	}
+
+	token, err := logbase.NewEmailVerification(user)
+	if err != nil {
+		logger.Error("could not generate invite token", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not generate invite token"), StatusFailed
+	}
+	err = a.queue.Add(ctx, queue.QueueTopicInviteTeamMember, queue.InviteUserOptions{
+		Email:        req.Email,
+		Organization: getOrganizationFromContext(ctx).ID,
+		Token:        token.Token,
+	})
+	if err != nil {
+		logger.Error("failed to queue invite email", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to send invitation email"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "Invitation sent successfully"), StatusSuccess
+}
+
+// @Description List all users in the organization.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Success 200 {object} listUsersResponse "List of organization users"
+// @Failure 500 {object} APIStatus "Internal server error"
+// @Router /auth/me/users [get]
+func (a *authHandler) listOrganizationUsers(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("listing organization users")
+
+	org := getOrganizationFromContext(ctx)
+
+	opts := &logbase.FindUserOptions{
+		OrganizationID: org.ID,
+	}
+
+	users, totalCount, err := a.userRepo.List(ctx, opts)
+	if err != nil {
+		logger.Error("error listing organization users", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not list organization users"), StatusFailed
+	}
+
+	return listUsersResponse{
+		Users: users,
+		Meta: meta{
+			Paging: pagingInfo{
+				Total:   totalCount,
+				PerPage: opts.Paginator.PerPage,
+				Page:    opts.Paginator.Page,
+			},
+		}, APIStatus: newAPIStatus(http.StatusOK, "listed organization users"),
+	}, StatusSuccess
+}
+
+// @Description Revoke a user's admin role in the organization.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param reference path string true "User Reference (UUID)"
+// @Success 200 {object} APIStatus "User role revoked successfully"
+// @Failure 400 {object} APIStatus "Invalid user reference"
+// @Failure 403 {object} APIStatus "User does not belong to your organization"
+// @Failure 404 {object} APIStatus "User not found"
+// @Failure 500 {object} APIStatus "Could not update user role"
+// @Router /auth/account/{reference} [patch]
+func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("revoking user role")
+
+	ref := chi.URLParam(r, "reference")
+	userID, err := uuid.Parse(ref)
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid user reference"), StatusFailed
+	}
+
+	user, err := a.userRepo.Get(ctx, &logbase.FindUserOptions{
+		ID: userID,
+	})
+	if err != nil {
+		if errors.Is(err, logbase.ErrUserNotFound) {
+			return newAPIStatus(http.StatusNotFound, "user not found"), StatusFailed
+		}
+		logger.Error("error fetching user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not fetch user"), StatusFailed
+	}
+
+	org := getOrganizationFromContext(ctx)
+	if user.MetaData.OrganizationID != org.ID {
+		return newAPIStatus(http.StatusForbidden, "user does not belong to your organization"), StatusFailed
+	}
+
+	user.MetaData.UserRole = "member"
+	err = a.userRepo.Update(ctx, user)
+	if err != nil {
+		logger.Error("error updating user role", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update user role"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "user role revoked successfully"), StatusSuccess
 }
