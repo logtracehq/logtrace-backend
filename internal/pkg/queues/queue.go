@@ -60,3 +60,9 @@ type EmailVerificationOptions struct {
 	UserID uuid.UUID
 	Token  string
 }
+
+type InviteUserOptions struct {
+	Email        logbase.Email
+	Organization uuid.UUID
+	Token        string
+}

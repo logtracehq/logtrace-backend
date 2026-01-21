@@ -183,12 +183,14 @@ func setUpRoutes(
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/connect/{provider}", WrapLogbaseHTTPHandler(logger, auth.login, cfg, "Auth.provider"))
 			r.Post("/register", WrapLogbaseHTTPHandler(logger, auth.emailSignUp, cfg, "Auth.register"))
-			r.Post("/me", WrapLogbaseHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.logout"))
 		})
 
-		r.Route("/auth/me", func(r chi.Router) {
+		r.Route("/auth/account", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.me"))
+			r.Get("/me", WrapLogbaseHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.me"))
+			r.Post("/invite", WrapLogbaseHTTPHandler(logger, auth.inviteUserByEmail, cfg, "Auth.inviteUserByEmail"))
+			r.Get("/users", WrapLogbaseHTTPHandler(logger, auth.listOrganizationUsers, cfg, "Auth.listOrganizationUsers"))
+			r.Patch("/revoke/{reference}", WrapLogbaseHTTPHandler(logger, auth.revokeUserRole, cfg, "Auth.revokeUserRole"))
 		})
 
 		r.Route("/audit-logs", func(r chi.Router) {

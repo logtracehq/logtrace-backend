@@ -18,6 +18,7 @@ var (
 	BillingTrialTemplate      = mustReadTemplate("templates/billing/trial.html")
 	BillingEndedTemplate      = mustReadTemplate("templates/billing/expired.html")
 	EmailVerificationTemplate = mustReadTemplate("templates/auth/email_verify.html")
+	InviteUserTemplate        = mustReadTemplate("templates/invitation/invite_user.html")
 )
 
 func mustReadTemplate(path string) string {

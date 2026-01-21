@@ -20,8 +20,8 @@ type APIKey struct {
 	ID             uuid.UUID  `json:"id,omitempty"         bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	CreatedBy      uuid.UUID  `json:"created_by,omitempty"`
 	Value          string     `json:"-"`
-	Name           string     `json:"name,omitempty"`
-	OrganizationID uuid.UUID  `json:"organization_id"`
+	Name           string     `json:"name,omitempty" bun:"name"`
+	OrganizationID uuid.UUID  `json:"organization_id" bun:"organization_id"`
 	ExpiresAt      *time.Time `json:"expires_at,omitempty" bun:",nullzero"`
 	CreatedAt      time.Time  `json:"created_at"           bun:",nullzero,notnull,default:current_timestamp"`
 	UpdatedAt      time.Time  `json:"updated_at"           bun:",nullzero,notnull,default:current_timestamp"`
