@@ -69,6 +69,14 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOpt
 		countSelect = countSelect.Where("status = ?", opts.Status)
 	}
 
+	if !util.IsStringEmpty(opts.StartDate) {
+		countSelect = countSelect.Where("DATE(login_at) >= ?", opts.StartDate)
+	}
+
+	if !util.IsStringEmpty(opts.EndDate) {
+		countSelect = countSelect.Where("DATE(login_at) <= ?", opts.EndDate)
+	}
+
 	totalCount, err := countSelect.Count(ctx)
 	if err != nil {
 		return nil, count, err
@@ -81,6 +89,14 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOpt
 
 	if opts.Status != "" && opts.Status != "all" {
 		listSelect = listSelect.Where("status = ?", opts.Status)
+	}
+
+	if !util.IsStringEmpty(opts.StartDate) {
+		listSelect = listSelect.Where("DATE(login_at) >= ?", opts.StartDate)
+	}
+
+	if !util.IsStringEmpty(opts.EndDate) {
+		listSelect = listSelect.Where("DATE(login_at) <= ?", opts.EndDate)
 	}
 
 	return sessions, count, listSelect.

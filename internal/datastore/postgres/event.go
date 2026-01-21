@@ -87,6 +87,14 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 		countSelect = countSelect.Where("action_name = ?", opts.Action)
 	}
 
+	if !util.IsStringEmpty(opts.StartDate) {
+		countSelect = countSelect.Where("DATE(created_at) >= ?", opts.StartDate)
+	}
+
+	if !util.IsStringEmpty(opts.EndDate) {
+		countSelect = countSelect.Where("DATE(created_at) <= ?", opts.EndDate)
+	}
+
 	totalCount, err := countSelect.Count(ctx)
 	if err != nil {
 		return events, count, err
@@ -118,6 +126,14 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 
 	if !util.IsStringEmpty(opts.Action) {
 		listSelect = listSelect.Where("action_name = ?", opts.Action)
+	}
+
+	if !util.IsStringEmpty(opts.StartDate) {
+		listSelect = listSelect.Where("DATE(created_at) >= ?", opts.StartDate)
+	}
+
+	if !util.IsStringEmpty(opts.EndDate) {
+		listSelect = listSelect.Where("DATE(created_at) <= ?", opts.EndDate)
 	}
 
 	return events, count, listSelect.

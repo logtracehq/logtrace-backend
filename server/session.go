@@ -121,10 +121,14 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	status := r.URL.Query().Get("status")
+	startDate := r.URL.Query().Get("start_date")
+	endDate := r.URL.Query().Get("end_date")
 
 	opts := &logbase.ListSessionsOptions{
 		Paginator: logbase.PaginatorFromRequest(r),
 		Status:    status,
+		StartDate: startDate,
+		EndDate:   endDate,
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)

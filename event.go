@@ -38,6 +38,8 @@ type ListEventOptions struct {
 	Paginator      Paginator
 	HTTPStatus     string
 	HTTPMethod     string
+	StartDate      string
+	EndDate        string
 }
 
 type EventRepository interface {

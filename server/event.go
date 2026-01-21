@@ -129,12 +129,16 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	query := r.URL.Query()
 	httpStatus := query.Get("http_status")
 	httpMethod := query.Get("http_method")
+	startDate := query.Get("start_date")
+	endDate := query.Get("end_date")
 
 	opts := logbase.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		Paginator:      logbase.PaginatorFromRequest(r),
 		HTTPStatus:     httpStatus,
 		HTTPMethod:     httpMethod,
+		StartDate:      startDate,
+		EndDate:        endDate,
 	}
 
 	events := []*logbase.Event{}
