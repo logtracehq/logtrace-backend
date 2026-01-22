@@ -1,11 +1,18 @@
 ## Logbase
 
-Logbase is an open source audit trail and logging system designed to provide secure, tamper-evident logging capabilities
+Logbase is a secure audit trail and logging system designed to provide tamper-evident logging capabilities
 for applications and systems.
 
 ### Features
 
-_Coming soon..._
+- **Tamper-Evident Audit Logs**: Cryptographic hashing ensures log integrity and prevents unauthorized modifications
+- **Multi-Tenant Architecture**: Organization-based access control with role-based permissions
+- **RESTful API**: Comprehensive API for log management, user administration, and system monitoring
+- **JWT Authentication**: Secure token-based authentication with optional OAuth integration
+- **Real-Time Monitoring**: Live event streaming and alerting capabilities
+- **Compliance Ready**: Built-in features for GDPR, SOC 2, and other regulatory requirements
+- **PostgreSQL Backend**: Robust database storage with migration support
+- **Web Dashboard**: Intuitive React-based interface for log visualization and management
 
 ### Database Migrations
 
@@ -25,13 +32,13 @@ Database connection info is sourced via `viper` defaults defined in `config/conf
 
 #### Run Migrations
 
-Using the Makefile targets (Go runner invokes `golang-migrate` internally):
+Using the Taskfile targets (Go runner invokes `golang-migrate` internally):
 
 ```bash
-make migrate-up                 # apply all up migrations
-make migrate-down               # roll back last migration (1 step)
-make migrate-force VERSION=2    # force set version
-make migrate-create NAME=add_new_table  # create a new migration pair
+task migrate                 # apply all up migrations
+task migrate-down               # roll back last migration (1 step)
+task migrate-force VERSION=2    # force set version
+task migrate-create NAME=add_new_table  # create a new migration pair
 ```
 
 Direct CLI example:
@@ -43,18 +50,18 @@ migrate -path ./migrations -database "postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:
 #### Creating New Migrations
 
 ```bash
-make migrate-create NAME=descriptive_change
+task migrate-create --- descriptive_change
 # This produces something like: 000002_descriptive_change.up.sql / .down.sql
 ```
 
-Edit the generated files with your SQL changes, then run `make migrate-up`.
+Edit the generated files with your SQL changes, then run `task migrate`.
 
 #### Forcing Version (Recovery)
 
 If you need to manually set the schema version (e.g. after fixing a broken migration):
 
 ```bash
-make migrate-force VERSION=1
+task migrate-force VERSION=1
 ```
 
 #### Notes
