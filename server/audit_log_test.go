@@ -150,7 +150,7 @@ func generateCreateAuditLogTestTable() []struct {
 				UserID:     testUserID.String(),
 				IPAddress:  "192.168.1.1",
 				RequestID:  "req_123",
-				MetaData: &logbase.MetaData{
+				Metadata: &logbase.Metadata{
 					Event:       "login",
 					Type:        "authentication",
 					Description: "User logged in",
@@ -172,7 +172,7 @@ func generateCreateAuditLogTestTable() []struct {
 				UserID:     testUserID.String(),
 				IPAddress:  "192.168.1.1",
 				RequestID:  "req_123",
-				MetaData: &logbase.MetaData{
+				Metadata: &logbase.Metadata{
 					Event:       "login",
 					Type:        "authentication",
 					Description: "User logged in",

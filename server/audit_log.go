@@ -32,7 +32,7 @@ type createAuditLogRequest struct {
 	UserID         string            `json:"user_id"`
 	RequestID      string            `json:"request_id"`
 	OrganizationID string            `json:"organization_id"`
-	MetaData       *logbase.MetaData `json:"metadata" `
+	Metadata       *logbase.Metadata `json:"metadata" `
 }
 
 func (a *createAuditLogRequest) Validate() error {
@@ -79,7 +79,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		Timestamp:      time.Now().UTC(),
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		UserID:         getUserFromContext(r.Context()).ID,
-		MetaData:       req.MetaData,
+		Metadata:       req.Metadata,
 		RequestID:      req.RequestID,
 	}
 
@@ -118,8 +118,21 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusNotFound, "audit log not found"), StatusFailed
 	}
 
+	auditLogResponse := &AuditLog{
+		ID:             auditLog.ID,
+		Action:         auditLog.Action,
+		Timestamp:      auditLog.Timestamp,
+		ResourceID:     auditLog.ResourceID,
+		IPAddress:      auditLog.IPAddress,
+		UserID:         auditLog.UserID,
+		Metadata:       auditLog.Metadata,
+		CreatedAt:      auditLog.CreatedAt,
+		RequestID:      auditLog.RequestID,
+		OrganizationID: auditLog.OrganizationID,
+	}
+
 	return listAuditLog{
-		AuditLog:  auditLog,
+		AuditLog:  auditLogResponse,
 		APIStatus: newAPIStatus(http.StatusOK, "Audit log fetched successfully"),
 	}, StatusSuccess
 }
@@ -142,8 +155,26 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusInternalServerError, "failed to list audit logs"), StatusFailed
 	}
 
+	auditLogResponse := make([]*AuditLog, 0, len(auditLogs))
+	for _, a := range auditLogs {
+		dto := &AuditLog{
+			ID:             a.ID,
+			Action:         a.Action,
+			Timestamp:      a.Timestamp,
+			ResourceID:     a.ResourceID,
+			IPAddress:      a.IPAddress,
+			UserID:         a.UserID,
+			Metadata:       a.Metadata,
+			RequestID:      a.RequestID,
+			OrganizationID: a.OrganizationID,
+			CreatedAt:      a.CreatedAt,
+		}
+
+		auditLogResponse = append(auditLogResponse, dto)
+	}
+
 	return listAllAuditLogs{
-		AuditLogs: auditLogs,
+		AuditLogs: auditLogResponse,
 		Meta: meta{
 			Paging: pagingInfo{
 				Total:   count,

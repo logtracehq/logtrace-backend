@@ -2,8 +2,10 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"gitlab.com/logbase/logbase"
 )
 
@@ -42,8 +44,21 @@ func newAPIStatus(code int, s string) APIStatus {
 	}
 }
 
+type Event struct {
+	ID              uuid.UUID `json:"id"`
+	Type            string    `json:"type"`
+	HTTPMethod      string    `json:"http_method"`
+	HTTPStatus      string    `json:"http_status"`
+	HTTPEndpoint    string    `json:"http_endpoint"`
+	ClientIP        string    `json:"client_ip"`
+	OrganizationID  uuid.UUID `json:"organization_id"`
+	ClientUserAgent string    `json:"client_user_agent"`
+	GeoIPLocation   string    `json:"geo_ip_location"`
+	ActionName      string    `json:"action_name"`
+	CreatedAt       time.Time `json:"created_at"`
+}
 type fetchEventResponse struct {
-	Event *logbase.Event `json:"event"`
+	Event *Event `json:"event"`
 	APIStatus
 }
 
@@ -53,8 +68,8 @@ type fetchPlanResponse struct {
 }
 
 type fetchEventsResponse struct {
-	Events []*logbase.Event `json:"events"`
-	Meta   meta             `json:"meta"`
+	Events []*Event `json:"events"`
+	Meta   meta     `json:"meta"`
 	APIStatus
 }
 
@@ -71,14 +86,27 @@ type fetchUserResponse struct {
 	APIStatus
 }
 
+type Session struct {
+	ID             uuid.UUID `json:"id"`
+	UserID         uuid.UUID `json:"user_id"`
+	LoginAt        time.Time `json:"login_at"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	LogoutAt       time.Time `json:"logout_at"`
+	DeviceInfo     string    `json:"device_info"`
+	IPAddress      string    `json:"ip_address"`
+	Location       string    `json:"location"`
+	Status         string    `json:"status"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
 type fetchSessionResponse struct {
-	Session *logbase.Session `json:"session"`
+	Session *Session `json:"session"`
 	APIStatus
 }
 
 type fetchAllSessionsResponse struct {
-	Sessions []*logbase.Session `json:"sessions"`
-	Meta     meta               `json:"meta"`
+	Sessions []*Session `json:"sessions"`
+	Meta     meta       `json:"meta"`
 	APIStatus
 }
 
@@ -92,25 +120,57 @@ type createdAPIKeyResponse struct {
 	Value string `json:"value" validate:"required"`
 }
 
+type Key struct {
+	ID           uuid.UUID  `json:"id"`
+	Scope        string     `json:"scope"`
+	Name         string     `json:"name"`
+	ResourceID   uuid.UUID  `json:"resource_id"`
+	ResourceName string     `json:"resource_name"`
+	ResourceType string     `json:"resource_type"`
+	LastUsedAt   *time.Time `json:"last_used_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at,omitempty"`
+	ExpiredAt    *time.Time `json:"expired_at,omitempty"`
+}
+
 type listAPIKeysResponse struct {
-	Keys []*logbase.APIKey `json:"keys" validate:"required"`
+	Keys []*Key `json:"keys" validate:"required"`
 	APIStatus
+}
+
+type Resource struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type fetchAllResources struct {
-	Resources []*logbase.Resource `json:"resources"`
-	Meta      meta                `json:"meta"`
+	Resources []*Resource `json:"resources"`
+	Meta      meta        `json:"meta"`
 	APIStatus
 }
 
+type AuditLog struct {
+	ID             uuid.UUID         `json:"id"`
+	Action         string            `json:"action"`
+	Timestamp      time.Time         `json:"timestamp"`
+	ResourceID     uuid.UUID         `json:"resource_id"`
+	IPAddress      string            `json:"ip_address"`
+	UserID         uuid.UUID         `json:"user_id"`
+	CreatedAt      time.Time         `json:"created_at"`
+	RequestID      string            `json:"request_id"`
+	OrganizationID uuid.UUID         `json:"organization_id"`
+	Metadata       *logbase.Metadata `json:"metadata"`
+}
+
 type listAllAuditLogs struct {
-	AuditLogs []*logbase.AuditLog `json:"audit_logs"`
-	Meta      meta                `json:"meta"`
+	AuditLogs []*AuditLog `json:"audit_logs"`
+	Meta      meta        `json:"meta"`
 	APIStatus
 }
 
 type listAuditLog struct {
-	AuditLog *logbase.AuditLog `json:"audit_log"`
+	AuditLog *AuditLog `json:"audit_log"`
 	APIStatus
 }
 

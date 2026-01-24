@@ -31,7 +31,7 @@ func (res *resourceRepo) Create(ctx context.Context, resource *logbase.Resource)
 	return nil
 }
 
-func (res *resourceRepo) Get(ctx context.Context, id uuid.UUID) (*logbase.Resource, error) {
+func (res *resourceRepo) List(ctx context.Context, id uuid.UUID) (*logbase.Resource, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

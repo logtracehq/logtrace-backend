@@ -229,9 +229,12 @@ func setUpRoutes(
 			r.Delete("/{reference}", WrapLogbaseHTTPHandler(logger, apiKey.revoke, cfg, "APIKeys.revoke"))
 		})
 
-		r.Route("/plans", func(r chi.Router) {
+		r.Route("/plans/admin", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Post("/", WrapLogbaseHTTPHandler(logger, plan.Create, cfg, "Plan.create"))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Get, cfg, "Plan.listAll"))
+		})
+		r.Route("/plans", func(r chi.Router) {
 			r.Get("/", WrapLogbaseHTTPHandler(logger, plan.ListAll, cfg, "Plan.listAll"))
 		})
 	})

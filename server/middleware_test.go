@@ -323,7 +323,7 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			Get(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
+			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
 			Return(nil, errors.New("user not found"))
 
 		rr := httptest.NewRecorder()
@@ -358,7 +358,7 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			Get(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
+			ListAll(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
 			Return(&logbase.User{
 				ID: userID,
 				MetaData: &logbase.UserMetaData{
@@ -410,7 +410,7 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			Get(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
+			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
 			Return(&logbase.User{
 				ID: userID,
 
@@ -420,7 +420,7 @@ func TestRequireAuthentication(t *testing.T) {
 			}, nil)
 
 		orgRepo.EXPECT().
-			Get(gomock.Any(), &logbase.FindOrganizationOptions{ID: orgID}).
+			List(gomock.Any(), &logbase.FindOrganizationOptions{ID: orgID}).
 			Return(&logbase.Organization{ID: orgID}, nil)
 
 		rr := httptest.NewRecorder()

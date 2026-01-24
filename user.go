@@ -62,7 +62,7 @@ type FindUserOptions struct {
 
 type UserRepository interface {
 	Create(context.Context, *User) (*User, error)
-	Get(context.Context, *FindUserOptions) (*User, error)
-	List(context.Context, *FindUserOptions) ([]*User, int64, error)
+	List(context.Context, *FindUserOptions) (*User, error)
+	ListAll(context.Context, *FindUserOptions) ([]*User, int64, error)
 	Update(context.Context, *User) error
 }

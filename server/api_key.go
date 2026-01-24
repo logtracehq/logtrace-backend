@@ -24,7 +24,9 @@ type apiKeyHandler struct {
 type createAPIKeyRequest struct {
 	GenericRequest
 
-	Name string `json:"name,omitempty" validate:"required"`
+	Name       string `json:"name,omitempty" validate:"required"`
+	Scope      string `json:"scope,omitempty"`
+	ResourceID string `json:"resource_id,omitempty"`
 }
 
 func (c *createAPIKeyRequest) Validate() error {
@@ -37,7 +39,13 @@ func (c *createAPIKeyRequest) Validate() error {
 	}
 
 	if len(c.Name) > 20 {
-		return errors.New("name must be more than 20 characters")
+		return errors.New("name must be less than 20 characters")
+	}
+	if util.IsStringEmpty(c.ResourceID) {
+		return errors.New("please provide the resource id")
+	}
+	if c.Scope != "" && !logbase.APIKeyScope(c.Scope).IsValid() {
+		return errors.New("please provide a valid api key scope")
 	}
 
 	p := bluemonday.StrictPolicy()
@@ -67,11 +75,13 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	user := getUserFromContext(r.Context())
 
 	if err := render.Bind(r, req); err != nil {
+		logger.Error("invalid api key request", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
 	if err := req.Validate(); err != nil {
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
+	logger.Debug("this is a req", zap.Any("req", req))
 
 	existingAPIKey, err := d.apiKeyRepo.FetchByName(ctx, req.Name, organization.ID)
 	if err != nil && !errors.Is(err, logbase.ErrAPIKeyNotFound) {
@@ -86,11 +96,19 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	value := util.GenerateRandom()
 	encrypted := "lg_" + logbase.HashKey(d.cfg.APIKey.HashSecret, value)
 
+	resourceID, err := uuid.Parse(req.ResourceID)
+	if err != nil {
+		logger.Error("invalid resource id", zap.String("resource_id", req.ResourceID), zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid resource id"), StatusFailed
+	}
+
 	key := &logbase.APIKey{
 		OrganizationID: organization.ID,
 		CreatedBy:      user.ID,
 		Value:          encrypted,
 		Name:           req.Name,
+		ResourceID:     resourceID,
+		Scope:          logbase.APIKeyScope(req.Scope),
 	}
 
 	if err := d.apiKeyRepo.Create(ctx, key); err != nil {
@@ -130,17 +148,37 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 	}
 
-	keys, err := d.apiKeyRepo.List(ctx, opts)
+	apiKeys, err := d.apiKeyRepo.List(ctx, opts)
 	if err != nil {
-		logger.Error("could not list keys",
-			zap.Error(err))
+		logger.Error("could not list api keys", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"could not list api keys",
+		), StatusFailed
+	}
+	keys := make([]*Key, 0, len(apiKeys))
+	for _, k := range apiKeys {
+		dto := &Key{
+			ID:           k.ID,
+			Name:         k.Name,
+			Scope:        logbase.APIKeyScope(k.Scope).String(),
+			ResourceID:   k.Resource.ID,
+			CreatedAt:    k.CreatedAt,
+			LastUsedAt:   k.LastUsedAt,
+			ResourceName: k.Resource.Name,
+			ResourceType: k.Resource.Type,
+			ExpiredAt:    k.ExpiresAt,
+		}
 
-		return newAPIStatus(http.StatusInternalServerError, "could not list api keys"), StatusFailed
+		keys = append(keys, dto)
 	}
 
 	return listAPIKeysResponse{
-		APIStatus: newAPIStatus(http.StatusOK, "api key fetched successfully"),
-		Keys:      keys,
+		APIStatus: newAPIStatus(
+			http.StatusOK,
+			"api keys fetched successfully",
+		),
+		Keys: keys,
 	}, StatusSuccess
 }
 

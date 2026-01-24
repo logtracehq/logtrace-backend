@@ -17,6 +17,6 @@ type Plan struct {
 
 type PlanRepository interface {
 	Create(context.Context, *Plan) error
-	Get(context.Context, uuid.UUID) (*Plan, error)
+	List(context.Context, uuid.UUID) (*Plan, error)
 	ListAll(context.Context) ([]Plan, error)
 }

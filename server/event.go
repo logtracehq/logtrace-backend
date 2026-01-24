@@ -117,8 +117,22 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 		return newAPIStatus(http.StatusInternalServerError, "failed to list the event by it's ID"), StatusFailed
 	}
 
+	eventResponse := &Event{
+		ID:              event.ID,
+		Type:            event.Type,
+		HTTPMethod:      event.HTTPMethod,
+		HTTPStatus:      event.HTTPStatus,
+		HTTPEndpoint:    event.HTTPEndpoint,
+		ClientIP:        event.ClientIP,
+		OrganizationID:  event.OrganizationID,
+		ClientUserAgent: event.ClientUserAgent,
+		GeoIPLocation:   event.GeoIPLocation,
+		ActionName:      event.ActionName,
+		CreatedAt:       event.CreatedAt,
+	}
+
 	return fetchEventResponse{
-		Event:     event,
+		Event:     eventResponse,
 		APIStatus: newAPIStatus(http.StatusOK, "Event has been fetched successfully"),
 	}, StatusSuccess
 }
@@ -148,8 +162,25 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 		return newAPIStatus(http.StatusInternalServerError, "failed to fetch the events"), StatusFailed
 	}
 
+	eventResponses := make([]*Event, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, &Event{
+			ID:              event.ID,
+			Type:            event.Type,
+			HTTPMethod:      event.HTTPMethod,
+			HTTPStatus:      event.HTTPStatus,
+			HTTPEndpoint:    event.HTTPEndpoint,
+			ClientIP:        event.ClientIP,
+			OrganizationID:  event.OrganizationID,
+			ClientUserAgent: event.ClientUserAgent,
+			GeoIPLocation:   event.GeoIPLocation,
+			ActionName:      event.ActionName,
+			CreatedAt:       event.CreatedAt,
+		})
+	}
+
 	return fetchEventsResponse{
-		Events: events,
+		Events: eventResponses,
 		Meta: meta{
 			Paging: pagingInfo{
 				Total:   totalCount,

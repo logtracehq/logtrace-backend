@@ -570,7 +570,7 @@ func generateLoginTestTable() []struct {
 					Times(1).
 					Return(logbase.ErrUserExists)
 
-				userRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+				userRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, errors.New("could not fetch user"))
 			},
@@ -607,7 +607,7 @@ func generateLoginTestTable() []struct {
 					Times(1).
 					Return(logbase.ErrUserExists)
 
-				userRepo.EXPECT().Get(gomock.Any(), gomock.Any()).
+				userRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&logbase.User{
 						ID: reusedID,

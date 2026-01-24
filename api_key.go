@@ -16,16 +16,23 @@ var (
 	ErrAPIKeyMaxLimit = LogbaseError("you can only have a maximum of 10 active api keys")
 )
 
+// ENUM(readonly,readwrite,writeonly)
+type APIKeyScope string
+
 type APIKey struct {
-	ID             uuid.UUID  `json:"id,omitempty"         bun:"type:uuid,default:uuid_generate_v4(),pk"`
-	CreatedBy      uuid.UUID  `json:"created_by,omitempty"`
-	Value          string     `json:"-"`
-	Name           string     `json:"name,omitempty" bun:"name"`
-	OrganizationID uuid.UUID  `json:"organization_id" bun:"organization_id"`
-	ExpiresAt      *time.Time `json:"expires_at,omitempty" bun:",nullzero"`
-	CreatedAt      time.Time  `json:"created_at"           bun:",nullzero,notnull,default:current_timestamp"`
-	UpdatedAt      time.Time  `json:"updated_at"           bun:",nullzero,notnull,default:current_timestamp"`
-	DeletedAt      *time.Time `json:"-,omitempty"          bun:",soft_delete,nullzero"`
+	ID             uuid.UUID   `json:"id,omitempty"         bun:"type:uuid,default:uuid_generate_v4(),pk"`
+	CreatedBy      uuid.UUID   `json:"created_by,omitempty"`
+	Value          string      `json:"-"`
+	Name           string      `json:"name,omitempty" bun:"name"`
+	OrganizationID uuid.UUID   `json:"organization_id" bun:"organization_id"`
+	ResourceID     uuid.UUID   `json:"resource_id,omitempty" bun:"resource_id,nullzero"`
+	Resource       *Resource   `json:"resource,omitempty"   bun:"rel:belongs-to,join:resource_id=id"`
+	LastUsedAt     *time.Time  `json:"last_used_at,omitempty" bun:",nullzero"`
+	Scope          APIKeyScope `json:"scope,omitempty"       bun:"scope,nullzero"`
+	ExpiresAt      *time.Time  `json:"expires_at,omitempty" bun:",nullzero"`
+	CreatedAt      time.Time   `json:"created_at"           bun:",nullzero,notnull,default:current_timestamp"`
+	UpdatedAt      time.Time   `json:"updated_at"           bun:",nullzero,notnull,default:current_timestamp"`
+	DeletedAt      *time.Time  `json:"-,omitempty"          bun:",soft_delete,nullzero"`
 
 	bun.BaseModel `json:"-"`
 }

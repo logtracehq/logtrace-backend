@@ -56,35 +56,35 @@ func (mr *MockUserRepositoryMockRecorder) Create(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), arg0, arg1)
 }
 
-// Get mocks base method.
-func (m *MockUserRepository) Get(arg0 context.Context, arg1 *logbase.FindUserOptions) (*logbase.User, error) {
+// List mocks base method.
+func (m *MockUserRepository) List(arg0 context.Context, arg1 *logbase.FindUserOptions) (*logbase.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret := m.ctrl.Call(m, "List", arg0, arg1)
 	ret0, _ := ret[0].(*logbase.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockUserRepositoryMockRecorder) Get(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserRepository)(nil).Get), arg0, arg1)
-}
-
-// List mocks base method.
-func (m *MockUserRepository) List(arg0 context.Context, arg1 *logbase.FindUserOptions) ([]*logbase.User, int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", arg0, arg1)
-	ret0, _ := ret[0].([]*logbase.User)
-	ret1, _ := ret[1].(int64)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
 }
 
 // List indicates an expected call of List.
 func (mr *MockUserRepositoryMockRecorder) List(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockUserRepository)(nil).List), arg0, arg1)
+}
+
+// ListAll mocks base method.
+func (m *MockUserRepository) ListAll(arg0 context.Context, arg1 *logbase.FindUserOptions) ([]*logbase.User, int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListAll", arg0, arg1)
+	ret0, _ := ret[0].([]*logbase.User)
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ListAll indicates an expected call of ListAll.
+func (mr *MockUserRepositoryMockRecorder) ListAll(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockUserRepository)(nil).ListAll), arg0, arg1)
 }
 
 // Update mocks base method.

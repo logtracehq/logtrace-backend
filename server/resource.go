@@ -78,7 +78,7 @@ func (res *resourceHandler) List(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, "invalid resource reference"), StatusFailed
 	}
 
-	resource, err := res.resourceRepo.Get(ctx, resourceIdentifier)
+	resource, err := res.resourceRepo.List(ctx, resourceIdentifier)
 	if err != nil {
 		logger.Error("failed to fetch resource", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to fetch resource"), StatusFailed
@@ -93,7 +93,7 @@ func (res *resourceHandler) List(ctx context.Context, span trace.Span, logger *z
 func (res *resourceHandler) Delete(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
-	resourceID := r.URL.Query().Get("reference")
+	resourceID := chi.URLParam(r, "reference")
 	resourceIdentifier, err := uuid.Parse(resourceID)
 	if err != nil {
 		logger.Error("invalid resource id", zap.Error(err))
@@ -123,8 +123,20 @@ func (res *resourceHandler) ListAll(ctx context.Context, span trace.Span, logger
 		return newAPIStatus(http.StatusInternalServerError, "failed to fetch all resources"), StatusFailed
 	}
 
+	resourcesResponse := make([]*Resource, 0, len(resources))
+	for _, r := range resources {
+		dto := &Resource{
+			ID:        r.ID,
+			Name:      r.Name,
+			Type:      r.Type,
+			CreatedAt: r.CreatedAt,
+		}
+
+		resourcesResponse = append(resourcesResponse, dto)
+	}
+
 	return fetchAllResources{
-		Resources: resources,
+		Resources: resourcesResponse,
 		Meta: meta{
 			Paging: pagingInfo{
 				Total:   totalCount,

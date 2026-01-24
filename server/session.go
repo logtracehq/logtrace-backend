@@ -111,8 +111,20 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusInternalServerError, "failed to list the session by its ID"), StatusFailed
 	}
 
+	sessionResponse := &Session{
+		ID:             session.ID,
+		UserID:         session.UserID,
+		LoginAt:        session.LoginAt,
+		OrganizationID: session.OrganizationID,
+		LogoutAt:       session.LogoutAt,
+		DeviceInfo:     session.DeviceInfo,
+		IPAddress:      session.IPAddress,
+		Location:       session.Location,
+		Status:         session.Status,
+		CreatedAt:      session.CreatedAt,
+	}
 	return fetchSessionResponse{
-		Session:   session,
+		Session:   sessionResponse,
 		APIStatus: newAPIStatus(http.StatusOK, "Session has been fetched successfully"),
 	}, StatusSuccess
 }
@@ -139,8 +151,24 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusInternalServerError, "failed to fetch all sessions"), StatusFailed
 	}
 
+	var sessionResponses []*Session
+	for _, session := range sessions {
+		sessionResponses = append(sessionResponses, &Session{
+			ID:             session.ID,
+			UserID:         session.UserID,
+			LoginAt:        session.LoginAt,
+			OrganizationID: session.OrganizationID,
+			LogoutAt:       session.LogoutAt,
+			DeviceInfo:     session.DeviceInfo,
+			IPAddress:      session.IPAddress,
+			Location:       session.Location,
+			Status:         session.Status,
+			CreatedAt:      session.CreatedAt,
+		})
+	}
+
 	return fetchAllSessionsResponse{
-		Sessions: sessions,
+		Sessions: sessionResponses,
 		Meta: meta{
 			Paging: pagingInfo{
 				Total:   totalCount,

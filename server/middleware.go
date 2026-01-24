@@ -260,7 +260,7 @@ func requireAuthentication(
 				return
 			}
 
-			user, err := userRepo.Get(ctx, &logbase.FindUserOptions{
+			user, err := userRepo.List(ctx, &logbase.FindUserOptions{
 				ID: data.UserID,
 			})
 			if err != nil {
@@ -284,7 +284,7 @@ func requireAuthentication(
 				return
 			}
 
-			org, err := orgRepo.Get(ctx, logbase.FindOrganizationOptions{
+			org, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
 				ID: user.MetaData.OrganizationID,
 			})
 			if err != nil {

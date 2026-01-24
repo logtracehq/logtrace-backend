@@ -14,7 +14,7 @@ type (
 	ActionType string
 )
 
-type MetaData struct {
+type Metadata struct {
 	Event       string `json:"event"`
 	Type        string `json:"type"`
 	Description string `json:"description"`
@@ -28,7 +28,7 @@ type AuditLog struct {
 	IPAddress      string     `json:"ip_address"`
 	UserID         uuid.UUID  `json:"user_id"     bun:"type:uuid"`
 	Resource       *Resource  `json:"resource"    bun:"rel:belongs-to,join:resource_id=id"`
-	MetaData       *MetaData  `json:"metadata"   bun:"type:jsonb"`
+	Metadata       *Metadata  `json:"metadata"   bun:"type:jsonb"`
 	CreatedAt      time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	RequestID      string     `json:"request_id"`
 	OrganizationID uuid.UUID  `json:"organization_id" bun:"type:uuid"`
