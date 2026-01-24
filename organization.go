@@ -31,8 +31,8 @@ type FindOrganizationOptions struct {
 
 type OrganizationRepository interface {
 	Create(context.Context, *Organization) (*Organization, error)
-	Get(context.Context, FindOrganizationOptions) (*Organization, error)
+	List(context.Context, FindOrganizationOptions) (*Organization, error)
 	Update(context.Context, uuid.UUID) (*Organization, error)
 	Delete(context.Context, *FindOrganizationOptions) error
-	List(context.Context, *User) ([]Organization, error)
+	ListAll(context.Context, *User) ([]Organization, error)
 }

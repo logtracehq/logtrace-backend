@@ -194,7 +194,7 @@ func (a *authHandler) loginWithEmail(ctx context.Context, logger *zap.Logger, re
 		Email: logbase.Email(req.Email),
 	}
 
-	user, err := a.userRepo.Get(ctx, opts)
+	user, err := a.userRepo.List(ctx, opts)
 	if err != nil {
 		if errors.Is(err, logbase.ErrUserNotFound) {
 			logger.Debug("user not found", zap.String("email", req.Email))
@@ -204,7 +204,7 @@ func (a *authHandler) loginWithEmail(ctx context.Context, logger *zap.Logger, re
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while logging in"), StatusFailed
 	}
 
-	userPassword, err := a.passwordRepo.Get(ctx, user.ID)
+	userPassword, err := a.passwordRepo.List(ctx, user.ID)
 	if err != nil {
 
 		logger.Error("error fetching user password", zap.Error(err))
@@ -227,7 +227,7 @@ func (a *authHandler) getOrCreateUser(
 ) (render.Renderer, Status) {
 	_, err := a.userRepo.Create(ctx, user)
 	if errors.Is(err, logbase.ErrUserExists) {
-		user, err := a.userRepo.Get(ctx, &logbase.FindUserOptions{
+		user, err := a.userRepo.List(ctx, &logbase.FindUserOptions{
 			Email: user.Email,
 		})
 		if err != nil {
@@ -272,7 +272,7 @@ func (a *authHandler) fetchCurrentUser(
 		org = getOrganizationFromContext(ctx)
 	}
 
-	orgs, err := a.orgRepo.List(ctx, user)
+	orgs, err := a.orgRepo.ListAll(ctx, user)
 	if err != nil {
 		logger.Error("an error occurred while fetching user organizations", zap.Error(err))
 		return newAPIStatus(
@@ -466,7 +466,7 @@ func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, lo
 	}
 
 	findOpts := &logbase.FindUserOptions{Email: req.Email}
-	_, err := a.userRepo.Get(ctx, findOpts)
+	_, err := a.userRepo.List(ctx, findOpts)
 	if err == nil {
 		return newAPIStatus(http.StatusConflict, "User already exists"), StatusFailed
 	}
@@ -525,7 +525,7 @@ func (a *authHandler) listOrganizationUsers(ctx context.Context, span trace.Span
 		OrganizationID: org.ID,
 	}
 
-	users, totalCount, err := a.userRepo.List(ctx, opts)
+	users, totalCount, err := a.userRepo.ListAll(ctx, opts)
 	if err != nil {
 		logger.Error("error listing organization users", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not list organization users"), StatusFailed
@@ -565,7 +565,7 @@ func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logge
 		return newAPIStatus(http.StatusBadRequest, "invalid user reference"), StatusFailed
 	}
 
-	user, err := a.userRepo.Get(ctx, &logbase.FindUserOptions{
+	user, err := a.userRepo.List(ctx, &logbase.FindUserOptions{
 		ID: userID,
 	})
 	if err != nil {

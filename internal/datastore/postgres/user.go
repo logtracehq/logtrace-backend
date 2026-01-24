@@ -33,7 +33,7 @@ func (r *userRepo) Create(ctx context.Context, u *logbase.User) (*logbase.User, 
 	return u, nil
 }
 
-func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) ([]*logbase.User, int64, error) {
+func (r *userRepo) ListAll(ctx context.Context, opts *logbase.FindUserOptions) ([]*logbase.User, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -69,7 +69,7 @@ func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) ([]*
 	return users, int64(totalCount), nil
 }
 
-func (r *userRepo) Get(ctx context.Context, opts *logbase.FindUserOptions) (*logbase.User, error) {
+func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) (*logbase.User, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

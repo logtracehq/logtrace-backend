@@ -212,7 +212,7 @@ func (t *WatermillClient) sendEmailVerification(msg *message.Message) error {
 		return err
 	}
 
-	user, err := t.userRepo.Get(ctx, &logbase.FindUserOptions{
+	user, err := t.userRepo.List(ctx, &logbase.FindUserOptions{
 		ID: opts.UserID,
 	})
 	if err != nil {

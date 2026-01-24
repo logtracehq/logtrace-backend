@@ -53,7 +53,7 @@ func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.APIKeyOptions) (
 		query = query.Where("organization_id = ?", opts.OrganizationID)
 	}
 
-	err := query.Scan(ctx)
+	err := query.Order("created_at DESC").Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = logbase.ErrAPIKeyNotFound
 	}
@@ -63,7 +63,7 @@ func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.APIKeyOptions) (
 func (r *apiKeyRepo) List(ctx context.Context, opts logbase.APIKeyOptions) ([]*logbase.APIKey, error) {
 	var apiKeys []*logbase.APIKey
 
-	return apiKeys, r.inner.NewSelect().Model(&apiKeys).
+	return apiKeys, r.inner.NewSelect().Model(&apiKeys).Relation("Resource").
 		Where("organization_id = ?", opts.OrganizationID).
 		Scan(ctx)
 }

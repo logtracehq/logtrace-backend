@@ -32,7 +32,7 @@ func (p *passwordRepo) Create(ctx context.Context, password *logbase.Password) e
 	return nil
 }
 
-func (p *passwordRepo) Get(ctx context.Context, userID uuid.UUID) (*logbase.Password, error) {
+func (p *passwordRepo) List(ctx context.Context, userID uuid.UUID) (*logbase.Password, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

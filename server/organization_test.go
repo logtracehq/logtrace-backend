@@ -300,11 +300,11 @@ func TestOrganizationRepository(t *testing.T) {
 		}
 
 		orgRepo.EXPECT().
-			Get(gomock.Any(), opts).
+			List(gomock.Any(), opts).
 			Times(1).
 			Return(expectedOrg, nil)
 
-		result, err := orgRepo.Get(context.Background(), opts)
+		result, err := orgRepo.List(context.Background(), opts)
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.Equal(t, orgID, result.ID)
@@ -320,11 +320,11 @@ func TestOrganizationRepository(t *testing.T) {
 		opts := logbase.FindOrganizationOptions{ID: uuid.New()}
 
 		orgRepo.EXPECT().
-			Get(gomock.Any(), opts).
+			List(gomock.Any(), opts).
 			Times(1).
 			Return(nil, logbase.OrganizationNotFound)
 
-		result, err := orgRepo.Get(context.Background(), opts)
+		result, err := orgRepo.List(context.Background(), opts)
 		require.Error(t, err)
 		require.Nil(t, result)
 		require.ErrorIs(t, err, logbase.OrganizationNotFound)
@@ -360,7 +360,7 @@ func TestOrganizationRepository(t *testing.T) {
 			Times(1).
 			Return(expectedOrgs, nil)
 
-		result, err := orgRepo.List(context.Background(), user)
+		result, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)
 		require.Len(t, result, 2)
 		require.Equal(t, "Organization 1", result[0].Name)
@@ -376,11 +376,11 @@ func TestOrganizationRepository(t *testing.T) {
 		user := &logbase.User{ID: userID}
 
 		orgRepo.EXPECT().
-			List(gomock.Any(), user).
+			ListAll(gomock.Any(), user).
 			Times(1).
 			Return([]logbase.Organization{}, nil)
 
-		result, err := orgRepo.List(context.Background(), user)
+		result, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)
 		require.Empty(t, result)
 	})

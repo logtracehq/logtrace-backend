@@ -34,7 +34,7 @@ type FindResourceOptions struct {
 }
 
 type ResourceRepository interface {
-	Get(context.Context, uuid.UUID) (*Resource, error)
+	List(context.Context, uuid.UUID) (*Resource, error)
 	Create(context.Context, *Resource) error
 	ListAll(context.Context, ListResourceOptions) ([]*Resource, int64, error)
 	Delete(context.Context, uuid.UUID) error

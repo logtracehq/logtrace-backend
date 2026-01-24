@@ -73,7 +73,7 @@ func (p *planHandler) Get(ctx context.Context, span trace.Span, logger *zap.Logg
 		logger.Error("invalid plan ID format", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "invalid plan ID format"), StatusFailed
 	}
-	plan, err := p.planRepo.Get(ctx, planId)
+	plan, err := p.planRepo.List(ctx, planId)
 	if err != nil {
 		logger.Error("failed to fetch plan by ID")
 		return newAPIStatus(http.StatusInternalServerError, "failed to list the plan by it's ID"), StatusFailed

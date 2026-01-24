@@ -30,7 +30,7 @@ func (p *planRepo) Create(ctx context.Context, plan *logbase.Plan) error {
 	return nil
 }
 
-func (p *planRepo) Get(ctx context.Context, id uuid.UUID) (*logbase.Plan, error) {
+func (p *planRepo) List(ctx context.Context, id uuid.UUID) (*logbase.Plan, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

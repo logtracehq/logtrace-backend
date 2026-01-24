@@ -33,7 +33,7 @@ func (org *orgRepo) Create(ctx context.Context, organization *logbase.Organizati
 	return organization, nil
 }
 
-func (org *orgRepo) Get(ctx context.Context, opts logbase.FindOrganizationOptions) (*logbase.Organization, error) {
+func (org *orgRepo) List(ctx context.Context, opts logbase.FindOrganizationOptions) (*logbase.Organization, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -92,7 +92,7 @@ func (org *orgRepo) Delete(ctx context.Context, opts *logbase.FindOrganizationOp
 	return nil
 }
 
-func (org *orgRepo) List(ctx context.Context, user *logbase.User) ([]logbase.Organization, error) {
+func (org *orgRepo) ListAll(ctx context.Context, user *logbase.User) ([]logbase.Organization, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
