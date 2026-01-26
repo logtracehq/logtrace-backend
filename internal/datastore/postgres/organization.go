@@ -50,7 +50,7 @@ func (org *orgRepo) List(ctx context.Context, opts logbase.FindOrganizationOptio
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return organization, logbase.OrganizationNotFound
+		return organization, logbase.ErrOrganizationNotFound
 	}
 
 	return organization, err
@@ -92,19 +92,38 @@ func (org *orgRepo) Delete(ctx context.Context, opts *logbase.FindOrganizationOp
 	return nil
 }
 
-func (org *orgRepo) ListAll(ctx context.Context, user *logbase.User) ([]logbase.Organization, error) {
+func (org *orgRepo) ListAll(ctx context.Context, opts *logbase.FindOrganizationOptions) ([]logbase.Organization, int64, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	orgs := make([]logbase.Organization, 0)
+	count := int64(0)
+	organizations := []logbase.Organization{}
 
-	if user.MetaData == nil {
-		return orgs, nil
+	countSelect := org.inner.NewSelect().Model(&organizations).Where("deleted_at IS NULL")
+	if !util.IsStringEmpty(opts.UserID.String()) {
+		countSelect = countSelect.Where("id = (SELECT (metadata->>'organization_id')::uuid FROM users WHERE id = ?)", opts.UserID.String())
+	}
+	if !util.IsStringEmpty(opts.Plan) {
+		countSelect = countSelect.Where("plan_name = ?", opts.Plan)
 	}
 
-	return orgs, org.inner.NewSelect().
-		Model(&orgs).
-		Where("id = ? AND is_active = ?", user.MetaData.OrganizationID, true).
-		Order("created_at DESC").
+	totalCount, err := countSelect.Count(ctx)
+	if err != nil {
+		return organizations, count, err
+	}
+
+	count = int64(totalCount)
+
+	listSelect := org.inner.NewSelect().Model(&organizations).Where("deleted_at IS NULL")
+	if !util.IsStringEmpty(opts.UserID.String()) {
+		listSelect = listSelect.Where("id = (SELECT (metadata->>'organization_id')::uuid FROM users WHERE id = ?)", opts.UserID.String())
+	}
+	if !util.IsStringEmpty(opts.Plan) {
+		listSelect = listSelect.Where("plan_name = ?", opts.Plan)
+	}
+
+	return organizations, count, listSelect.
+		Limit(int(opts.Paginator.PerPage)).
+		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
 }

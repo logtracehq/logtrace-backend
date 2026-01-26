@@ -45,7 +45,7 @@ func (r *userRepo) ListAll(ctx context.Context, opts *logbase.FindUserOptions) (
 		countSelect = countSelect.Where("email = ?", opts.Email)
 	}
 	if opts.OrganizationID != uuid.Nil {
-		countSelect = countSelect.Where("meta_data->>'organization_id' = ?", opts.OrganizationID.String())
+		countSelect = countSelect.Where("metadata->>'organization_id' = ?", opts.OrganizationID.String())
 	}
 
 	selectUser := r.inner.NewSelect().Model(&users).Relation("Roles")
@@ -53,7 +53,7 @@ func (r *userRepo) ListAll(ctx context.Context, opts *logbase.FindUserOptions) (
 		selectUser = selectUser.Where("email = ?", opts.Email)
 	}
 	if opts.OrganizationID != uuid.Nil {
-		selectUser = selectUser.Where("meta_data->>'organization_id' = ?", opts.OrganizationID.String())
+		selectUser = selectUser.Where("metadata->>'organization_id' = ?", opts.OrganizationID.String())
 	}
 
 	totalCount, err := countSelect.Count(ctx)
@@ -85,7 +85,7 @@ func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) (*lo
 		selectUser = selectUser.Where("id = ?", opts.ID)
 	}
 	if opts.OrganizationID != uuid.Nil {
-		selectUser = selectUser.Where("meta_data->>'organization_id' = ?", opts.OrganizationID.String())
+		selectUser = selectUser.Where("metadata->>'organization_id' = ?", opts.OrganizationID.String())
 	}
 
 	err := selectUser.Scan(ctx)

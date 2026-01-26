@@ -83,9 +83,7 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOpt
 	}
 	count = int64(totalCount)
 
-	listSelect := s.inner.NewSelect().
-		Model(&sessions).
-		Where("deleted_at IS NULL")
+	listSelect := s.inner.NewSelect().Model(&sessions).Where("deleted_at IS NULL")
 
 	if opts.Status != "" && opts.Status != "all" {
 		listSelect = listSelect.Where("status = ?", opts.Status)

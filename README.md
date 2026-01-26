@@ -69,7 +69,7 @@ task migrate-force VERSION=1
 - The initial migration enables the `uuid-ossp` extension.
 - Tables use `timestamptz` and soft-delete columns (`deleted_at`) matching the Bun models.
 - Keep application models and migrations in sync to avoid runtime issues.
-- Foreign keys added in migration `000002_add_foreign_keys` for organizations (plan), sessions (organization), and audit logs (resource, user). Audit log `resource_id` and `user_id` columns are now UUIDs.
+- Foreign keys added in migration `000002_add_foreign_keys` for organizations (plan), sessions (organization), and audit logs (project, user). Audit log `project_id` and `user_id` columns are now UUIDs.
 
 ### Go Migration Runner
 

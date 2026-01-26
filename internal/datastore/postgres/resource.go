@@ -8,22 +8,22 @@ import (
 	"gitlab.com/logbase/logbase"
 )
 
-type resourceRepo struct {
+type projectRepo struct {
 	inner *bun.DB
 }
 
-func NewResourceRepo(db *bun.DB) logbase.ResourceRepository {
-	return &resourceRepo{
+func NewProjectRepo(db *bun.DB) logbase.ProjectRepository {
+	return &projectRepo{
 		inner: db,
 	}
 }
 
-func (res *resourceRepo) Create(ctx context.Context, resource *logbase.Resource) error {
+func (res *projectRepo) Create(ctx context.Context, project *logbase.Project) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
 	_, err := res.inner.NewInsert().
-		Model(resource).
+		Model(project).
 		Exec(ctx)
 	if err != nil {
 		return err
@@ -31,44 +31,44 @@ func (res *resourceRepo) Create(ctx context.Context, resource *logbase.Resource)
 	return nil
 }
 
-func (res *resourceRepo) List(ctx context.Context, id uuid.UUID) (*logbase.Resource, error) {
+func (res *projectRepo) List(ctx context.Context, id uuid.UUID) (*logbase.Project, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	resource := &logbase.Resource{}
+	project := &logbase.Project{}
 	err := res.inner.NewSelect().
-		Model(resource).
+		Model(project).
 		Where("id = ?", id).
 		Scan(ctx)
 
-	return resource, err
+	return project, err
 }
 
-func (res *resourceRepo) ListAll(ctx context.Context, opts logbase.ListResourceOptions) ([]*logbase.Resource, int64, error) {
+func (res *projectRepo) ListAll(ctx context.Context, opts logbase.ListProjectOptions) ([]*logbase.Project, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	resources := []*logbase.Resource{}
+	projects := []*logbase.Project{}
 	count := int64(0)
-	countTotal, err := res.inner.NewSelect().Model(&(resources)).Where("deleted_at IS NULL").Count(ctx)
+	countTotal, err := res.inner.NewSelect().Model(&(projects)).Where("deleted_at IS NULL").Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 	count = int64(countTotal)
 
-	return resources, count, res.inner.NewSelect().
-		Model(&resources).
+	return projects, count, res.inner.NewSelect().
+		Model(&projects).
 		Where("deleted_at IS NULL").
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).Scan(ctx)
 }
 
-func (res *resourceRepo) Delete(ctx context.Context, id uuid.UUID) error {
+func (res *projectRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
 	_, err := res.inner.NewDelete().
-		Model(&logbase.Resource{}).
+		Model(&logbase.Project{}).
 		Where("id = ?", id).
 		Exec(ctx)
 	return err

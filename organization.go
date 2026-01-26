@@ -7,7 +7,10 @@ import (
 	"github.com/google/uuid"
 )
 
-var OrganizationNotFound = LogbaseError("Organization not found")
+var (
+	ErrOrganizationNotFound = LogbaseError("Organization not found")
+	ErrOrganizationExists   = LogbaseError("Organization already exists")
+)
 
 type Organization struct {
 	ID                   uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
@@ -25,8 +28,11 @@ type ListOrganizationOptions struct {
 }
 
 type FindOrganizationOptions struct {
-	ID   uuid.UUID `json:"id,omitempty"`
-	Name string    `json:"name,omitempty"`
+	ID        uuid.UUID `json:"id,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	UserID    uuid.UUID `json:"user_id,omitempty"`
+	Plan      string    `json:"plan,omitempty"`
+	Paginator Paginator `json:"paginator"`
 }
 
 type OrganizationRepository interface {
@@ -34,5 +40,5 @@ type OrganizationRepository interface {
 	List(context.Context, FindOrganizationOptions) (*Organization, error)
 	Update(context.Context, uuid.UUID) (*Organization, error)
 	Delete(context.Context, *FindOrganizationOptions) error
-	ListAll(context.Context, *User) ([]Organization, error)
+	ListAll(context.Context, *FindOrganizationOptions) ([]Organization, int64, error)
 }

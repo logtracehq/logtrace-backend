@@ -15,128 +15,128 @@ import (
 	"go.uber.org/zap"
 )
 
-type resourceHandler struct {
-	cfg          config.Config
-	userRepo     logbase.UserRepository
-	resourceRepo logbase.ResourceRepository
+type projectHandler struct {
+	cfg         config.Config
+	userRepo    logbase.UserRepository
+	projectRepo logbase.ProjectRepository
 }
 
-type createResourceRequest struct {
+type createProjectRequest struct {
 	GenericRequest
 
 	Name string
 	Type string
 }
 
-func (r *createResourceRequest) Validate() error {
+func (r *createProjectRequest) Validate() error {
 	if util.IsStringEmpty(r.Name) {
-		return errors.New("resource name is required")
+		return errors.New("project name is required")
 	}
 	if util.IsStringEmpty(r.Type) {
-		return errors.New("resource type is required")
+		return errors.New("project type is required")
 	}
 
 	return nil
 }
 
-func (res *resourceHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
+func (res *projectHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
-	logger.Debug("creating new resource")
+	logger.Debug("creating new project")
 
-	req := new(createResourceRequest)
+	req := new(createProjectRequest)
 	if err := render.Bind(r, req); err != nil {
-		logger.Error("failed to bind create resource request", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "failed to create resource request"), StatusFailed
+		logger.Error("failed to bind create project request", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "failed to create project request"), StatusFailed
 	}
 
 	if err := req.Validate(); err != nil {
-		logger.Error("invalid create resource request", zap.Error(err))
+		logger.Error("invalid create project request", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "failed to validate payload"), StatusFailed
 	}
 
-	resource := &logbase.Resource{
+	project := &logbase.Project{
 		Name: req.Name,
 		Type: req.Type,
 	}
 
-	if err := res.resourceRepo.Create(ctx, resource); err != nil {
-		logger.Error("failed to create resource", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to create resource"), StatusFailed
+	if err := res.projectRepo.Create(ctx, project); err != nil {
+		logger.Error("failed to create project", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to create project"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "Resource created successfully"), StatusSuccess
+	return newAPIStatus(http.StatusCreated, "Project created successfully"), StatusSuccess
 }
 
-func (res *resourceHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
+func (res *projectHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
-	resourceID := chi.URLParam(r, "reference")
-	resourceIdentifier, err := uuid.Parse(resourceID)
+	projectID := chi.URLParam(r, "reference")
+	projectIdentifier, err := uuid.Parse(projectID)
 	if err != nil {
-		logger.Error("invalid resource id", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "invalid resource reference"), StatusFailed
+		logger.Error("invalid project id", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid project reference"), StatusFailed
 	}
 
-	resource, err := res.resourceRepo.List(ctx, resourceIdentifier)
+	project, err := res.projectRepo.List(ctx, projectIdentifier)
 	if err != nil {
-		logger.Error("failed to fetch resource", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to fetch resource"), StatusFailed
+		logger.Error("failed to fetch project", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch project"), StatusFailed
 	}
 
-	return fetchResource{
-		Resource:  *resource,
-		APIStatus: newAPIStatus(http.StatusOK, "resource fetched successfully"),
+	return fetchProject{
+		Project:   *project,
+		APIStatus: newAPIStatus(http.StatusOK, "project fetched successfully"),
 	}, StatusSuccess
 }
 
-func (res *resourceHandler) Delete(ctx context.Context, span trace.Span, logger *zap.Logger,
+func (res *projectHandler) Delete(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
-	resourceID := chi.URLParam(r, "reference")
-	resourceIdentifier, err := uuid.Parse(resourceID)
+	projectID := chi.URLParam(r, "reference")
+	projectIdentifier, err := uuid.Parse(projectID)
 	if err != nil {
-		logger.Error("invalid resource id", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "invalid resource id"), StatusFailed
+		logger.Error("invalid project id", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid project id"), StatusFailed
 	}
 
-	if err := res.resourceRepo.Delete(ctx, resourceIdentifier); err != nil {
-		logger.Error("failed to delete resource", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to delete resource"), StatusFailed
+	if err := res.projectRepo.Delete(ctx, projectIdentifier); err != nil {
+		logger.Error("failed to delete project", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to delete project"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusOK, "Resource has been deleted successfully"), StatusSuccess
+	return newAPIStatus(http.StatusOK, "Project has been deleted successfully"), StatusSuccess
 }
 
-func (res *resourceHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger, w http.ResponseWriter,
+func (res *projectHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger, w http.ResponseWriter,
 	r *http.Request,
 ) (render.Renderer, Status) {
-	opts := logbase.ListResourceOptions{
+	opts := logbase.ListProjectOptions{
 		Paginator: logbase.PaginatorFromRequest(r),
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
 
-	resources, totalCount, err := res.resourceRepo.ListAll(ctx, opts)
+	projects, totalCount, err := res.projectRepo.ListAll(ctx, opts)
 	if err != nil {
-		logger.Error("failed to fetch all resources", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to fetch all resources"), StatusFailed
+		logger.Error("failed to fetch all projects", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch all projects"), StatusFailed
 	}
 
-	resourcesResponse := make([]*Resource, 0, len(resources))
-	for _, r := range resources {
-		dto := &Resource{
+	projectsResponse := make([]*Project, 0, len(projects))
+	for _, r := range projects {
+		dto := &Project{
 			ID:        r.ID,
 			Name:      r.Name,
 			Type:      r.Type,
 			CreatedAt: r.CreatedAt,
 		}
 
-		resourcesResponse = append(resourcesResponse, dto)
+		projectsResponse = append(projectsResponse, dto)
 	}
 
-	return fetchAllResources{
-		Resources: resourcesResponse,
+	return fetchAllProjects{
+		Projects: projectsResponse,
 		Meta: meta{
 			Paging: pagingInfo{
 				Total:   totalCount,
@@ -144,6 +144,6 @@ func (res *resourceHandler) ListAll(ctx context.Context, span trace.Span, logger
 				PerPage: int64(opts.Paginator.PerPage),
 			},
 		},
-		APIStatus: newAPIStatus(http.StatusOK, "Resources fetched successfully"),
+		APIStatus: newAPIStatus(http.StatusOK, "Projects fetched successfully"),
 	}, StatusSuccess
 }

@@ -27,7 +27,7 @@ type createAuditLogRequest struct {
 
 	Action         string            `json:"action"`
 	Timestamp      string            `json:"timestamp"`
-	ResourceID     string            `json:"resource_id"`
+	ProjectID      string            `json:"project_id"`
 	IPAddress      string            `json:"ip_address"`
 	UserID         string            `json:"user_id"`
 	RequestID      string            `json:"request_id"`
@@ -42,8 +42,8 @@ func (a *createAuditLogRequest) Validate() error {
 	if util.IsStringEmpty(a.Timestamp) {
 		return errors.New("timestamp is required")
 	}
-	if util.IsStringEmpty(a.ResourceID) {
-		return errors.New("resource id is required")
+	if util.IsStringEmpty(a.ProjectID) {
+		return errors.New("project id is required")
 	}
 
 	return nil
@@ -66,15 +66,15 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, "failed to process request"), StatusFailed
 	}
 
-	resourceUUID, err := uuid.Parse(req.ResourceID)
+	projectUUID, err := uuid.Parse(req.ProjectID)
 	if err != nil {
-		logger.Error("invalid resource ID", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "invalid resource ID"), StatusFailed
+		logger.Error("invalid project ID", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid project ID"), StatusFailed
 	}
 
 	auditLog := &logbase.AuditLog{
 		Action:         req.Action,
-		ResourceID:     resourceUUID,
+		ProjectID:      projectUUID,
 		IPAddress:      req.IPAddress,
 		Timestamp:      time.Now().UTC(),
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
@@ -122,7 +122,7 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 		ID:             auditLog.ID,
 		Action:         auditLog.Action,
 		Timestamp:      auditLog.Timestamp,
-		ResourceID:     auditLog.ResourceID,
+		ProjectID:      auditLog.ProjectID,
 		IPAddress:      auditLog.IPAddress,
 		UserID:         auditLog.UserID,
 		Metadata:       auditLog.Metadata,
@@ -161,7 +161,7 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			ID:             a.ID,
 			Action:         a.Action,
 			Timestamp:      a.Timestamp,
-			ResourceID:     a.ResourceID,
+			ProjectID:      a.ProjectID,
 			IPAddress:      a.IPAddress,
 			UserID:         a.UserID,
 			Metadata:       a.Metadata,

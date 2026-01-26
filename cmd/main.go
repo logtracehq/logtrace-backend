@@ -89,7 +89,7 @@ func main() {
 	eventRepo := postgres.NewEventRepository(db)
 	orgRepo := postgres.NewOrganizationRepository(db)
 	emailRepo := postgres.NewEmailRepository(db)
-	resourceRepo := postgres.NewResourceRepo(db)
+	projectRepo := postgres.NewProjectRepo(db)
 	apiKeyRepo := postgres.NewAPIKeyRepository(db)
 	planRepo := postgres.NewPlanRepository(db)
 	passwordRepo := postgres.NewPasswordRepository(db)
@@ -126,7 +126,7 @@ func main() {
 		logger, util.DeRef(cfg), userRepo,
 		orgRepo, emailRepo, tokenManager, queueHandler,
 		googleAuth, eventRepo, sessionRepo, redisCache,
-		resourceRepo, apiKeyRepo, planRepo, passwordRepo,
+		projectRepo, apiKeyRepo, planRepo, passwordRepo,
 		auditLogRepo,
 	)
 

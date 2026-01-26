@@ -34,7 +34,7 @@ func (e Email) String() string { return strings.ToLower(string(e)) }
 
 func (e Email) Value() (driver.Value, error) { return driver.Value(e.String()), nil }
 
-type UserMetaData struct {
+type UserMetadata struct {
 	OrganizationID uuid.UUID `json:"organization_id"`
 	UserRole       RoleName  `json:"user_role"`
 }
@@ -44,7 +44,7 @@ type User struct {
 	Email           Email         `json:"email"             bun:"email,unique"`
 	FullName        string        `json:"full_name" bun:"full_name"`
 	EmailVerifiedAt *time.Time    `json:"email_verified_at" bun:"email_verified_at,nullzero"`
-	MetaData        *UserMetaData `json:"metadata"   bun:"type:jsonb"`
+	Metadata        *UserMetadata `json:"metadata"   bun:"type:jsonb"`
 	Status          string        `json:"status"            bun:"status,default:'active',notnull"`
 	Roles           []UserRole    `json:"roles"       bun:"rel:has-many,join:id=user_id"`
 	CreatedAt       time.Time     `json:"created_at"  bun:"default:current_timestamp,notnull"`

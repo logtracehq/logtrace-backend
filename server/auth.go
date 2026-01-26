@@ -272,7 +272,11 @@ func (a *authHandler) fetchCurrentUser(
 		org = getOrganizationFromContext(ctx)
 	}
 
-	orgs, err := a.orgRepo.ListAll(ctx, user)
+	opts := &logbase.FindOrganizationOptions{
+		UserID: user.ID,
+	}
+
+	orgs, _, err := a.orgRepo.ListAll(ctx, opts)
 	if err != nil {
 		logger.Error("an error occurred while fetching user organizations", zap.Error(err))
 		return newAPIStatus(
@@ -327,14 +331,28 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	org := &logbase.Organization{
+	saveOrg := &logbase.Organization{
 		Name:                 req.Organization,
 		IsActive:             true,
 		IsSubscriptionActive: false,
 		PlanName:             "free",
 	}
 
-	org, err := a.orgRepo.Create(ctx, org)
+	opts := logbase.FindOrganizationOptions{
+		Name: saveOrg.Name,
+	}
+
+	existingOrg, err := a.orgRepo.List(ctx, opts)
+
+	logger.Info("this is the incoming org ", zap.String("name", saveOrg.Name))
+	logger.Info("this is the existing org ", zap.Any("exising_org", existingOrg.Name))
+
+	if existingOrg.Name == saveOrg.Name {
+		logger.Error("business name is taken")
+		return newAPIStatus(http.StatusConflict, "Business name is already taken"), StatusFailed
+	}
+
+	org, err := a.orgRepo.Create(ctx, saveOrg)
 	if err != nil {
 		logger.Error("an error occurred while creating organization", zap.Error(err))
 		return newAPIStatus(
@@ -348,7 +366,7 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		FullName: req.FullName,
 		Status:   logbase.UserStatusActive.String(),
 		Roles:    []logbase.UserRole{},
-		MetaData: &logbase.UserMetaData{
+		Metadata: &logbase.UserMetadata{
 			OrganizationID: org.ID,
 			UserRole:       "admin",
 		},
@@ -478,7 +496,7 @@ func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, lo
 		Email:    req.Email,
 		FullName: req.FullName,
 		Status:   logbase.UserStatusPending.String(),
-		MetaData: &logbase.UserMetaData{
+		Metadata: &logbase.UserMetadata{
 			OrganizationID: getOrganizationFromContext(ctx).ID,
 			UserRole:       logbase.RoleName(req.Role),
 		},
@@ -577,11 +595,11 @@ func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logge
 	}
 
 	org := getOrganizationFromContext(ctx)
-	if user.MetaData.OrganizationID != org.ID {
+	if user.Metadata.OrganizationID != org.ID {
 		return newAPIStatus(http.StatusForbidden, "user does not belong to your organization"), StatusFailed
 	}
 
-	user.MetaData.UserRole = "member"
+	user.Metadata.UserRole = "member"
 	err = a.userRepo.Update(ctx, user)
 	if err != nil {
 		logger.Error("error updating user role", zap.Error(err))
