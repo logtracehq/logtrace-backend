@@ -5,7 +5,7 @@ CREATE TABLE
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         email VARCHAR NOT NULL UNIQUE,
         full_name VARCHAR NOT NULL,
-        meta_data JSONB,
+        metadata JSONB,
         status user_status NOT NULL DEFAULT 'pending',
         email_verified_at TIMESTAMP
         WITH

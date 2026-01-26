@@ -192,14 +192,14 @@ func TestContextHelpers(t *testing.T) {
 		require.Equal(t, user, getUserFromContext(ctx))
 	})
 
-	t.Run("workspace context", func(t *testing.T) {
+	t.Run("organization context", func(t *testing.T) {
 		ctx := t.Context()
-		workspace := &logbase.Organization{ID: uuid.New()}
+		organization := &logbase.Organization{ID: uuid.New()}
 
-		// Test writing and reading workspace
-		ctx = writeOrganizationToCtx(ctx, workspace)
+		// Test writing and reading organization
+		ctx = writeOrganizationToCtx(ctx, organization)
 		require.True(t, doesOrganizationExistInContext(ctx))
-		require.Equal(t, workspace, getOrganizationFromContext(ctx))
+		require.Equal(t, organization, getOrganizationFromContext(ctx))
 	})
 }
 
@@ -344,7 +344,7 @@ func TestRequireAuthentication(t *testing.T) {
 		require.Equal(t, http.StatusInternalServerError, rr.Code)
 	})
 
-	t.Run("user without workspace accessing auth/connect route", func(t *testing.T) {
+	t.Run("user without organization accessing auth/connect route", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -361,13 +361,13 @@ func TestRequireAuthentication(t *testing.T) {
 			ListAll(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
 			Return(&logbase.User{
 				ID: userID,
-				MetaData: &logbase.UserMetaData{
-					OrganizationID: uuid.Nil, // No workspace
+				Metadata: &logbase.UserMetadata{
+					OrganizationID: uuid.Nil, // No organization
 				},
 			}, nil)
 
-		// For auth/connect route, workspace repository should never be called
-		// since we check the path before attempting to fetch workspace
+		// For auth/connect route, organization repository should never be called
+		// since we check the path before attempting to fetch organization
 
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/v1/auth/connect", nil)
@@ -383,7 +383,7 @@ func TestRequireAuthentication(t *testing.T) {
 			// For auth/connect route, we should still have user in context
 			user := getUserFromContext(r.Context())
 			require.Equal(t, userID, user.ID)
-			require.Equal(t, uuid.Nil, user.MetaData.OrganizationID)
+			require.Equal(t, uuid.Nil, user.Metadata.OrganizationID)
 
 			// Organization should not be in context since we never fetched it
 			require.False(t, doesOrganizationExistInContext(r.Context()))
@@ -395,7 +395,7 @@ func TestRequireAuthentication(t *testing.T) {
 		require.Equal(t, http.StatusOK, rr.Code)
 	})
 
-	t.Run("user with workspace accessing protected route", func(t *testing.T) {
+	t.Run("user with organization accessing protected route", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -413,8 +413,7 @@ func TestRequireAuthentication(t *testing.T) {
 			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
 			Return(&logbase.User{
 				ID: userID,
-
-				MetaData: &logbase.UserMetaData{
+				Metadata: &logbase.UserMetadata{
 					OrganizationID: orgID,
 				},
 			}, nil)
@@ -434,7 +433,7 @@ func TestRequireAuthentication(t *testing.T) {
 			userRepo,
 			orgRepo,
 		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Verify user and workspace are in context
+			// Verify user and organization are in context
 			user := getUserFromContext(r.Context())
 			require.Equal(t, userID, user.ID)
 

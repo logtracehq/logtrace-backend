@@ -162,7 +162,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "metadata": {
-                    "$ref": "#/definitions/logbase.UserMetaData"
+                    "$ref": "#/definitions/logbase.UserMetadata"
                 },
                 "other_names": {
                     "type": "string"
@@ -178,7 +178,7 @@ const docTemplate = `{
                 }
             }
         },
-        "logbase.UserMetaData": {
+        "logbase.UserMetadata": {
             "type": "object",
             "properties": {
                 "organization_id": {

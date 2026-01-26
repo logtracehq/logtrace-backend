@@ -87,12 +87,13 @@ func (mr *MockOrganizationRepositoryMockRecorder) List(arg0, arg1 any) *gomock.C
 }
 
 // ListAll mocks base method.
-func (m *MockOrganizationRepository) ListAll(arg0 context.Context, arg1 *logbase.User) ([]logbase.Organization, error) {
+func (m *MockOrganizationRepository) ListAll(arg0 context.Context, arg1 *logbase.FindOrganizationOptions) ([]logbase.Organization, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListAll", arg0, arg1)
 	ret0, _ := ret[0].([]logbase.Organization)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListAll indicates an expected call of ListAll.

@@ -24,9 +24,9 @@ type apiKeyHandler struct {
 type createAPIKeyRequest struct {
 	GenericRequest
 
-	Name       string `json:"name,omitempty" validate:"required"`
-	Scope      string `json:"scope,omitempty"`
-	ResourceID string `json:"resource_id,omitempty"`
+	Name      string `json:"name,omitempty" validate:"required"`
+	Scope     string `json:"scope,omitempty"`
+	ProjectID string `json:"project_id,omitempty"`
 }
 
 func (c *createAPIKeyRequest) Validate() error {
@@ -41,8 +41,8 @@ func (c *createAPIKeyRequest) Validate() error {
 	if len(c.Name) > 20 {
 		return errors.New("name must be less than 20 characters")
 	}
-	if util.IsStringEmpty(c.ResourceID) {
-		return errors.New("please provide the resource id")
+	if util.IsStringEmpty(c.ProjectID) {
+		return errors.New("please provide the project id")
 	}
 	if c.Scope != "" && !logbase.APIKeyScope(c.Scope).IsValid() {
 		return errors.New("please provide a valid api key scope")
@@ -96,10 +96,10 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	value := util.GenerateRandom()
 	encrypted := "lg_" + logbase.HashKey(d.cfg.APIKey.HashSecret, value)
 
-	resourceID, err := uuid.Parse(req.ResourceID)
+	projectID, err := uuid.Parse(req.ProjectID)
 	if err != nil {
-		logger.Error("invalid resource id", zap.String("resource_id", req.ResourceID), zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "invalid resource id"), StatusFailed
+		logger.Error("invalid project id", zap.String("project_id", req.ProjectID), zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid project id"), StatusFailed
 	}
 
 	key := &logbase.APIKey{
@@ -107,7 +107,7 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 		CreatedBy:      user.ID,
 		Value:          encrypted,
 		Name:           req.Name,
-		ResourceID:     resourceID,
+		ProjectID:      projectID,
 		Scope:          logbase.APIKeyScope(req.Scope),
 	}
 
@@ -159,15 +159,15 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 	keys := make([]*Key, 0, len(apiKeys))
 	for _, k := range apiKeys {
 		dto := &Key{
-			ID:           k.ID,
-			Name:         k.Name,
-			Scope:        logbase.APIKeyScope(k.Scope).String(),
-			ResourceID:   k.Resource.ID,
-			CreatedAt:    k.CreatedAt,
-			LastUsedAt:   k.LastUsedAt,
-			ResourceName: k.Resource.Name,
-			ResourceType: k.Resource.Type,
-			ExpiredAt:    k.ExpiresAt,
+			ID:          k.ID,
+			Name:        k.Name,
+			Scope:       logbase.APIKeyScope(k.Scope).String(),
+			ProjectID:   k.Project.ID,
+			CreatedAt:   k.CreatedAt,
+			LastUsedAt:  k.LastUsedAt,
+			ProjectName: k.Project.Name,
+			ProjectType: k.Project.Type,
+			ExpiredAt:   k.ExpiresAt,
 		}
 
 		keys = append(keys, dto)
@@ -216,7 +216,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 	organization := getOrganizationFromContext(r.Context())
 	user := getUserFromContext(r.Context())
 
-	if organization.ID != user.MetaData.OrganizationID {
+	if organization.ID != user.Metadata.OrganizationID {
 		return newAPIStatus(http.StatusForbidden, "unauthorized"), StatusFailed
 	}
 

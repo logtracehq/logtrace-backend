@@ -1,256 +1,237 @@
 {
-    "schemes": [
-        "http",
-        "https"
-    ],
-    "swagger": "2.0",
-    "info": {
-        "description": "Logbase API documentation",
-        "title": "Logbase API",
-        "contact": {},
-        "version": "0.1.0"
-    },
-    "host": "localhost:8080",
-    "basePath": "/",
-    "paths": {
-        "/auth/login/{provider}": {
-            "post": {
-                "description": "Login handles user authentication via OAuth2 providers.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authenticating"
-                ],
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "OAuth2 Provider (e.g., google)",
-                        "name": "provider",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Login Request Body",
-                        "name": "loginRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/server.loginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Login successful",
-                        "schema": {
-                            "$ref": "#/definitions/server.fetchUserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request or invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
-                        }
-                    }
-                }
+  "schemes": ["http", "https"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Logbase API documentation",
+    "title": "Logbase API",
+    "contact": {},
+    "version": "0.1.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/auth/login/{provider}": {
+      "post": {
+        "description": "Login handles user authentication via OAuth2 providers.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Authenticating"],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "OAuth2 Provider (e.g., google)",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Login Request Body",
+            "name": "loginRequest",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/server.loginRequest"
             }
-        },
-        "/auth/me": {
-            "get": {
-                "description": "FetchCurrentUser retrieves the currently authenticated user's details.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Fetched current user",
-                        "schema": {
-                            "$ref": "#/definitions/server.fetchUserResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/server.APIStatus"
-                        }
-                    }
-                }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/server.fetchUserResponse"
             }
+          },
+          "400": {
+            "description": "Bad request or invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/server.APIStatus"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/server.APIStatus"
+            }
+          }
         }
+      }
     },
-    "definitions": {
-        "logbase.Organization": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "is_subscription_active": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "plan": {
-                    "$ref": "#/definitions/logbase.Plan"
-                },
-                "plan_id": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
+    "/auth/me": {
+      "get": {
+        "description": "FetchCurrentUser retrieves the currently authenticated user's details.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Users"],
+        "responses": {
+          "200": {
+            "description": "Fetched current user",
+            "schema": {
+              "$ref": "#/definitions/server.fetchUserResponse"
             }
-        },
-        "logbase.Plan": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/server.APIStatus"
             }
-        },
-        "logbase.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "email_verified_at": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "metadata": {
-                    "$ref": "#/definitions/logbase.UserMetaData"
-                },
-                "other_names": {
-                    "type": "string"
-                },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/logbase.UserRole"
-                    }
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "logbase.UserMetaData": {
-            "type": "object",
-            "properties": {
-                "organization_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "logbase.UserRole": {
-            "type": "object",
-            "properties": {
-                "assigned_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "role_name": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.APIStatus": {
-            "type": "object",
-            "required": [
-                "message"
-            ],
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "server.fetchUserResponse": {
-            "type": "object",
-            "required": [
-                "message"
-            ],
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "organization": {
-                    "$ref": "#/definitions/logbase.Organization"
-                },
-                "organizations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/logbase.Organization"
-                    }
-                },
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/logbase.User"
-                }
-            }
-        },
-        "server.loginRequest": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
+          }
         }
+      }
     }
+  },
+  "definitions": {
+    "logbase.Organization": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "is_active": {
+          "type": "boolean"
+        },
+        "is_subscription_active": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/definitions/logbase.Plan"
+        },
+        "plan_id": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "logbase.Plan": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "logbase.User": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "email_verified_at": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/logbase.UserMetadata"
+        },
+        "other_names": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/logbase.UserRole"
+          }
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "logbase.UserMetadata": {
+      "type": "object",
+      "properties": {
+        "organization_id": {
+          "type": "string"
+        }
+      }
+    },
+    "logbase.UserRole": {
+      "type": "object",
+      "properties": {
+        "assigned_at": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "role_name": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "server.APIStatus": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "server.fetchUserResponse": {
+      "type": "object",
+      "required": ["message"],
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "organization": {
+          "$ref": "#/definitions/logbase.Organization"
+        },
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/logbase.Organization"
+          }
+        },
+        "token": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/logbase.User"
+        }
+      }
+    },
+    "server.loginRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }

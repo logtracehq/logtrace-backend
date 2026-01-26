@@ -110,8 +110,8 @@ type fetchAllSessionsResponse struct {
 	APIStatus
 }
 
-type fetchResource struct {
-	Resource logbase.Resource `json:"resource"`
+type fetchProject struct {
+	Project logbase.Project `json:"project"`
 	APIStatus
 }
 
@@ -121,15 +121,15 @@ type createdAPIKeyResponse struct {
 }
 
 type Key struct {
-	ID           uuid.UUID  `json:"id"`
-	Scope        string     `json:"scope"`
-	Name         string     `json:"name"`
-	ResourceID   uuid.UUID  `json:"resource_id"`
-	ResourceName string     `json:"resource_name"`
-	ResourceType string     `json:"resource_type"`
-	LastUsedAt   *time.Time `json:"last_used_at,omitempty"`
-	CreatedAt    time.Time  `json:"created_at,omitempty"`
-	ExpiredAt    *time.Time `json:"expired_at,omitempty"`
+	ID          uuid.UUID  `json:"id"`
+	Scope       string     `json:"scope"`
+	Name        string     `json:"name"`
+	ProjectID   uuid.UUID  `json:"project_id"`
+	ProjectName string     `json:"project_name"`
+	ProjectType string     `json:"project_type"`
+	LastUsedAt  *time.Time `json:"last_used_at,omitempty"`
+	CreatedAt   time.Time  `json:"created_at,omitempty"`
+	ExpiredAt   *time.Time `json:"expired_at,omitempty"`
 }
 
 type listAPIKeysResponse struct {
@@ -137,16 +137,16 @@ type listAPIKeysResponse struct {
 	APIStatus
 }
 
-type Resource struct {
+type Project struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	Type      string    `json:"type"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type fetchAllResources struct {
-	Resources []*Resource `json:"resources"`
-	Meta      meta        `json:"meta"`
+type fetchAllProjects struct {
+	Projects []*Project `json:"projects"`
+	Meta     meta       `json:"meta"`
 	APIStatus
 }
 
@@ -154,7 +154,7 @@ type AuditLog struct {
 	ID             uuid.UUID         `json:"id"`
 	Action         string            `json:"action"`
 	Timestamp      time.Time         `json:"timestamp"`
-	ResourceID     uuid.UUID         `json:"resource_id"`
+	ProjectID      uuid.UUID         `json:"project_id"`
 	IPAddress      string            `json:"ip_address"`
 	UserID         uuid.UUID         `json:"user_id"`
 	CreatedAt      time.Time         `json:"created_at"`

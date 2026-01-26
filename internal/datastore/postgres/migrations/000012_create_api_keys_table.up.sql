@@ -6,7 +6,7 @@ CREATE TABLE
         created_by UUID REFERENCES users (id),
         value VARCHAR NOT NULL,
         organization_id UUID REFERENCES organizations (id),
-        resource_id UUID REFERENCES resources (id),
+        project_id UUID REFERENCES projects (id),
         scope api_key_scope NOT NULL,
         last_used_at TIMESTAMP
         WITH

@@ -1,5 +1,5 @@
 CREATE TABLE
-    IF NOT EXISTS resources (
+    IF NOT EXISTS projects (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         organization_id UUID NOT NULL,
         name TEXT NOT NULL,

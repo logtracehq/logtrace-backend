@@ -1,5 +1,5 @@
 CREATE TABLE
-    resources (
+    projects (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         name VARCHAR NOT NULL,
         type VARCHAR NOT NULL,

@@ -43,7 +43,7 @@ definitions:
       id:
         type: string
       metadata:
-        $ref: '#/definitions/logbase.UserMetaData'
+        $ref: '#/definitions/logbase.UserMetadata'
       other_names:
         type: string
       roles:
@@ -53,7 +53,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  logbase.UserMetaData:
+  logbase.UserMetadata:
     properties:
       organization_id:
         type: string

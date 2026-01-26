@@ -322,12 +322,12 @@ func TestOrganizationRepository(t *testing.T) {
 		orgRepo.EXPECT().
 			List(gomock.Any(), opts).
 			Times(1).
-			Return(nil, logbase.OrganizationNotFound)
+			Return(nil, logbase.ErrOrganizationNotFound)
 
 		result, err := orgRepo.List(context.Background(), opts)
 		require.Error(t, err)
 		require.Nil(t, result)
-		require.ErrorIs(t, err, logbase.OrganizationNotFound)
+		require.ErrorIs(t, err, logbase.ErrOrganizationNotFound)
 	})
 
 	t.Run("list organizations for user", func(t *testing.T) {
@@ -336,7 +336,7 @@ func TestOrganizationRepository(t *testing.T) {
 
 		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 		userID := uuid.New()
-		user := &logbase.User{ID: userID}
+		user := &logbase.FindOrganizationOptions{ID: userID}
 
 		expectedOrgs := []logbase.Organization{
 			{
@@ -360,7 +360,7 @@ func TestOrganizationRepository(t *testing.T) {
 			Times(1).
 			Return(expectedOrgs, nil)
 
-		result, err := orgRepo.ListAll(context.Background(), user)
+		result, _, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)
 		require.Len(t, result, 2)
 		require.Equal(t, "Organization 1", result[0].Name)
@@ -373,14 +373,14 @@ func TestOrganizationRepository(t *testing.T) {
 
 		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
 		userID := uuid.New()
-		user := &logbase.User{ID: userID}
+		user := &logbase.FindOrganizationOptions{ID: userID}
 
 		orgRepo.EXPECT().
 			ListAll(gomock.Any(), user).
 			Times(1).
 			Return([]logbase.Organization{}, nil)
 
-		result, err := orgRepo.ListAll(context.Background(), user)
+		result, _, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)
 		require.Empty(t, result)
 	})
@@ -413,10 +413,10 @@ func TestOrganizationRepository(t *testing.T) {
 		orgRepo.EXPECT().
 			Delete(gomock.Any(), opts).
 			Times(1).
-			Return(logbase.OrganizationNotFound)
+			Return(logbase.ErrOrganizationNotFound)
 
 		err := orgRepo.Delete(context.Background(), opts)
 		require.Error(t, err)
-		require.ErrorIs(t, err, logbase.OrganizationNotFound)
+		require.ErrorIs(t, err, logbase.ErrOrganizationNotFound)
 	})
 }

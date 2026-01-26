@@ -24,10 +24,10 @@ type AuditLog struct {
 	ID             uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Action         string     `json:"action"      bun:",notnull"`
 	Timestamp      time.Time  `json:"timestamp"   bun:",notnull"`
-	ResourceID     uuid.UUID  `json:"resource_id" bun:"type:uuid"`
+	ProjectID      uuid.UUID  `json:"project_id" bun:"type:uuid"`
 	IPAddress      string     `json:"ip_address"`
 	UserID         uuid.UUID  `json:"user_id"     bun:"type:uuid"`
-	Resource       *Resource  `json:"resource"    bun:"rel:belongs-to,join:resource_id=id"`
+	Project        *Project   `json:"project"    bun:"rel:belongs-to,join:project_id=id"`
 	Metadata       *Metadata  `json:"metadata"   bun:"type:jsonb"`
 	CreatedAt      time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	RequestID      string     `json:"request_id"`
@@ -41,7 +41,7 @@ type FindAuditLogOptions struct {
 	OrganizationID uuid.UUID
 	ID             uuid.UUID
 	UserID         uuid.UUID
-	ResourceID     uuid.UUID
+	ProjectID      uuid.UUID
 	Paginator      Paginator
 }
 

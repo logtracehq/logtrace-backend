@@ -63,7 +63,7 @@ func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.APIKeyOptions) (
 func (r *apiKeyRepo) List(ctx context.Context, opts logbase.APIKeyOptions) ([]*logbase.APIKey, error) {
 	var apiKeys []*logbase.APIKey
 
-	return apiKeys, r.inner.NewSelect().Model(&apiKeys).Relation("Resource").
+	return apiKeys, r.inner.NewSelect().Model(&apiKeys).Relation("Project").
 		Where("organization_id = ?", opts.OrganizationID).
 		Scan(ctx)
 }

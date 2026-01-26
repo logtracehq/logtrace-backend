@@ -3,11 +3,11 @@ CREATE TABLE
     audit_logs (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         action VARCHAR,
-        resource_id UUID REFERENCES resources (id),
+        project_id UUID REFERENCES projects (id),
         organization_id UUID REFERENCES organizations (id),
         ip_address VARCHAR,
         user_id UUID REFERENCES users (id),
-        meta_data JSONB,
+        metadata JSONB,
         timestamp TIMESTAMP
         WITH
             TIME ZONE NOT NULL,

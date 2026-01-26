@@ -5,7 +5,6 @@ CREATE TABLE
         is_active BOOLEAN NOT NULL DEFAULT true,
         plan_name text NOT NULL DEFAULT 'free',
         is_subscription_active BOOLEAN NOT NULL DEFAULT true,
-        plan_id UUID REFERENCES plans (id),
         created_at TIMESTAMP
         WITH
             TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

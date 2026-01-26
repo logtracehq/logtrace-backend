@@ -25,7 +25,6 @@ import (
 const (
 	organizationCtx = "organization"
 	userCtx         = "user"
-	resourceCtx     = "resource"
 )
 
 var RequestIDHeader = "X-Request-Id"
@@ -67,10 +66,6 @@ func tokenFromRequest(r *http.Request) (string, error) {
 	}
 
 	return ss[1], nil
-}
-
-func getResourceFromContext(ctx context.Context) *logbase.Resource {
-	return ctx.Value(resourceCtx).(*logbase.Resource)
 }
 
 func getOrganizationFromContext(ctx context.Context) *logbase.Organization {
@@ -206,13 +201,6 @@ func requireOrganizationValidSubscription(
 				return
 			}
 
-			resource := getResourceFromContext(ctx)
-			if resource.ID == uuid.Nil {
-				_ = render.Render(w, r, newAPIStatus(http.StatusBadRequest,
-					"Resource not found in request context"))
-				return
-			}
-
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -279,13 +267,13 @@ func requireAuthentication(
 				return
 			}
 
-			if user.MetaData.OrganizationID == uuid.Nil {
+			if user.Metadata.OrganizationID == uuid.Nil {
 				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired, "you must be a member of a organization"))
 				return
 			}
 
 			org, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
-				ID: user.MetaData.OrganizationID,
+				ID: user.Metadata.OrganizationID,
 			})
 			if err != nil {
 				logger.Error("could not fetch organization from database", zap.Error(err))
@@ -294,6 +282,56 @@ func requireAuthentication(
 			}
 
 			r = r.WithContext(writeOrganizationToCtx(r.Context(), org))
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func requireAPIKeyOnly(logger *zap.Logger, cfg config.Config, apiKeyRepo logbase.APIKeyRepository,
+	orgRepo logbase.OrganizationRepository,
+) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx, span, rid := getTracer(r.Context(), r, "middleware.requireAPIKeyOnly")
+			defer span.End()
+
+			logger := logger.With(
+				zap.String("request_id", rid),
+				zap.String("path", r.URL.Path),
+				zap.Bool("is_api", true),
+			)
+
+			token, err := tokenFromRequest(r)
+			if err != nil {
+				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "please provide api key"))
+				return
+			}
+
+			token = logbase.HashKey(cfg.APIKey.HashSecret, token)
+
+			key, err := apiKeyRepo.FetchByValue(ctx, token)
+			if err != nil {
+				if errors.Is(err, logbase.ErrAPIKeyNotFound) {
+					_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "token not found"))
+					return
+				}
+
+				logger.Error("error while fetching api key", zap.Error(err))
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "error occurred while fetching api key"))
+				return
+			}
+
+			organization, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
+				ID: key.OrganizationID,
+			})
+			if err != nil {
+				logger.Error("could not fetch organization from database", zap.Error(err))
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "an error occurred while fetching organization from database"))
+				return
+			}
+
+			r = r.WithContext(writeOrganizationToCtx(r.Context(), organization))
+
 			next.ServeHTTP(w, r)
 		})
 	}
