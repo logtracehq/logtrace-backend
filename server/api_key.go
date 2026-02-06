@@ -71,8 +71,8 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 ) (render.Renderer, Status) {
 	logger.Debug("creating api key")
 	req := new(createAPIKeyRequest)
-	organization := getOrganizationFromContext(r.Context())
-	user := getUserFromContext(r.Context())
+	organization := getOrganizationFromContext(ctx)
+	user := getUserFromContext(ctx)
 
 	if err := render.Bind(r, req); err != nil {
 		logger.Error("invalid api key request", zap.Error(err))
@@ -81,7 +81,6 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	if err := req.Validate(); err != nil {
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
-	logger.Debug("this is a req", zap.Any("req", req))
 
 	existingAPIKey, err := d.apiKeyRepo.FetchByName(ctx, req.Name, organization.ID)
 	if err != nil && !errors.Is(err, logbase.ErrAPIKeyNotFound) {
@@ -145,29 +144,28 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 	logger.Debug("listing api keys")
 
 	opts := logbase.APIKeyOptions{
-		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+		OrganizationID: getOrganizationFromContext(ctx).ID,
 	}
 
 	apiKeys, err := d.apiKeyRepo.List(ctx, opts)
 	if err != nil {
 		logger.Error("could not list api keys", zap.Error(err))
-		return newAPIStatus(
-			http.StatusInternalServerError,
-			"could not list api keys",
-		), StatusFailed
+		return newAPIStatus(http.StatusInternalServerError, "could not list api keys"), StatusFailed
 	}
+
 	keys := make([]*Key, 0, len(apiKeys))
 	for _, k := range apiKeys {
 		dto := &Key{
-			ID:          k.ID,
-			Name:        k.Name,
-			Scope:       logbase.APIKeyScope(k.Scope).String(),
-			ProjectID:   k.Project.ID,
-			CreatedAt:   k.CreatedAt,
-			LastUsedAt:  k.LastUsedAt,
-			ProjectName: k.Project.Name,
-			ProjectType: k.Project.Type,
-			ExpiredAt:   k.ExpiresAt,
+			ID:             k.ID,
+			Name:           k.Name,
+			Scope:          logbase.APIKeyScope(k.Scope).String(),
+			ProjectID:      k.Project.ID,
+			OrganizationID: k.OrganizationID,
+			CreatedAt:      k.CreatedAt,
+			LastUsedAt:     k.LastUsedAt,
+			ProjectName:    k.Project.Name,
+			ProjectType:    k.Project.Type,
+			ExpiredAt:      k.ExpiresAt,
 		}
 
 		keys = append(keys, dto)
@@ -213,8 +211,8 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 ) (render.Renderer, Status) {
 	logger.Debug("revoking api key")
 
-	organization := getOrganizationFromContext(r.Context())
-	user := getUserFromContext(r.Context())
+	organization := getOrganizationFromContext(ctx)
+	user := getUserFromContext(ctx)
 
 	if organization.ID != user.Metadata.OrganizationID {
 		return newAPIStatus(http.StatusForbidden, "unauthorized"), StatusFailed

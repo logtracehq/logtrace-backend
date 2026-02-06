@@ -16,13 +16,14 @@ var (
 )
 
 type Project struct {
-	ID            uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
-	Name          string     `json:"name" bun:"type:text,notnull"`
-	Type          string     `json:"type" bun:"type:text,notnull"`
-	CreatedAt     time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
-	UpdatedAt     time.Time  `json:"updated_at"  bun:"default:current_timestamp,notnull"`
-	DeletedAt     *time.Time `json:"-,omitempty" bun:",soft_delete,nullzero"`
-	bun.BaseModel `json:"-" bun:"table:projects"`
+	ID             uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
+	Name           string     `json:"name" bun:"type:text,notnull"`
+	Type           string     `json:"type" bun:"type:text,notnull"`
+	OrganizationID uuid.UUID  `json:"organization_id" bun:"type:uuid,notnull"`
+	CreatedAt      time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
+	UpdatedAt      time.Time  `json:"updated_at"  bun:"default:current_timestamp,notnull"`
+	DeletedAt      *time.Time `json:"-,omitempty" bun:",soft_delete,nullzero"`
+	bun.BaseModel  `json:"-" bun:"table:projects"`
 }
 
 type ListProjectOptions struct {

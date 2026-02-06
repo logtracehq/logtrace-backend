@@ -56,8 +56,9 @@ func (res *projectHandler) Create(ctx context.Context, span trace.Span, logger *
 	}
 
 	project := &logbase.Project{
-		Name: req.Name,
-		Type: req.Type,
+		Name:           req.Name,
+		Type:           req.Type,
+		OrganizationID: getOrganizationFromContext(ctx).ID,
 	}
 
 	if err := res.projectRepo.Create(ctx, project); err != nil {

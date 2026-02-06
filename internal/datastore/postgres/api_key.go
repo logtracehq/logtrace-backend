@@ -64,7 +64,7 @@ func (r *apiKeyRepo) List(ctx context.Context, opts logbase.APIKeyOptions) ([]*l
 	var apiKeys []*logbase.APIKey
 
 	return apiKeys, r.inner.NewSelect().Model(&apiKeys).Relation("Project").
-		Where("organization_id = ?", opts.OrganizationID).
+		Where("?TableAlias.organization_id = ?", opts.OrganizationID).
 		Scan(ctx)
 }
 

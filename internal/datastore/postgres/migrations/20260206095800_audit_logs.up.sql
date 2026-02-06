@@ -1,5 +1,4 @@
--- Create audit_logs table
-CREATE TABLE
+ CREATE TABLE
     audit_logs (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         action VARCHAR,
