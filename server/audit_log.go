@@ -129,6 +129,8 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 		CreatedAt:      auditLog.CreatedAt,
 		RequestID:      auditLog.RequestID,
 		OrganizationID: auditLog.OrganizationID,
+		ProjectName:    auditLog.Project.Name,
+		ProjectType:    auditLog.Project.Type,
 	}
 
 	return listAuditLog{
@@ -168,6 +170,8 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			RequestID:      a.RequestID,
 			OrganizationID: a.OrganizationID,
 			CreatedAt:      a.CreatedAt,
+			ProjectName:    a.Project.Name,
+			ProjectType:    a.Project.Type,
 		}
 
 		auditLogResponse = append(auditLogResponse, dto)

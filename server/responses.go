@@ -162,6 +162,8 @@ type AuditLog struct {
 	RequestID      string            `json:"request_id"`
 	OrganizationID uuid.UUID         `json:"organization_id"`
 	Metadata       *logbase.Metadata `json:"metadata"`
+	ProjectName    string            `json:"project_name"`
+	ProjectType    string            `json:"project_type"`
 }
 
 type listAllAuditLogs struct {
