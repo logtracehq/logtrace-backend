@@ -91,6 +91,9 @@ func (c *Config) Validate() error {
 	if util.IsStringEmpty(c.Auth.JWT.Key) {
 		return errors.New("please provide your JWT key")
 	}
+	if util.IsStringEmpty(c.CSRFSecret) {
+		return errors.New("please provide a secret for CSRF protection")
+	}
 
 	// trial days is required. We do not want to
 	// somehow enforce users to provide a payment method/card

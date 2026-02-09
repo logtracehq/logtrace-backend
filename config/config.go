@@ -111,4 +111,5 @@ type Config struct {
 	Email      Email      `yaml:"email" mapstructure:"email"`
 	APIKey     APIKey     `yaml:"api_key" mapstructure:"api_key"`
 	Billing    Billing    `yaml:"billing" mapstructure:"billing"`
+	CSRFSecret string     `yaml:"csrf_secret" mapstructure:"csrf_secret"`
 }

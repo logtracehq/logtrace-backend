@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
+	"github.com/gorilla/csrf"
 	"gitlab.com/logbase/logbase"
 	"gitlab.com/logbase/logbase/config"
 	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
@@ -334,5 +335,23 @@ func requireAPIKeyOnly(logger *zap.Logger, cfg config.Config, apiKeyRepo logbase
 
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func CSRFMiddleware(authKey []byte, cfg config.Config) func(http.Handler) http.Handler {
+	secure := false
+	if cfg.Env == config.EnvTypeProduction {
+		secure = true
+	}
+
+	csrfMw := csrf.Protect(
+		authKey,
+		csrf.Secure(secure), // true in production (HTTPS)
+		csrf.HttpOnly(true),
+		csrf.RequestHeader("X-CSRF-Token"),
+	)
+
+	return func(next http.Handler) http.Handler {
+		return csrfMw(next)
 	}
 }

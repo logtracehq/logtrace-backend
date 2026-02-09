@@ -94,6 +94,8 @@ func setUpRoutes(
 
 	router.Use(middleware.RequestID)
 	router.Use(writeRequestIDHeader)
+	router.Use(middleware.RealIP)
+	router.Use(CSRFMiddleware([]byte(cfg.CSRFSecret), cfg))
 	router.Use(
 		middleware.AllowContentType("application/json", "multipart/form-data"))
 
