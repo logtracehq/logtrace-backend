@@ -2,7 +2,6 @@
     audit_logs (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         action VARCHAR,
-        project_id UUID REFERENCES projects (id),
         organization_id UUID REFERENCES organizations (id),
         ip_address VARCHAR,
         user_id UUID REFERENCES users (id),

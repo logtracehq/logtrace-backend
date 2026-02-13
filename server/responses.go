@@ -110,11 +110,6 @@ type fetchAllSessionsResponse struct {
 	APIStatus
 }
 
-type fetchProject struct {
-	Project logbase.Project `json:"project"`
-	APIStatus
-}
-
 type createdAPIKeyResponse struct {
 	APIStatus
 	Value string `json:"value" validate:"required"`
@@ -124,12 +119,9 @@ type Key struct {
 	ID             uuid.UUID  `json:"id"`
 	Scope          string     `json:"scope"`
 	Name           string     `json:"name"`
-	ProjectID      uuid.UUID  `json:"project_id"`
-	ProjectName    string     `json:"project_name"`
 	OrganizationID uuid.UUID  `json:"organization_id"`
-	ProjectType    string     `json:"project_type"`
 	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
-	CreatedAt      time.Time  `json:"created_at,omitempty"`
+	CreatedAt      time.Time  `json:"created_at"`
 	ExpiredAt      *time.Time `json:"expired_at,omitempty"`
 }
 
@@ -138,32 +130,16 @@ type listAPIKeysResponse struct {
 	APIStatus
 }
 
-type Project struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Type      string    `json:"type"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type fetchAllProjects struct {
-	Projects []*Project `json:"projects"`
-	Meta     meta       `json:"meta"`
-	APIStatus
-}
-
 type AuditLog struct {
 	ID             uuid.UUID         `json:"id"`
 	Action         string            `json:"action"`
 	Timestamp      time.Time         `json:"timestamp"`
-	ProjectID      uuid.UUID         `json:"project_id"`
 	IPAddress      string            `json:"ip_address"`
 	UserID         uuid.UUID         `json:"user_id"`
 	CreatedAt      time.Time         `json:"created_at"`
 	RequestID      string            `json:"request_id"`
 	OrganizationID uuid.UUID         `json:"organization_id"`
 	Metadata       *logbase.Metadata `json:"metadata"`
-	ProjectName    string            `json:"project_name"`
-	ProjectType    string            `json:"project_type"`
 }
 
 type listAllAuditLogs struct {

@@ -25,8 +25,6 @@ type APIKey struct {
 	Value          string      `json:"-"`
 	Name           string      `json:"name,omitempty" bun:"name"`
 	OrganizationID uuid.UUID   `json:"organization_id" bun:"organization_id"`
-	ProjectID      uuid.UUID   `json:"project_id,omitempty" bun:"project_id,nullzero"`
-	Project        *Project    `json:"project,omitempty"   bun:"rel:belongs-to,join:project_id=id"`
 	LastUsedAt     *time.Time  `json:"last_used_at,omitempty" bun:",nullzero"`
 	Scope          APIKeyScope `json:"scope,omitempty"       bun:"scope,nullzero"`
 	ExpiresAt      *time.Time  `json:"expires_at,omitempty" bun:",nullzero"`

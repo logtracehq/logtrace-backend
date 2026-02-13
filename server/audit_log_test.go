@@ -22,7 +22,6 @@ import (
 var (
 	testOrgID      = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
 	testUserID     = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
-	testProjectID  = uuid.MustParse("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
 	testAuditLogID = uuid.MustParse("b2c3d4e5-f6a7-8901-bcde-f12345678901")
 )
 
@@ -86,7 +85,6 @@ func generateCreateAuditLogTestTable() []struct {
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
-				ProjectID: testProjectID.String(),
 				UserID:    testUserID.String(),
 			},
 		},
@@ -96,20 +94,8 @@ func generateCreateAuditLogTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
-				Action:    "user.login",
-				ProjectID: testProjectID.String(),
-				UserID:    testUserID.String(),
-			},
-		},
-		{
-			name: "missing project id",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
-			},
-			expectedStatusCode: http.StatusBadRequest,
-			req: createAuditLogRequest{
-				Action:    "user.login",
-				Timestamp: time.Now().UTC().Format(time.RFC3339),
-				UserID:    testUserID.String(),
+				Action: "user.login",
+				UserID: testUserID.String(),
 			},
 		},
 		{
@@ -120,19 +106,6 @@ func generateCreateAuditLogTestTable() []struct {
 			req: createAuditLogRequest{
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
-				ProjectID: testProjectID.String(),
-			},
-		},
-		{
-			name: "invalid project id",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
-			},
-			expectedStatusCode: http.StatusBadRequest,
-			req: createAuditLogRequest{
-				Action:    "user.login",
-				Timestamp: time.Now().UTC().Format(time.RFC3339),
-				ProjectID: "invalid-uuid",
-				UserID:    testUserID.String(),
 			},
 		},
 		{
@@ -146,7 +119,6 @@ func generateCreateAuditLogTestTable() []struct {
 			req: createAuditLogRequest{
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
-				ProjectID: testProjectID.String(),
 				UserID:    testUserID.String(),
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
@@ -168,7 +140,6 @@ func generateCreateAuditLogTestTable() []struct {
 			req: createAuditLogRequest{
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
-				ProjectID: testProjectID.String(),
 				UserID:    testUserID.String(),
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
@@ -264,7 +235,6 @@ func generateListAuditLogTestTable() []struct {
 						ID:             testAuditLogID,
 						Action:         "user.login",
 						Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
-						ProjectID:      testProjectID,
 						IPAddress:      "192.168.1.1",
 						UserID:         testUserID,
 						OrganizationID: testOrgID,
@@ -346,7 +316,6 @@ func generateListAllAuditLogsTestTable() []struct {
 							ID:             testAuditLogID,
 							Action:         "user.login",
 							Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
-							ProjectID:      testProjectID,
 							IPAddress:      "192.168.1.1",
 							UserID:         testUserID,
 							OrganizationID: testOrgID,

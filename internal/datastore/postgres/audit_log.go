@@ -48,7 +48,7 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logbase.FindAuditLogOpt
 	count = int64(totalCount)
 
 	return auditLogs, count, a.inner.NewSelect().
-		Model(&auditLogs).Relation("Project").
+		Model(&auditLogs).
 		Offset(int(opts.Paginator.Offset())).
 		Limit(int(opts.Paginator.PerPage)).
 		Order("created_at DESC").
@@ -61,7 +61,7 @@ func (a *auditLogRepo) List(ctx context.Context, opts *logbase.FindAuditLogOptio
 
 	auditLog := &logbase.AuditLog{}
 
-	sel := a.inner.NewSelect().Model(auditLog).Relation("Project")
+	sel := a.inner.NewSelect().Model(auditLog)
 
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("?TableAlias.id = ?", opts.ID.String())
