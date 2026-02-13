@@ -24,9 +24,8 @@ type apiKeyHandler struct {
 type createAPIKeyRequest struct {
 	GenericRequest
 
-	Name      string `json:"name,omitempty" validate:"required"`
-	Scope     string `json:"scope,omitempty"`
-	ProjectID string `json:"project_id,omitempty"`
+	Name  string `json:"name,omitempty" validate:"required"`
+	Scope string `json:"scope,omitempty"`
 }
 
 func (c *createAPIKeyRequest) Validate() error {
@@ -41,9 +40,7 @@ func (c *createAPIKeyRequest) Validate() error {
 	if len(c.Name) > 20 {
 		return errors.New("name must be less than 20 characters")
 	}
-	if util.IsStringEmpty(c.ProjectID) {
-		return errors.New("please provide the project id")
-	}
+
 	if c.Scope != "" && !logbase.APIKeyScope(c.Scope).IsValid() {
 		return errors.New("please provide a valid api key scope")
 	}
@@ -95,18 +92,11 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	value := util.GenerateRandom()
 	encrypted := "lg_" + logbase.HashKey(d.cfg.APIKey.HashSecret, value)
 
-	projectID, err := uuid.Parse(req.ProjectID)
-	if err != nil {
-		logger.Error("invalid project id", zap.String("project_id", req.ProjectID), zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "invalid project id"), StatusFailed
-	}
-
 	key := &logbase.APIKey{
 		OrganizationID: organization.ID,
 		CreatedBy:      user.ID,
 		Value:          encrypted,
 		Name:           req.Name,
-		ProjectID:      projectID,
 		Scope:          logbase.APIKeyScope(req.Scope),
 	}
 
@@ -159,12 +149,9 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 			ID:             k.ID,
 			Name:           k.Name,
 			Scope:          logbase.APIKeyScope(k.Scope).String(),
-			ProjectID:      k.Project.ID,
 			OrganizationID: k.OrganizationID,
 			CreatedAt:      k.CreatedAt,
 			LastUsedAt:     k.LastUsedAt,
-			ProjectName:    k.Project.Name,
-			ProjectType:    k.Project.Type,
 			ExpiredAt:      k.ExpiresAt,
 		}
 

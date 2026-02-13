@@ -32,7 +32,7 @@ func New(
 	queueHandler queue.QueueHandler,
 	googleAuthProvider googleauth.GoogleAuthProvider,
 	eventRepo logbase.EventRepository, sessionRepo logbase.SessionRepository,
-	redisCache cache.Cache, projectRepo logbase.ProjectRepository, apiKeyRepo logbase.APIKeyRepository,
+	redisCache cache.Cache, apiKeyRepo logbase.APIKeyRepository,
 	planRepo logbase.PlanRepository, passwordRepo logbase.PasswordRepository,
 	auditLogRepo logbase.AuditLogRepository,
 ) (*http.Server, func(context.Context)) {
@@ -47,7 +47,7 @@ func New(
 			logger, cfg, userRepo,
 			orgRepo, jwtTokenManager,
 			queueHandler, emailVerificationRepo,
-			googleAuthProvider, eventRepo, sessionRepo, redisCache, projectRepo,
+			googleAuthProvider, eventRepo, sessionRepo, redisCache,
 			apiKeyRepo, planRepo, passwordRepo, auditLogRepo,
 		),
 	}
@@ -78,9 +78,8 @@ func setUpRoutes(
 	googleAuthProvider googleauth.GoogleAuthProvider,
 	eventRepo logbase.EventRepository,
 	sessionRepo logbase.SessionRepository, _ cache.Cache,
-	projectRepo logbase.ProjectRepository, apiKeyRepo logbase.APIKeyRepository,
-	planRepo logbase.PlanRepository, passwordRepo logbase.PasswordRepository,
-	auditLogRepo logbase.AuditLogRepository,
+	apiKeyRepo logbase.APIKeyRepository, planRepo logbase.PlanRepository,
+	passwordRepo logbase.PasswordRepository, auditLogRepo logbase.AuditLogRepository,
 ) http.Handler {
 	router := chi.NewRouter()
 
@@ -150,12 +149,6 @@ func setUpRoutes(
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
 		orgRepo:     orgRepo,
-	}
-
-	project := &projectHandler{
-		cfg:         cfg,
-		userRepo:    userRepo,
-		projectRepo: projectRepo,
 	}
 
 	apiKey := &apiKeyHandler{
@@ -228,15 +221,6 @@ func setUpRoutes(
 			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, session.List, cfg, "Session.list"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, session.ListAll, cfg, "Session.listAll"))
-		})
-
-		r.Route("/projects", func(r chi.Router) {
-			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
-			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, project.Create, cfg, "Project.create"))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, project.ListAll, cfg, "Project.listAll"))
-			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, project.List, cfg, "Project.list"))
-			r.Delete("/{reference}", WrapLogbaseHTTPHandler(logger, project.Delete, cfg, "Project.delete"))
 		})
 
 		r.Route("/developers/keys", func(r chi.Router) {
