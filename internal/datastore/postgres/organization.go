@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 	"gitlab.com/logbase/logbase"
 	"gitlab.com/logbase/logbase/internal/pkg/util"
@@ -56,17 +55,19 @@ func (org *orgRepo) List(ctx context.Context, opts logbase.FindOrganizationOptio
 	return organization, err
 }
 
-func (org *orgRepo) Update(ctx context.Context, id uuid.UUID) (*logbase.Organization, error) {
-	ctx, cancel := context.WithCancel(ctx)
+func (org *orgRepo) Update(ctx context.Context, o *logbase.Organization) (*logbase.Organization, error) {
+	ctx, cancel := withContext(ctx)
 	defer cancel()
-	organization := &logbase.Organization{}
 
-	_, err := org.inner.NewUpdate().Model(organization).Where("id = ?", id.String()).Exec(ctx)
+	_, err := org.inner.NewUpdate().
+		Model(o).
+		Where("id = ?", o.ID).
+		OmitZero().
+		Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	return organization, nil
+	return o, nil
 }
 
 func (org *orgRepo) Delete(ctx context.Context, opts *logbase.FindOrganizationOptions) error {

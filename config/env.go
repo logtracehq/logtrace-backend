@@ -51,6 +51,7 @@ func (cfg *Config) SetDefaultValues() {
 	viper.SetDefault("auth.jwt.key", "thisisaweaksecret")
 	viper.SetDefault("auth.jwt.audience", "logbase")
 	viper.SetDefault("api_key.hash_secret", "hash_secret")
+	viper.SetDefault("frontend.app_url", "http://localhost:5173")
 }
 
 func (c *Config) Validate() error {

@@ -84,18 +84,19 @@ func setUpRoutes(
 ) http.Handler {
 	router := chi.NewRouter()
 
+	router.Use(middleware.RequestID)
+	router.Use(writeRequestIDHeader)
+	router.Use(middleware.RealIP)
+
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.Frontend.AppURL, "http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by browsers
 	}))
 
-	router.Use(middleware.RequestID)
-	router.Use(writeRequestIDHeader)
-	router.Use(middleware.RealIP)
-	router.Use(CSRFMiddleware([]byte(cfg.CSRFSecret), cfg))
+	// router.Use(CSRFMiddleware([]byte(cfg.CSRFSecret), cfg))
 	router.Use(
 		middleware.AllowContentType("application/json", "multipart/form-data"))
 
@@ -103,7 +104,7 @@ func setUpRoutes(
 		otelchi.Middleware("logbase.server",
 			otelchi.WithChiRoutes(router)))
 
-	if cfg.Env == "development" {
+	if cfg.Env == config.EnvTypeDevelopment {
 		go func() {
 			r := chi.NewRouter()
 
@@ -167,15 +168,19 @@ func setUpRoutes(
 		planRepo: planRepo,
 	}
 
+	org := &orgHandler{
+		cfg:      cfg,
+		orgRepo:  orgRepo,
+		userRepo: userRepo,
+	}
+
 	router.Route("/v1", func(r chi.Router) {
-		// Health endpoint
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"status":"OK","service":"All services operational"}`))
 		})
 
-		// Not found route
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
@@ -197,14 +202,15 @@ func setUpRoutes(
 		})
 
 		r.Route("/organizations", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, auth.createOrganization, cfg, "Organization.create"))
+			r.Post("/", WrapLogbaseHTTPHandler(logger, org.createOrganization, cfg, "Organization.create"))
+			r.Patch("/", WrapLogbaseHTTPHandler(logger, org.updateOrganization, cfg, "Organization.update"))
 		})
 
 		r.Route("/audit-logs", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, auditLog.List, cfg, "AuditLog.listAuditLog"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, auditLog.ListAll, cfg, "AuditLog.listAll"))
 		})
@@ -220,7 +226,6 @@ func setUpRoutes(
 		r.Route("/sessions", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, session.Create, cfg, "Session.create"))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, session.List, cfg, "Session.list"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, session.ListAll, cfg, "Session.listAll"))
 		})
@@ -250,7 +255,13 @@ func setUpRoutes(
 		r.Route("/plans", func(r chi.Router) {
 			r.Get("/", WrapLogbaseHTTPHandler(logger, plan.ListAll, cfg, "Plan.listAll"))
 		})
-	})
 
+		r.Route("/developers/", func(r chi.Router) {
+			r.Use(requireAPIKeyOnly(logger, cfg, apiKeyRepo, orgRepo))
+			r.Post("/events", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
+			r.Post("/sessions", WrapLogbaseHTTPHandler(logger, session.Create, cfg, "Session.create"))
+			r.Post("/audit-logs", WrapLogbaseHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
+		})
+	})
 	return cors.AllowAll().Handler(router)
 }

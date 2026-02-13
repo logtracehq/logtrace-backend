@@ -4,6 +4,7 @@ CREATE TABLE
         name VARCHAR NOT NULL UNIQUE,
         is_active BOOLEAN NOT NULL DEFAULT true,
         plan_name text NOT NULL DEFAULT 'free',
+        image_url text,
         is_subscription_active BOOLEAN NOT NULL DEFAULT true,
         created_at TIMESTAMP
         WITH

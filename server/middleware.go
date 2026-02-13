@@ -302,23 +302,25 @@ func requireAPIKeyOnly(logger *zap.Logger, cfg config.Config, apiKeyRepo logbase
 				zap.Bool("is_api", true),
 			)
 
-			token, err := tokenFromRequest(r)
-			if err != nil {
-				_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "please provide api key"))
-				return
+			token := r.Header.Get("X-API-Key")
+			if util.IsStringEmpty(token) {
+				var err error
+				token, err = tokenFromRequest(r)
+				if err != nil {
+					_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "please provide an API key in the request header"))
+					return
+				}
 			}
-
-			token = logbase.HashKey(cfg.APIKey.HashSecret, token)
 
 			key, err := apiKeyRepo.FetchByValue(ctx, token)
 			if err != nil {
 				if errors.Is(err, logbase.ErrAPIKeyNotFound) {
-					_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "token not found"))
+					_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "API key not found"))
 					return
 				}
 
 				logger.Error("error while fetching api key", zap.Error(err))
-				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "error occurred while fetching api key"))
+				_ = render.Render(w, r, newAPIStatus(http.StatusInternalServerError, "An error occurred while fetching API key"))
 				return
 			}
 
@@ -339,16 +341,14 @@ func requireAPIKeyOnly(logger *zap.Logger, cfg config.Config, apiKeyRepo logbase
 }
 
 func CSRFMiddleware(authKey []byte, cfg config.Config) func(http.Handler) http.Handler {
-	secure := false
-	if cfg.Env == config.EnvTypeProduction {
-		secure = true
-	}
+	secure := cfg.Env == config.EnvTypeProduction
 
 	csrfMw := csrf.Protect(
 		authKey,
 		csrf.Secure(secure), // true in production (HTTPS)
 		csrf.HttpOnly(true),
 		csrf.RequestHeader("X-CSRF-Token"),
+		csrf.TrustedOrigins([]string{cfg.Frontend.AppURL}),
 	)
 
 	return func(next http.Handler) http.Handler {

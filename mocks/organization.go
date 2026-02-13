@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
 	logbase "gitlab.com/logbase/logbase"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -103,7 +102,7 @@ func (mr *MockOrganizationRepositoryMockRecorder) ListAll(arg0, arg1 any) *gomoc
 }
 
 // Update mocks base method.
-func (m *MockOrganizationRepository) Update(arg0 context.Context, arg1 uuid.UUID) (*logbase.Organization, error) {
+func (m *MockOrganizationRepository) Update(arg0 context.Context, arg1 *logbase.Organization) (*logbase.Organization, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
 	ret0, _ := ret[0].(*logbase.Organization)

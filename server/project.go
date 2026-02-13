@@ -39,6 +39,15 @@ func (r *createProjectRequest) Validate() error {
 	return nil
 }
 
+// @Description Create a new project
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Param project body createProjectRequest true "Project creation request"
+// @Success 201 {object} APIStatus "Project created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create project at this time. an error occurred"
+// @Router /v1/projects [post]
 func (res *projectHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -69,6 +78,15 @@ func (res *projectHandler) Create(ctx context.Context, span trace.Span, logger *
 	return newAPIStatus(http.StatusCreated, "Project created successfully"), StatusSuccess
 }
 
+// @Description Get project details
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Param reference path string true "Project reference (UUID)"
+// @Success 200 {object} fetchProject "Project details fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid project reference"
+// @Failure 500 {object} APIStatus "Failed to fetch project details"
+// @Router /v1/projects/{reference} [get]
 func (res *projectHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -91,6 +109,15 @@ func (res *projectHandler) List(ctx context.Context, span trace.Span, logger *za
 	}, StatusSuccess
 }
 
+// @Description Delete a project
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Param reference path string true "Project reference (UUID)"
+// @Success 200 {object} APIStatus "Project has been deleted successfully"
+// @Failure 400 {object} APIStatus "Invalid project reference"
+// @Failure 500 {object} APIStatus "Failed to delete project"
+// @Router /v1/projects/{reference} [delete]
 func (res *projectHandler) Delete(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -109,6 +136,16 @@ func (res *projectHandler) Delete(ctx context.Context, span trace.Span, logger *
 	return newAPIStatus(http.StatusOK, "Project has been deleted successfully"), StatusSuccess
 }
 
+// @Description Get list of all projects in an organization
+// @Tags Project
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number for pagination"
+// @Param per_page query int false "Number of items per page for pagination"
+// @Success 200 {object} fetchAllProjects "Projects fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid pagination parameters"
+// @Failure 500 {object} APIStatus "Failed to fetch projects"
+// @Router /v1/projects [get]
 func (res *projectHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger, w http.ResponseWriter,
 	r *http.Request,
 ) (render.Renderer, Status) {

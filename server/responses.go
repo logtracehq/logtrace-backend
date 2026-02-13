@@ -182,3 +182,8 @@ type listUsersResponse struct {
 	Meta  meta            `json:"meta"`
 	APIStatus
 }
+
+type OrganizationResponse struct {
+	Organization *logbase.Organization `json:"organization"`
+	APIStatus
+}

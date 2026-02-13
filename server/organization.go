@@ -22,7 +22,18 @@ type orgHandler struct {
 type createOrgRequest struct {
 	GenericRequest
 
-	Name string `json:"name"`
+	Name     string `json:"name"`
+	ImageURL string `json:"image_url"`
+}
+
+type updateOrgRequest struct {
+	GenericRequest
+
+	Name                 string `json:"name"`
+	ImageURL             string `json:"image_url"`
+	IsSubscriptionActive bool   `json:"is_subscription_active"`
+	PlanName             string `json:"plan_name"`
+	IsActive             bool   `json:"is_active"`
 }
 
 func (c *createOrgRequest) Validate() error {
@@ -32,7 +43,16 @@ func (c *createOrgRequest) Validate() error {
 	return nil
 }
 
-func (a *authHandler) createOrganization(ctx context.Context, span trace.Span, logger *zap.Logger,
+// @Description Create a new organization
+// @Tags Organization
+// @Accept json
+// @Produce json
+// @Param organization body createOrgRequest true "Organization creation request"
+// @Success 201 {object} APIStatus "Organization created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create organization at this time. an error occurred"
+// @Router /v1/organizations [post]
+func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("creating an organization")
@@ -52,9 +72,10 @@ func (a *authHandler) createOrganization(ctx context.Context, span trace.Span, l
 		IsActive:             true,
 		IsSubscriptionActive: false,
 		PlanName:             "free",
+		ImageURL:             req.ImageURL,
 	}
 
-	org, err := a.orgRepo.Create(ctx, org)
+	org, err := o.orgRepo.Create(ctx, org)
 	if err != nil {
 		logger.Error("an error occurred while creating organization", zap.Error(err))
 		return newAPIStatus(
@@ -64,4 +85,53 @@ func (a *authHandler) createOrganization(ctx context.Context, span trace.Span, l
 	}
 
 	return newAPIStatus(http.StatusCreated, "Organization created successfully"), StatusSuccess
+}
+
+// @Description Update an existing organization
+// @Tags Organization
+// @Accept json
+// @Produce json
+// @Param organization body updateOrgRequest true "Organization update request"
+// @Success 200 {object} OrganizationResponse "Organization updated successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not update organization at this time. an error occurred"
+// @Router /v1/organizations [patch]
+func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("updating an organization")
+
+	organizationID := getOrganizationFromContext(ctx).ID
+	req := new(updateOrgRequest)
+
+	opts := logbase.FindOrganizationOptions{
+		ID: organizationID,
+	}
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	org := &logbase.Organization{
+		ID:                   opts.ID,
+		Name:                 req.Name,
+		ImageURL:             req.ImageURL,
+		IsSubscriptionActive: req.IsSubscriptionActive,
+		PlanName:             req.PlanName,
+		IsActive:             req.IsActive,
+	}
+
+	updatedOrg, err := o.orgRepo.Update(ctx, org)
+	if err != nil {
+		logger.Error("an error occurred while updating organization", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"Could not update organization at this time. an error occurred",
+		), StatusFailed
+	}
+
+	return OrganizationResponse{
+		Organization: updatedOrg,
+		APIStatus:    newAPIStatus(http.StatusOK, "Organization updated successfully"),
+	}, StatusSuccess
 }
