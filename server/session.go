@@ -179,3 +179,24 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		APIStatus: newAPIStatus(http.StatusOK, "Sessions have been fetched successfully"),
 	}, StatusSuccess
 }
+
+func (sh *sessionHandler) Metrics(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("fetching sessions metrics")
+
+	orgID := getOrganizationFromContext(ctx).ID
+	opts := logbase.FindSessionOptions{
+		OrganizationID: orgID,
+	}
+	totalCount, err := sh.sessionRepo.Metrics(ctx, &opts)
+	if err != nil {
+		logger.Error("failed to fetch sessions metrics", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch sessions metrics"), StatusFailed
+	}
+
+	return sessionMetricsResponse{
+		Count:     totalCount,
+		APIStatus: newAPIStatus(http.StatusOK, "Sessions metrics have been fetched successfully"),
+	}, StatusSuccess
+}

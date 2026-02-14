@@ -214,6 +214,7 @@ func setUpRoutes(
 			r.Post("/", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, event.List, cfg, "Event.list"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, event.ListAll, cfg, "Event.listAll"))
+			r.Get("/metrics", WrapLogbaseHTTPHandler(logger, event.Metrics, cfg, "Event.metrics"))
 		})
 
 		r.Route("/sessions", func(r chi.Router) {
@@ -221,6 +222,7 @@ func setUpRoutes(
 			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, session.List, cfg, "Session.list"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, session.ListAll, cfg, "Session.listAll"))
+			r.Get("/metrics", WrapLogbaseHTTPHandler(logger, session.Metrics, cfg, "Session.metrics"))
 		})
 
 		r.Route("/developers/keys", func(r chi.Router) {

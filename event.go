@@ -16,7 +16,8 @@ var (
 type Event struct {
 	ID              uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Type            string     `json:"type"        bun:",notnull"`
-	UserName        string     `json:"user_name"`
+	Username        string     `json:"username"`
+	UserID          uuid.UUID  `json:"user_id"`
 	HTTPMethod      string     `json:"http_method"`
 	HTTPStatus      string     `json:"http_status"`
 	HTTPEndpoint    string     `json:"http_endpoint"`
@@ -32,18 +33,21 @@ type Event struct {
 }
 
 type ListEventOptions struct {
-	ID             uuid.UUID
-	Action         string `json:"action"`
-	OrganizationID uuid.UUID
-	Paginator      Paginator
-	HTTPStatus     string
-	HTTPMethod     string
-	StartDate      string
-	EndDate        string
+	ID             uuid.UUID `json:"id"`
+	Action         string    `json:"action"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Paginator      Paginator `json:"paginator"`
+	HTTPStatus     string    `json:"http_status"`
+	HTTPMethod     string    `json:"http_method"`
+	StartDate      string    `json:"start_date"`
+	EndDate        string    `json:"end_date"`
+	Username       string    `json:"username"`
+	UserID         uuid.UUID `json:"user_id"`
 }
 
 type EventRepository interface {
 	Create(context.Context, *Event) error
 	List(context.Context, ListEventOptions) (*Event, error)
 	ListAll(context.Context, *ListEventOptions) ([]*Event, int64, error)
+	Metrics(context.Context, *ListEventOptions) (int64, error)
 }

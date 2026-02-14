@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/uptrace/bun"
 	"gitlab.com/logbase/logbase"
@@ -102,7 +103,6 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 
 	count = int64(totalCount)
 
-	// Selector for fetching paginated events with the same filters.
 	listSelect := e.inner.NewSelect().
 		Model(&events).
 		Where("deleted_at IS NULL")
@@ -135,10 +135,46 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 	if !util.IsStringEmpty(opts.EndDate) {
 		listSelect = listSelect.Where("DATE(created_at) <= ?", opts.EndDate)
 	}
+	if !util.IsStringEmpty(opts.EndDate) && !util.IsStringEmpty(opts.StartDate) {
+		listSelect = listSelect.Where("DATE(created_at) BETWEEN ? AND ?", opts.StartDate, opts.EndDate)
+	}
+	if !util.IsStringEmpty(opts.UserID.String()) {
+		listSelect = listSelect.Where("user_id = ?", opts.UserID.String())
+	}
+	if !util.IsStringEmpty(opts.Username) {
+		listSelect = listSelect.Where("username = ?", opts.Username)
+	}
 
 	return events, count, listSelect.
 		Offset(int(opts.Paginator.Offset())).
 		Limit(int(opts.Paginator.PerPage)).
 		Order("created_at DESC").
 		Scan(ctx)
+}
+
+func (e eventRepo) Metrics(
+	ctx context.Context,
+	opts *logbase.ListEventOptions,
+) (int64, error) {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	var count int64
+
+	last24h := time.Now().Add(-24 * time.Hour)
+
+	countQuery := e.inner.NewSelect().
+		Model((*logbase.Event)(nil)).
+		Where("deleted_at IS NULL").
+		Where("created_at >= ?", last24h).
+		Where("organization_id = ?", opts.OrganizationID.String())
+
+	totalCount, err := countQuery.Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	count = int64(totalCount)
+
+	return count, nil
 }

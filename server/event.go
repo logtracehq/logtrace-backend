@@ -27,15 +27,16 @@ type eventHander struct {
 type createEventRequest struct {
 	GenericRequest
 
-	ActionName      string
-	Username        string
-	HTTPMethod      string
-	HTTPStatus      string
-	HTTPEndpoint    string
-	ClientIP        string
-	ClientUserAgent string
-	Type            string
-	GeoIpLocation   string
+	ActionName      string    `json:"action_name"`
+	UserID          uuid.UUID `json:"user_id"`
+	Username        string    `json:"username"`
+	HTTPMethod      string    `json:"http_method"`
+	HTTPStatus      string    `json:"http_status"`
+	HTTPEndpoint    string    `json:"http_endpoint"`
+	ClientIP        string    `json:"client_ip"`
+	ClientUserAgent string    `json:"client_user_agent"`
+	Type            string    `json:"type"`
+	GeoIpLocation   string    `json:"geo_ip_location"`
 }
 
 func (e *createEventRequest) Validate() error {
@@ -51,6 +52,10 @@ func (e *createEventRequest) Validate() error {
 	if util.IsStringEmpty(e.ClientIP) {
 		return errors.New("client IP is required")
 	}
+	if util.IsStringEmpty(e.Username) && util.IsStringEmpty(e.UserID.String()) {
+		return errors.New("user information (username or user_id) is required")
+	}
+
 	if util.IsStringEmpty(e.ClientUserAgent) {
 		return errors.New("client user agent is required")
 	}
@@ -76,6 +81,8 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 	event := &logbase.Event{
 		ActionName:      req.ActionName,
 		HTTPMethod:      req.HTTPMethod,
+		Username:        req.Username,
+		UserID:          req.UserID,
 		HTTPStatus:      req.HTTPStatus,
 		ClientIP:        req.ClientIP,
 		OrganizationID:  getOrganizationFromContext(r.Context()).ID,
@@ -90,7 +97,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusInternalServerError, "failed to save the event"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "event has been created successfully"), StatusSuccess
+	return newAPIStatus(http.StatusCreated, "Event has been created successfully"), StatusSuccess
 }
 
 func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Logger,
@@ -120,6 +127,8 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 	eventResponse := &Event{
 		ID:              event.ID,
 		Type:            event.Type,
+		Username:        event.Username,
+		UserID:          event.UserID.String(),
 		HTTPMethod:      event.HTTPMethod,
 		HTTPStatus:      event.HTTPStatus,
 		HTTPEndpoint:    event.HTTPEndpoint,
@@ -145,6 +154,14 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	httpMethod := query.Get("http_method")
 	startDate := query.Get("start_date")
 	endDate := query.Get("end_date")
+	username := query.Get("username")
+	userID := query.Get("user_id")
+
+	parsedUserID, err := uuid.Parse(userID)
+	if userID != "" && err != nil {
+		logger.Error("invalid user ID format", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid user ID format"), StatusFailed
+	}
 
 	opts := logbase.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
@@ -153,6 +170,8 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 		HTTPMethod:     httpMethod,
 		StartDate:      startDate,
 		EndDate:        endDate,
+		Username:       username,
+		UserID:         parsedUserID,
 	}
 
 	events := []*logbase.Event{}
@@ -169,6 +188,8 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 			Type:            event.Type,
 			HTTPMethod:      event.HTTPMethod,
 			HTTPStatus:      event.HTTPStatus,
+			Username:        event.Username,
+			UserID:          event.UserID.String(),
 			HTTPEndpoint:    event.HTTPEndpoint,
 			ClientIP:        event.ClientIP,
 			OrganizationID:  event.OrganizationID,
@@ -188,6 +209,27 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 				Page:    opts.Paginator.Page,
 			},
 		},
-		APIStatus: newAPIStatus(http.StatusOK, "Fetch the events successfully"),
+		APIStatus: newAPIStatus(http.StatusOK, "Events fetched successfully"),
+	}, StatusSuccess
+}
+
+func (e *eventHander) Metrics(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("fetching events metrics")
+
+	opts := logbase.ListEventOptions{
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+	}
+
+	totalCount, err := e.eventRepo.Metrics(ctx, &opts)
+	if err != nil {
+		logger.Error("failed to fetch events metrics", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch events metrics"), StatusFailed
+	}
+
+	return eventMetricsResponse{
+		Count:     totalCount,
+		APIStatus: newAPIStatus(http.StatusOK, "Events metrics fetched successfully"),
 	}, StatusSuccess
 }

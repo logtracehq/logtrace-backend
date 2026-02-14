@@ -91,6 +91,28 @@ func getUserFromContext(ctx context.Context) *logbase.User {
 	return ctx.Value(userCtx).(*logbase.User)
 }
 
+func userOrganizationIDs(user *logbase.User) []uuid.UUID {
+	if user == nil || user.Metadata == nil {
+		return nil
+	}
+
+	return user.Metadata.OrganizationID
+}
+
+func hasOrganizationMembership(user *logbase.User, orgID uuid.UUID) bool {
+	if orgID == uuid.Nil {
+		return false
+	}
+
+	for _, id := range userOrganizationIDs(user) {
+		if id == orgID {
+			return true
+		}
+	}
+
+	return false
+}
+
 func init() {
 	hostname, err := os.Hostname()
 	if hostname == "" || err != nil {
@@ -268,13 +290,14 @@ func requireAuthentication(
 				return
 			}
 
-			if user.Metadata.OrganizationID == uuid.Nil {
+			organizationIDs := userOrganizationIDs(user)
+			if len(organizationIDs) == 0 {
 				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired, "you must be a member of a organization"))
 				return
 			}
 
 			org, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
-				ID: user.Metadata.OrganizationID,
+				ID: organizationIDs[0],
 			})
 			if err != nil {
 				logger.Error("could not fetch organization from database", zap.Error(err))
@@ -288,7 +311,7 @@ func requireAuthentication(
 	}
 }
 
-func requireAPIKeyOnly(logger *zap.Logger, cfg config.Config, apiKeyRepo logbase.APIKeyRepository,
+func requireAPIKeyOnly(logger *zap.Logger, _ config.Config, apiKeyRepo logbase.APIKeyRepository,
 	orgRepo logbase.OrganizationRepository,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

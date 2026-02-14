@@ -47,8 +47,12 @@ type signUpRequest struct {
 
 func (sr *signUpRequest) Validate() error {
 	if util.IsStringEmpty(sr.FullName) {
-		return errors.New("first name is required")
+		return errors.New("name is required")
 	}
+	if len(sr.FullName) < 4 {
+		return errors.New("name must be at least 4 characters long")
+	}
+
 	if util.IsStringEmpty(sr.Email.String()) {
 		return errors.New("email is required")
 	}
@@ -367,7 +371,7 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		Status:   logbase.UserStatusActive.String(),
 		Roles:    []logbase.UserRole{},
 		Metadata: &logbase.UserMetadata{
-			OrganizationID: org.ID,
+			OrganizationID: []uuid.UUID{org.ID},
 			UserRole:       "admin",
 		},
 	}
@@ -497,7 +501,7 @@ func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, lo
 		FullName: req.FullName,
 		Status:   logbase.UserStatusPending.String(),
 		Metadata: &logbase.UserMetadata{
-			OrganizationID: getOrganizationFromContext(ctx).ID,
+			OrganizationID: []uuid.UUID{getOrganizationFromContext(ctx).ID},
 			UserRole:       logbase.RoleName(req.Role),
 		},
 	}
@@ -595,7 +599,7 @@ func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logge
 	}
 
 	org := getOrganizationFromContext(ctx)
-	if user.Metadata.OrganizationID != org.ID {
+	if !hasOrganizationMembership(user, org.ID) {
 		return newAPIStatus(http.StatusForbidden, "user does not belong to your organization"), StatusFailed
 	}
 
