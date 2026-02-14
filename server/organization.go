@@ -84,18 +84,29 @@ func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, lo
 		), StatusFailed
 	}
 
+	if doesUserExistInContext(ctx) {
+		user := getUserFromContext(ctx)
+		if user.Metadata == nil {
+			user.Metadata = &logbase.UserMetadata{}
+		}
+
+		if !hasOrganizationMembership(user, org.ID) {
+			user.Metadata.OrganizationID = append(user.Metadata.OrganizationID, org.ID)
+		}
+
+		err = o.userRepo.Update(ctx, user)
+		if err != nil {
+			logger.Error("an error occurred while updating user metadata", zap.Error(err))
+			return newAPIStatus(
+				http.StatusInternalServerError,
+				"Could not create organization at this time. an error occurred",
+			), StatusFailed
+		}
+	}
+
 	return newAPIStatus(http.StatusCreated, "Organization created successfully"), StatusSuccess
 }
 
-// @Description Update an existing organization
-// @Tags Organization
-// @Accept json
-// @Produce json
-// @Param organization body updateOrgRequest true "Organization update request"
-// @Success 200 {object} OrganizationResponse "Organization updated successfully"
-// @Failure 400 {object} APIStatus "Invalid request body"
-// @Failure 500 {object} APIStatus "Could not update organization at this time. an error occurred"
-// @Router /v1/organizations [patch]
 func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {

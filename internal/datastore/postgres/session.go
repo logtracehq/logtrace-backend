@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"time"
 
 	"github.com/uptrace/bun"
 	"gitlab.com/logbase/logbase"
@@ -101,4 +102,31 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOpt
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
+}
+
+func (s *sessionRepo) Metrics(
+	ctx context.Context,
+	opts *logbase.FindSessionOptions,
+) (int64, error) {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	var count int64
+
+	last24h := time.Now().Add(-24 * time.Hour)
+
+	countQuery := s.inner.NewSelect().
+		Model((*logbase.Session)(nil)).
+		Where("deleted_at IS NULL").
+		Where("login_at >= ?", last24h).
+		Where("organization_id = ?", opts.OrganizationID.String())
+
+	totalCount, err := countQuery.Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	count = int64(totalCount)
+
+	return count, nil
 }

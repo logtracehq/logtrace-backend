@@ -102,7 +102,7 @@ func (org *orgRepo) ListAll(ctx context.Context, opts *logbase.FindOrganizationO
 
 	countSelect := org.inner.NewSelect().Model(&organizations).Where("deleted_at IS NULL")
 	if !util.IsStringEmpty(opts.UserID.String()) {
-		countSelect = countSelect.Where("id = (SELECT (metadata->>'organization_id')::uuid FROM users WHERE id = ?)", opts.UserID.String())
+		countSelect = countSelect.Where("id IN (SELECT elem::uuid FROM users u, jsonb_array_elements_text(u.metadata->'organization_id') AS elem WHERE u.id = ?)", opts.UserID.String())
 	}
 	if !util.IsStringEmpty(opts.Plan) {
 		countSelect = countSelect.Where("plan_name = ?", opts.Plan)
@@ -117,7 +117,7 @@ func (org *orgRepo) ListAll(ctx context.Context, opts *logbase.FindOrganizationO
 
 	listSelect := org.inner.NewSelect().Model(&organizations).Where("deleted_at IS NULL")
 	if !util.IsStringEmpty(opts.UserID.String()) {
-		listSelect = listSelect.Where("id = (SELECT (metadata->>'organization_id')::uuid FROM users WHERE id = ?)", opts.UserID.String())
+		listSelect = listSelect.Where("id IN (SELECT elem::uuid FROM users u, jsonb_array_elements_text(u.metadata->'organization_id') AS elem WHERE u.id = ?)", opts.UserID.String())
 	}
 	if !util.IsStringEmpty(opts.Plan) {
 		listSelect = listSelect.Where("plan_name = ?", opts.Plan)

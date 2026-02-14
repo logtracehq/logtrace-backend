@@ -35,8 +35,8 @@ func (e Email) String() string { return strings.ToLower(string(e)) }
 func (e Email) Value() (driver.Value, error) { return driver.Value(e.String()), nil }
 
 type UserMetadata struct {
-	OrganizationID uuid.UUID `json:"organization_id"`
-	UserRole       RoleName  `json:"user_role"`
+	OrganizationID []uuid.UUID `json:"organization_id"`
+	UserRole       RoleName    `json:"user_role"`
 }
 
 type User struct {

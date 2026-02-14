@@ -2,7 +2,8 @@ CREATE TABLE
     events (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         type VARCHAR NOT NULL,
-        user_name VARCHAR,
+        username VARCHAR,
+        user_id UUID,
         http_method VARCHAR,
         http_status VARCHAR,
         organization_id UUID NOT NULL,

@@ -47,6 +47,8 @@ func newAPIStatus(code int, s string) APIStatus {
 type Event struct {
 	ID              uuid.UUID `json:"id"`
 	Type            string    `json:"type"`
+	Username        string    `json:"username"`
+	UserID          string    `json:"user_id"`
 	HTTPMethod      string    `json:"http_method"`
 	HTTPStatus      string    `json:"http_status"`
 	HTTPEndpoint    string    `json:"http_endpoint"`
@@ -161,5 +163,15 @@ type listUsersResponse struct {
 
 type OrganizationResponse struct {
 	Organization *logbase.Organization `json:"organization"`
+	APIStatus
+}
+
+type sessionMetricsResponse struct {
+	Count int64 `json:"count"`
+	APIStatus
+}
+
+type eventMetricsResponse struct {
+	Count int64 `json:"count"`
 	APIStatus
 }

@@ -42,4 +42,5 @@ type SessionRepository interface {
 	Create(context.Context, *Session) error
 	List(context.Context, *FindSessionOptions) (*Session, error)
 	ListAll(context.Context, *ListSessionsOptions) ([]*Session, int64, error)
+	Metrics(context.Context, *FindSessionOptions) (int64, error)
 }

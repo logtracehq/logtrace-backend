@@ -358,11 +358,11 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			ListAll(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
+			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
 			Return(&logbase.User{
 				ID: userID,
 				Metadata: &logbase.UserMetadata{
-					OrganizationID: uuid.Nil, // No organization
+					OrganizationID: []uuid.UUID{}, // No organization
 				},
 			}, nil)
 
@@ -383,7 +383,7 @@ func TestRequireAuthentication(t *testing.T) {
 			// For auth/connect route, we should still have user in context
 			user := getUserFromContext(r.Context())
 			require.Equal(t, userID, user.ID)
-			require.Equal(t, uuid.Nil, user.Metadata.OrganizationID)
+			require.Empty(t, user.Metadata.OrganizationID)
 
 			// Organization should not be in context since we never fetched it
 			require.False(t, doesOrganizationExistInContext(r.Context()))
@@ -414,7 +414,7 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(&logbase.User{
 				ID: userID,
 				Metadata: &logbase.UserMetadata{
-					OrganizationID: orgID,
+					OrganizationID: []uuid.UUID{orgID},
 				},
 			}, nil)
 

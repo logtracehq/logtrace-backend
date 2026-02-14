@@ -201,7 +201,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 	organization := getOrganizationFromContext(ctx)
 	user := getUserFromContext(ctx)
 
-	if organization.ID != user.Metadata.OrganizationID {
+	if !hasOrganizationMembership(user, organization.ID) {
 		return newAPIStatus(http.StatusForbidden, "unauthorized"), StatusFailed
 	}
 
