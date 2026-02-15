@@ -19,6 +19,34 @@ import (
 )
 
 func TestRequireOrganizationValidSubscription(t *testing.T) {
+	t.Run("skip organization validation for account me route", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/auth/account/me", nil)
+		req.Header.Add("Content-Type", "application/json")
+
+		requireOrganizationValidSubscription(getConfig())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.NoError(t, json.NewEncoder(w).Encode("{}"))
+		})).ServeHTTP(rr, req)
+
+		require.Equal(t, http.StatusOK, rr.Code)
+		verifyMatch(t, rr)
+	})
+
+	t.Run("selected organization required when context is missing", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/events", nil)
+		req.Header.Add("Content-Type", "application/json")
+
+		requireOrganizationValidSubscription(getConfig())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.NoError(t, json.NewEncoder(w).Encode("{}"))
+		})).ServeHTTP(rr, req)
+
+		require.Equal(t, http.StatusPreconditionRequired, rr.Code)
+		verifyMatch(t, rr)
+	})
+
 	t.Run("sub not active", func(t *testing.T) {
 		rr := httptest.NewRecorder()
 
@@ -425,6 +453,7 @@ func TestRequireAuthentication(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
 		req.Header.Set("Authorization", "Bearer valid-token")
+		req.Header.Set("X-Organization-ID", orgID.String())
 
 		handler := requireAuthentication(
 			logger,
@@ -445,5 +474,95 @@ func TestRequireAuthentication(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 		require.Equal(t, http.StatusOK, rr.Code)
+	})
+
+	t.Run("missing selected organization header for protected route", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userID := uuid.New()
+		orgID := uuid.New()
+		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
+		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+
+		jwtManager.EXPECT().
+			ParseJWToken("valid-token").
+			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
+
+		userRepo.EXPECT().
+			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
+			Return(&logbase.User{
+				ID: userID,
+				Metadata: &logbase.UserMetadata{
+					OrganizationID: []uuid.UUID{orgID},
+				},
+			}, nil)
+
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
+		req.Header.Set("Authorization", "Bearer valid-token")
+
+		handler := requireAuthentication(
+			logger,
+			jwtManager,
+			cfg,
+			userRepo,
+			orgRepo,
+		)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		handler.ServeHTTP(rr, req)
+		require.Equal(t, http.StatusPreconditionRequired, rr.Code)
+	})
+}
+
+func TestResolveOrganizationIDForRequest(t *testing.T) {
+	t.Run("fallback to only organization when header is missing", func(t *testing.T) {
+		orgID := uuid.New()
+		user := &logbase.User{
+			Metadata: &logbase.UserMetadata{
+				OrganizationID: []uuid.UUID{orgID},
+			},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
+
+		resolvedID, err := resolveOrganizationIDForRequest(req, user)
+		require.NoError(t, err)
+		require.Equal(t, orgID, resolvedID)
+	})
+
+	t.Run("fallback to only organization when header is stale", func(t *testing.T) {
+		orgID := uuid.New()
+		user := &logbase.User{
+			Metadata: &logbase.UserMetadata{
+				OrganizationID: []uuid.UUID{orgID},
+			},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
+		req.Header.Set(organizationIDHeader, uuid.NewString())
+
+		resolvedID, err := resolveOrganizationIDForRequest(req, user)
+		require.NoError(t, err)
+		require.Equal(t, orgID, resolvedID)
+	})
+
+	t.Run("reject stale header when user has multiple organizations", func(t *testing.T) {
+		user := &logbase.User{
+			Metadata: &logbase.UserMetadata{
+				OrganizationID: []uuid.UUID{uuid.New(), uuid.New()},
+			},
+		}
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
+		req.Header.Set(organizationIDHeader, uuid.NewString())
+
+		resolvedID, err := resolveOrganizationIDForRequest(req, user)
+		require.Error(t, err)
+		require.Equal(t, uuid.Nil, resolvedID)
+		require.Equal(t, "you are not a member of the selected organization", err.Error())
 	})
 }

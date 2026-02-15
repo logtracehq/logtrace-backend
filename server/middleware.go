@@ -24,8 +24,9 @@ import (
 )
 
 const (
-	organizationCtx = "organization"
-	userCtx         = "user"
+	organizationCtx      = "organization"
+	userCtx              = "user"
+	organizationIDHeader = "X-Organization-ID"
 )
 
 var RequestIDHeader = "X-Request-Id"
@@ -113,6 +114,52 @@ func hasOrganizationMembership(user *logbase.User, orgID uuid.UUID) bool {
 	return false
 }
 
+func selectedOrganizationIDFromRequest(r *http.Request) (uuid.UUID, error) {
+	selectedOrgID := strings.TrimSpace(r.Header.Get(organizationIDHeader))
+	if selectedOrgID == "" {
+		return uuid.Nil, errors.New("selected organization is required")
+	}
+
+	parsedID, err := uuid.Parse(selectedOrgID)
+	if err != nil {
+		return uuid.Nil, errors.New("invalid selected organization id")
+	}
+
+	return parsedID, nil
+}
+
+func shouldSkipOrganizationSelection(path, method string) bool {
+	return strings.HasPrefix(path, "/v1/auth/connect") ||
+		(path == "/v1/organizations" && method == http.MethodPost) ||
+		path == "/v1/auth/account/me"
+}
+
+func resolveOrganizationIDForRequest(r *http.Request, user *logbase.User) (uuid.UUID, error) {
+	organizationIDs := userOrganizationIDs(user)
+	if len(organizationIDs) == 0 {
+		return uuid.Nil, errors.New("you must be a member of a organization")
+	}
+
+	selectedOrganizationID, err := selectedOrganizationIDFromRequest(r)
+	if err != nil {
+		if len(organizationIDs) == 1 {
+			return organizationIDs[0], nil
+		}
+
+		return uuid.Nil, err
+	}
+
+	if hasOrganizationMembership(user, selectedOrganizationID) {
+		return selectedOrganizationID, nil
+	}
+
+	if len(organizationIDs) == 1 {
+		return organizationIDs[0], nil
+	}
+
+	return uuid.Nil, errors.New("you are not a member of the selected organization")
+}
+
 func init() {
 	hostname, err := os.Hostname()
 	if hostname == "" || err != nil {
@@ -170,8 +217,6 @@ func getIP(r *http.Request) string {
 	return r.RemoteAddr
 }
 
-// GetReqID returns a request ID from the given context if one is present.
-// Returns the empty string if a request ID cannot be found.
 func GetReqID(ctx context.Context) string {
 	if ctx == nil {
 		return ""
@@ -212,12 +257,25 @@ func requireOrganizationValidSubscription(
 				strings.HasPrefix(r.URL.Path, "/v1/organizations/switch/") ||
 				r.URL.Path == "/v1/organizations" ||
 				r.URL.Path == "/v1/organizations/preferences" ||
-				r.URL.Path == "/v1/user" {
+				r.URL.Path == "/v1/user" ||
+				shouldSkipOrganizationSelection(r.URL.Path, r.Method) {
 				next.ServeHTTP(w, r)
 				return
 			}
 
+			if !doesOrganizationExistInContext(ctx) {
+				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired,
+					"selected organization is required"))
+				return
+			}
+
 			org := getOrganizationFromContext(ctx)
+			if org == nil {
+				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired,
+					"selected organization is required"))
+				return
+			}
+
 			if !org.IsSubscriptionActive {
 				_ = render.Render(w, r, newAPIStatus(http.StatusPaymentRequired,
 					"Organization is not active. You need an active subscription"))
@@ -282,22 +340,24 @@ func requireAuthentication(
 
 			r = r.WithContext(writeUserToCtx(ctx, user))
 
-			// For auth/connect path, we don't need to check organization
-			if strings.HasPrefix(r.URL.Path, "/v1/auth/connect") ||
-				(r.URL.Path == "/v1/organizations" && r.Method == http.MethodPost) {
-				// r.URL.Path == "/v1/user" {
+			if shouldSkipOrganizationSelection(r.URL.Path, r.Method) {
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			organizationIDs := userOrganizationIDs(user)
-			if len(organizationIDs) == 0 {
-				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired, "you must be a member of a organization"))
+			selectedOrganizationID, err := resolveOrganizationIDForRequest(r, user)
+			if err != nil {
+				statusCode := http.StatusPreconditionRequired
+				if err.Error() == "you are not a member of the selected organization" {
+					statusCode = http.StatusForbidden
+				}
+
+				_ = render.Render(w, r, newAPIStatus(statusCode, err.Error()))
 				return
 			}
 
 			org, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
-				ID: organizationIDs[0],
+				ID: selectedOrganizationID,
 			})
 			if err != nil {
 				logger.Error("could not fetch organization from database", zap.Error(err))

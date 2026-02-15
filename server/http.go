@@ -244,6 +244,7 @@ func setUpRoutes(
 
 		r.Route("/developers/", func(r chi.Router) {
 			r.Use(requireAPIKeyOnly(logger, cfg, apiKeyRepo, orgRepo))
+			requireOrganizationValidSubscription(cfg)
 			r.Post("/events", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
 			r.Post("/sessions", WrapLogbaseHTTPHandler(logger, session.Create, cfg, "Session.create"))
 			r.Post("/audit-logs", WrapLogbaseHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
