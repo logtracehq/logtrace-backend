@@ -3,7 +3,7 @@ CREATE TABLE
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         type VARCHAR NOT NULL,
         username VARCHAR,
-        user_id UUID,
+        user_id VARCHAR,
         http_method VARCHAR,
         http_status VARCHAR,
         organization_id UUID NOT NULL,

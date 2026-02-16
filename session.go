@@ -10,7 +10,8 @@ import (
 
 type Session struct {
 	ID             uuid.UUID  `json:"id"                bun:"type:uuid,default:uuid_generate_v4(),pk"`
-	UserID         uuid.UUID  `json:"user_id"           bun:"type:uuid,notnull"`
+	UserID         string     `json:"user_id"           bun:"user_id"`
+	UserName       string     `json:"username" bun:"username"`
 	LoginAt        time.Time  `json:"login_at"          bun:"default:current_timestamp,notnull"`
 	OrganizationID uuid.UUID  `json:"organization_id"   bun:"type:uuid,nullzero"`
 	LogoutAt       time.Time  `json:"logout_at"         bun:",nullzero"`

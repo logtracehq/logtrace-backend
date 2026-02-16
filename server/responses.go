@@ -90,7 +90,8 @@ type fetchUserResponse struct {
 
 type Session struct {
 	ID             uuid.UUID `json:"id"`
-	UserID         uuid.UUID `json:"user_id"`
+	UserID         string    `json:"user_id"`
+	UserName       string    `json:"username"`
 	LoginAt        time.Time `json:"login_at"`
 	OrganizationID uuid.UUID `json:"organization_id"`
 	LogoutAt       time.Time `json:"logout_at"`
@@ -137,7 +138,8 @@ type AuditLog struct {
 	Action         string            `json:"action"`
 	Timestamp      time.Time         `json:"timestamp"`
 	IPAddress      string            `json:"ip_address"`
-	UserID         uuid.UUID         `json:"user_id"`
+	UserID         string            `json:"user_id"`
+	UserName       string            `json:"username"`
 	CreatedAt      time.Time         `json:"created_at"`
 	RequestID      string            `json:"request_id"`
 	OrganizationID uuid.UUID         `json:"organization_id"`

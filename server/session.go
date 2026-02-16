@@ -35,6 +35,8 @@ type sessionRequest struct {
 	IPAddress  string `json:"ip_address"`
 	Location   string `json:"location"`
 	Status     string `json:"status"`
+	UserID     string `json:"user_id"`
+	UserName   string `json:"username"`
 }
 
 func (sr *sessionRequest) Validate() error {
@@ -67,8 +69,9 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 	}
 
 	session := &logbase.Session{
-		UserID:         getUserFromContext(r.Context()).ID,
+		UserID:         req.UserID,
 		DeviceInfo:     req.DeviceInfo,
+		UserName:       req.UserName,
 		IPAddress:      req.IPAddress,
 		Location:       req.Location,
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
@@ -114,6 +117,7 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 	sessionResponse := &Session{
 		ID:             session.ID,
 		UserID:         session.UserID,
+		UserName:       session.UserName,
 		LoginAt:        session.LoginAt,
 		OrganizationID: session.OrganizationID,
 		LogoutAt:       session.LogoutAt,
@@ -156,6 +160,7 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		sessionResponses = append(sessionResponses, &Session{
 			ID:             session.ID,
 			UserID:         session.UserID,
+			UserName:       session.UserName,
 			LoginAt:        session.LoginAt,
 			OrganizationID: session.OrganizationID,
 			LogoutAt:       session.LogoutAt,

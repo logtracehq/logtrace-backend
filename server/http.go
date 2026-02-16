@@ -214,7 +214,6 @@ func setUpRoutes(
 			r.Post("/", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, event.List, cfg, "Event.list"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, event.ListAll, cfg, "Event.listAll"))
-			r.Get("/metrics", WrapLogbaseHTTPHandler(logger, event.Metrics, cfg, "Event.metrics"))
 		})
 
 		r.Route("/sessions", func(r chi.Router) {
@@ -222,7 +221,6 @@ func setUpRoutes(
 			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, session.List, cfg, "Session.list"))
 			r.Get("/", WrapLogbaseHTTPHandler(logger, session.ListAll, cfg, "Session.listAll"))
-			r.Get("/metrics", WrapLogbaseHTTPHandler(logger, session.Metrics, cfg, "Session.metrics"))
 		})
 
 		r.Route("/developers/keys", func(r chi.Router) {
@@ -248,6 +246,12 @@ func setUpRoutes(
 			r.Post("/events", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
 			r.Post("/sessions", WrapLogbaseHTTPHandler(logger, session.Create, cfg, "Session.create"))
 			r.Post("/audit-logs", WrapLogbaseHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
+		})
+
+		r.Route("/metrics", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
+			r.Get("/sessions", WrapLogbaseHTTPHandler(logger, session.Metrics, cfg, "Metrics.sessions"))
+			r.Get("/events", WrapLogbaseHTTPHandler(logger, event.Metrics, cfg, "Metrics.events"))
 		})
 	})
 	return cors.AllowAll().Handler(router)

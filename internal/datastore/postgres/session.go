@@ -118,7 +118,7 @@ func (s *sessionRepo) Metrics(
 	countQuery := s.inner.NewSelect().
 		Model((*logbase.Session)(nil)).
 		Where("deleted_at IS NULL").
-		Where("login_at >= ?", last24h).
+		Where("created_at >= ?", last24h).
 		Where("organization_id = ?", opts.OrganizationID.String())
 
 	totalCount, err := countQuery.Count(ctx)

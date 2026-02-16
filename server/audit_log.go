@@ -29,6 +29,7 @@ type createAuditLogRequest struct {
 	Timestamp      string            `json:"timestamp"`
 	IPAddress      string            `json:"ip_address"`
 	UserID         string            `json:"user_id"`
+	UserName       string            `json:"username"`
 	RequestID      string            `json:"request_id"`
 	OrganizationID string            `json:"organization_id"`
 	Metadata       *logbase.Metadata `json:"metadata" `
@@ -66,7 +67,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		IPAddress:      req.IPAddress,
 		Timestamp:      time.Now().UTC(),
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
-		UserID:         getUserFromContext(r.Context()).ID,
+		UserID:         req.UserID,
 		Metadata:       req.Metadata,
 		RequestID:      req.RequestID,
 	}

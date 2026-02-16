@@ -27,16 +27,16 @@ type eventHander struct {
 type createEventRequest struct {
 	GenericRequest
 
-	ActionName      string    `json:"action_name"`
-	UserID          uuid.UUID `json:"user_id"`
-	Username        string    `json:"username"`
-	HTTPMethod      string    `json:"http_method"`
-	HTTPStatus      string    `json:"http_status"`
-	HTTPEndpoint    string    `json:"http_endpoint"`
-	ClientIP        string    `json:"client_ip"`
-	ClientUserAgent string    `json:"client_user_agent"`
-	Type            string    `json:"type"`
-	GeoIpLocation   string    `json:"geo_ip_location"`
+	ActionName      string `json:"action_name"`
+	UserID          string `json:"user_id"`
+	Username        string `json:"username"`
+	HTTPMethod      string `json:"http_method"`
+	HTTPStatus      string `json:"http_status"`
+	HTTPEndpoint    string `json:"http_endpoint"`
+	ClientIP        string `json:"client_ip"`
+	ClientUserAgent string `json:"client_user_agent"`
+	Type            string `json:"type"`
+	GeoIpLocation   string `json:"geo_ip_location"`
 }
 
 func (e *createEventRequest) Validate() error {
@@ -52,7 +52,7 @@ func (e *createEventRequest) Validate() error {
 	if util.IsStringEmpty(e.ClientIP) {
 		return errors.New("client IP is required")
 	}
-	if util.IsStringEmpty(e.Username) && util.IsStringEmpty(e.UserID.String()) {
+	if util.IsStringEmpty(e.Username) && util.IsStringEmpty(e.UserID) {
 		return errors.New("user information (username or user_id) is required")
 	}
 
@@ -128,7 +128,7 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 		ID:              event.ID,
 		Type:            event.Type,
 		Username:        event.Username,
-		UserID:          event.UserID.String(),
+		UserID:          event.UserID,
 		HTTPMethod:      event.HTTPMethod,
 		HTTPStatus:      event.HTTPStatus,
 		HTTPEndpoint:    event.HTTPEndpoint,
@@ -157,12 +157,6 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	username := query.Get("username")
 	userID := query.Get("user_id")
 
-	parsedUserID, err := uuid.Parse(userID)
-	if userID != "" && err != nil {
-		logger.Error("invalid user ID format", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "invalid user ID format"), StatusFailed
-	}
-
 	opts := logbase.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		Paginator:      logbase.PaginatorFromRequest(r),
@@ -171,7 +165,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 		StartDate:      startDate,
 		EndDate:        endDate,
 		Username:       username,
-		UserID:         parsedUserID,
+		UserID:         userID,
 	}
 
 	events := []*logbase.Event{}
@@ -189,7 +183,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 			HTTPMethod:      event.HTTPMethod,
 			HTTPStatus:      event.HTTPStatus,
 			Username:        event.Username,
-			UserID:          event.UserID.String(),
+			UserID:          event.UserID,
 			HTTPEndpoint:    event.HTTPEndpoint,
 			ClientIP:        event.ClientIP,
 			OrganizationID:  event.OrganizationID,

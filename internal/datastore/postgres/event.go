@@ -138,8 +138,8 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 	if !util.IsStringEmpty(opts.EndDate) && !util.IsStringEmpty(opts.StartDate) {
 		listSelect = listSelect.Where("DATE(created_at) BETWEEN ? AND ?", opts.StartDate, opts.EndDate)
 	}
-	if !util.IsStringEmpty(opts.UserID.String()) {
-		listSelect = listSelect.Where("user_id = ?", opts.UserID.String())
+	if !util.IsStringEmpty(opts.UserID) {
+		listSelect = listSelect.Where("user_id = ?", opts.UserID)
 	}
 	if !util.IsStringEmpty(opts.Username) {
 		listSelect = listSelect.Where("username = ?", opts.Username)

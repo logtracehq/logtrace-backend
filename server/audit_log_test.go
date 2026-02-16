@@ -20,9 +20,10 @@ import (
 )
 
 var (
-	testOrgID      = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
-	testUserID     = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
-	testAuditLogID = uuid.MustParse("b2c3d4e5-f6a7-8901-bcde-f12345678901")
+	testOrgID            = uuid.MustParse("8ce0f580-4d6d-429e-9d0e-a78eb99f62c2")
+	testUserID           = uuid.MustParse("37f41afb-afff-45cc-bcc0-71249d95df90")
+	testAuditLogID       = uuid.MustParse("b2c3d4e5-f6a7-8901-bcde-f12345678901")
+	testAuditLogUserName = "testuser"
 )
 
 func verifyAuditLogMatch(t *testing.T, rr *httptest.ResponseRecorder) {
@@ -86,6 +87,7 @@ func generateCreateAuditLogTestTable() []struct {
 			req: createAuditLogRequest{
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
+				UserName:  testAuditLogUserName,
 			},
 		},
 		{
@@ -94,8 +96,9 @@ func generateCreateAuditLogTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
-				Action: "user.login",
-				UserID: testUserID.String(),
+				Action:   "user.login",
+				UserID:   testUserID.String(),
+				UserName: testAuditLogUserName,
 			},
 		},
 		{
@@ -106,6 +109,7 @@ func generateCreateAuditLogTestTable() []struct {
 			req: createAuditLogRequest{
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
+				UserName:  testAuditLogUserName,
 			},
 		},
 		{
@@ -120,6 +124,7 @@ func generateCreateAuditLogTestTable() []struct {
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
+				UserName:  testAuditLogUserName,
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
 				Metadata: &logbase.Metadata{
@@ -141,6 +146,7 @@ func generateCreateAuditLogTestTable() []struct {
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
+				UserName:  testAuditLogUserName,
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
 				Metadata: &logbase.Metadata{
@@ -236,7 +242,8 @@ func generateListAuditLogTestTable() []struct {
 						Action:         "user.login",
 						Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
 						IPAddress:      "192.168.1.1",
-						UserID:         testUserID,
+						UserID:         testUserID.String(),
+						UserName:       testAuditLogUserName,
 						OrganizationID: testOrgID,
 						RequestID:      "req_123",
 					}, nil)
@@ -317,7 +324,8 @@ func generateListAllAuditLogsTestTable() []struct {
 							Action:         "user.login",
 							Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
 							IPAddress:      "192.168.1.1",
-							UserID:         testUserID,
+							UserID:         testUserID.String(),
+							UserName:       testAuditLogUserName,
 							OrganizationID: testOrgID,
 							RequestID:      "req_123",
 						},

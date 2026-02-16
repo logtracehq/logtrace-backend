@@ -1,10 +1,11 @@
- CREATE TABLE
+CREATE TABLE
     audit_logs (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         action VARCHAR,
         organization_id UUID REFERENCES organizations (id),
         ip_address VARCHAR,
-        user_id UUID REFERENCES users (id),
+        user_id VARCHAR,
+        username VARCHAR,
         metadata JSONB,
         timestamp TIMESTAMP
         WITH

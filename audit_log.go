@@ -24,8 +24,9 @@ type AuditLog struct {
 	ID             uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Action         string     `json:"action"      bun:",notnull"`
 	Timestamp      time.Time  `json:"timestamp"   bun:",notnull"`
-	IPAddress      string     `json:"ip_address"`
-	UserID         uuid.UUID  `json:"user_id"     bun:"type:uuid"`
+	IPAddress      string     `json:"ip_address" bun:"ip_address"`
+	UserID         string     `json:"user_id" bun:"user_id"`
+	UserName       string     `json:"username" bun:"username"`
 	Metadata       *Metadata  `json:"metadata"   bun:"type:jsonb"`
 	CreatedAt      time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	RequestID      string     `json:"request_id"`
@@ -36,10 +37,11 @@ type AuditLog struct {
 }
 
 type FindAuditLogOptions struct {
-	OrganizationID uuid.UUID
-	ID             uuid.UUID
-	UserID         uuid.UUID
-	Paginator      Paginator
+	OrganizationID uuid.UUID `json:"organization_id"`
+	ID             uuid.UUID `json:"id"`
+	UserID         string    `json:"user_id"`
+	UserName       string    `json:"username"`
+	Paginator      Paginator `json:"paginator"`
 }
 
 type AuditLogRepository interface {

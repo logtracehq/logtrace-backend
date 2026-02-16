@@ -17,7 +17,7 @@ type Event struct {
 	ID              uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	Type            string     `json:"type"        bun:",notnull"`
 	Username        string     `json:"username"`
-	UserID          uuid.UUID  `json:"user_id"`
+	UserID          string     `json:"user_id"`
 	HTTPMethod      string     `json:"http_method"`
 	HTTPStatus      string     `json:"http_status"`
 	HTTPEndpoint    string     `json:"http_endpoint"`
@@ -42,7 +42,7 @@ type ListEventOptions struct {
 	StartDate      string    `json:"start_date"`
 	EndDate        string    `json:"end_date"`
 	Username       string    `json:"username"`
-	UserID         uuid.UUID `json:"user_id"`
+	UserID         string    `json:"user_id"`
 }
 
 type EventRepository interface {
