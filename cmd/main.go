@@ -93,6 +93,8 @@ func main() {
 	planRepo := postgres.NewPlanRepository(db)
 	passwordRepo := postgres.NewPasswordRepository(db)
 	auditLogRepo := postgres.NewAuditLogRepository(db)
+	organizationUserRepo := postgres.NewOrganizationUserRepository(db)
+	invitationRepo := postgres.NewInvitationRepository(db)
 
 	tokenManager := jwttoken.New(cfg)
 	googleAuth := googleauth.NewGoogle(cfg)
@@ -126,7 +128,7 @@ func main() {
 		orgRepo, emailRepo, tokenManager, queueHandler,
 		googleAuth, eventRepo, sessionRepo, redisCache,
 		apiKeyRepo, planRepo, passwordRepo,
-		auditLogRepo,
+		auditLogRepo, organizationUserRepo, invitationRepo,
 	)
 
 	sig := make(chan os.Signal, 1)

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -20,6 +21,7 @@ type sessionHandler struct {
 	userRepo    logbase.UserRepository
 	sessionRepo logbase.SessionRepository
 	orgRepo     logbase.OrganizationRepository
+	orgUserRepo logbase.OrganizationUserRepository
 }
 
 const (
@@ -79,6 +81,31 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		LoginAt:        loginAt,
 	}
 
+	orgUser, err := sh.orgUserRepo.Find(ctx, &logbase.FindOrganizationUserOptions{
+		UserID:         session.UserID,
+		OrganizationID: session.OrganizationID,
+		Name:           session.UserName,
+	})
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		logger.Error("failed to find organization user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to find organization user"), StatusFailed
+	}
+
+	if orgUser != nil {
+		session.UserID = orgUser.UserID
+		session.UserName = orgUser.Name
+	} else {
+		_, err := sh.orgUserRepo.Create(ctx, &logbase.OrganizationUser{
+			UserID:         session.UserID,
+			OrganizationID: session.OrganizationID,
+			Name:           session.UserName,
+		})
+		if err != nil {
+			logger.Error("failed to create organization user", zap.Error(err))
+			return newAPIStatus(http.StatusInternalServerError, "failed to create organization user"), StatusFailed
+		}
+	}
 	err = sh.sessionRepo.Create(ctx, session)
 	if err != nil {
 		logger.Error("an error occurred while creating session", zap.Error(err))
@@ -127,6 +154,7 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 		Status:         session.Status,
 		CreatedAt:      session.CreatedAt,
 	}
+
 	return fetchSessionResponse{
 		Session:   sessionResponse,
 		APIStatus: newAPIStatus(http.StatusOK, "Session has been fetched successfully"),

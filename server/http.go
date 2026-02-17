@@ -34,7 +34,7 @@ func New(
 	eventRepo logbase.EventRepository, sessionRepo logbase.SessionRepository,
 	redisCache cache.Cache, apiKeyRepo logbase.APIKeyRepository,
 	planRepo logbase.PlanRepository, passwordRepo logbase.PasswordRepository,
-	auditLogRepo logbase.AuditLogRepository,
+	auditLogRepo logbase.AuditLogRepository, organizationUserRepo logbase.OrganizationUserRepository, invitationRepo logbase.InvitationRepository,
 ) (*http.Server, func(context.Context)) {
 	if err := cfg.Validate(); err != nil {
 		logger.Fatal("invalid configuration", zap.Error(err))
@@ -48,7 +48,8 @@ func New(
 			orgRepo, jwtTokenManager,
 			queueHandler, emailVerificationRepo,
 			googleAuthProvider, eventRepo, sessionRepo, redisCache,
-			apiKeyRepo, planRepo, passwordRepo, auditLogRepo,
+			apiKeyRepo, planRepo, passwordRepo, auditLogRepo, organizationUserRepo,
+			invitationRepo,
 		),
 	}
 
@@ -80,6 +81,7 @@ func setUpRoutes(
 	sessionRepo logbase.SessionRepository, _ cache.Cache,
 	apiKeyRepo logbase.APIKeyRepository, planRepo logbase.PlanRepository,
 	passwordRepo logbase.PasswordRepository, auditLogRepo logbase.AuditLogRepository,
+	organizationUserRepo logbase.OrganizationUserRepository, invitationRepo logbase.InvitationRepository,
 ) http.Handler {
 	router := chi.NewRouter()
 
@@ -134,14 +136,16 @@ func setUpRoutes(
 		userRepo:     userRepo,
 		orgRepo:      orgRepo,
 		auditLogRepo: auditLogRepo,
+		orgUserRepo:  organizationUserRepo,
 	}
 
 	event := &eventHander{
-		eventRepo: eventRepo,
-		userRepo:  userRepo,
-		orgRepo:   orgRepo,
-		queue:     queueHandler,
-		cfg:       cfg,
+		eventRepo:   eventRepo,
+		userRepo:    userRepo,
+		orgRepo:     orgRepo,
+		queue:       queueHandler,
+		cfg:         cfg,
+		orgUserRepo: organizationUserRepo,
 	}
 
 	session := &sessionHandler{
@@ -149,6 +153,7 @@ func setUpRoutes(
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
 		orgRepo:     orgRepo,
+		orgUserRepo: organizationUserRepo,
 	}
 
 	apiKey := &apiKeyHandler{
@@ -165,6 +170,12 @@ func setUpRoutes(
 		cfg:      cfg,
 		orgRepo:  orgRepo,
 		userRepo: userRepo,
+	}
+
+	invitation := &invitationHandler{
+		cfg:            cfg,
+		invitationRepo: invitationRepo,
+		userRepo:       userRepo,
 	}
 
 	router.Route("/v1", func(r chi.Router) {
@@ -199,6 +210,7 @@ func setUpRoutes(
 			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Post("/", WrapLogbaseHTTPHandler(logger, org.createOrganization, cfg, "Organization.create"))
 			r.Patch("/", WrapLogbaseHTTPHandler(logger, org.updateOrganization, cfg, "Organization.update"))
+			r.Delete("/", WrapLogbaseHTTPHandler(logger, org.deleteOrganization, cfg, "Organization.delete"))
 		})
 
 		r.Route("/audit-logs", func(r chi.Router) {
@@ -235,7 +247,10 @@ func setUpRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Post("/", WrapLogbaseHTTPHandler(logger, plan.Create, cfg, "Plan.create"))
 			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Get, cfg, "Plan.listAll"))
+			r.Patch("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Update, cfg, "Plan.update"))
+			r.Delete("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Delete, cfg, "Plan.delete"))
 		})
+
 		r.Route("/plans", func(r chi.Router) {
 			r.Get("/", WrapLogbaseHTTPHandler(logger, plan.ListAll, cfg, "Plan.listAll"))
 		})
@@ -252,6 +267,13 @@ func setUpRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Get("/sessions", WrapLogbaseHTTPHandler(logger, session.Metrics, cfg, "Metrics.sessions"))
 			r.Get("/events", WrapLogbaseHTTPHandler(logger, event.Metrics, cfg, "Metrics.events"))
+		})
+
+		r.Route("/invitations", func(r chi.Router) {
+			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
+			r.Use(requireOrganizationValidSubscription(cfg))
+			r.Post("/", WrapLogbaseHTTPHandler(logger, invitation.Create, cfg, "Invitation.create"))
+			r.Get("/", WrapLogbaseHTTPHandler(logger, invitation.List, cfg, "Invitation.list"))
 		})
 	})
 	return cors.AllowAll().Handler(router)

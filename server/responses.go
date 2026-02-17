@@ -64,19 +64,19 @@ type fetchEventResponse struct {
 	APIStatus
 }
 
-type fetchPlanResponse struct {
-	Plan *logbase.Plan
-	APIStatus
-}
-
 type fetchEventsResponse struct {
 	Events []*Event `json:"events"`
 	Meta   meta     `json:"meta"`
 	APIStatus
 }
 
+type fetchPlanResponse struct {
+	Plan *logbase.Plan `json:"plan"`
+	APIStatus
+}
+
 type fetchPlansResponse struct {
-	Plans []logbase.Plan
+	Plans []logbase.Plan `json:"plans"`
 	APIStatus
 }
 
@@ -175,5 +175,10 @@ type sessionMetricsResponse struct {
 
 type eventMetricsResponse struct {
 	Count int64 `json:"count"`
+	APIStatus
+}
+
+type fetchInvitationsResponse struct {
+	Invitations []*logbase.Invitation `json:"invitations"`
 	APIStatus
 }

@@ -258,6 +258,7 @@ func requireOrganizationValidSubscription(
 				r.URL.Path == "/v1/organizations" ||
 				r.URL.Path == "/v1/organizations/preferences" ||
 				r.URL.Path == "/v1/user" ||
+				// r.URL.Path == "/v1/plans/admin" ||
 				shouldSkipOrganizationSelection(r.URL.Path, r.Method) {
 				next.ServeHTTP(w, r)
 				return
@@ -265,14 +266,14 @@ func requireOrganizationValidSubscription(
 
 			if !doesOrganizationExistInContext(ctx) {
 				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired,
-					"selected organization is required"))
+					"Organization is required"))
 				return
 			}
 
 			org := getOrganizationFromContext(ctx)
 			if org == nil {
 				_ = render.Render(w, r, newAPIStatus(http.StatusPreconditionRequired,
-					"selected organization is required"))
+					"Organization is required"))
 				return
 			}
 

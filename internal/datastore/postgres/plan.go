@@ -52,3 +52,23 @@ func (p *planRepo) ListAll(ctx context.Context) ([]logbase.Plan, error) {
 
 	return plans, nil
 }
+
+func (p *planRepo) Update(ctx context.Context, plan *logbase.Plan) (*logbase.Plan, error) {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	_, err := p.inner.NewUpdate().Model(plan).Where("id = ?", plan.ID).Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return plan, nil
+}
+
+func (p *planRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	_, err := p.inner.NewDelete().Model((*logbase.Plan)(nil)).Where("id = ?", id).Exec(ctx)
+	return err
+}

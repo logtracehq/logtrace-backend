@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -20,6 +21,7 @@ type auditLogHandler struct {
 	auditLogRepo logbase.AuditLogRepository
 	userRepo     logbase.UserRepository
 	orgRepo      logbase.OrganizationRepository
+	orgUserRepo  logbase.OrganizationUserRepository
 }
 
 type createAuditLogRequest struct {
@@ -72,7 +74,32 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		RequestID:      req.RequestID,
 	}
 
-	err := a.auditLogRepo.Create(ctx, auditLog)
+	orgUser, err := a.orgUserRepo.Find(ctx, &logbase.FindOrganizationUserOptions{
+		UserID:         auditLog.UserID,
+		OrganizationID: auditLog.OrganizationID,
+		Name:           auditLog.UserName,
+	})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		logger.Error("failed to find organization user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to find organization user"), StatusFailed
+	}
+
+	if orgUser != nil {
+		auditLog.UserID = orgUser.UserID
+		auditLog.UserName = orgUser.Name
+	} else {
+		_, err := a.orgUserRepo.Create(ctx, &logbase.OrganizationUser{
+			UserID:         auditLog.UserID,
+			OrganizationID: auditLog.OrganizationID,
+			Name:           auditLog.UserName,
+		})
+		if err != nil {
+			logger.Error("failed to create organization user", zap.Error(err))
+			return newAPIStatus(http.StatusInternalServerError, "failed to create organization user"), StatusFailed
+		}
+	}
+
+	err = a.auditLogRepo.Create(ctx, auditLog)
 	if err != nil {
 		logger.Error("failed to create audit log", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to create audit log"), StatusFailed

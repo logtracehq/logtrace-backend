@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -17,11 +18,12 @@ import (
 )
 
 type eventHander struct {
-	cfg       config.Config
-	userRepo  logbase.UserRepository
-	orgRepo   logbase.OrganizationRepository
-	queue     queue.QueueHandler
-	eventRepo logbase.EventRepository
+	cfg         config.Config
+	userRepo    logbase.UserRepository
+	orgRepo     logbase.OrganizationRepository
+	queue       queue.QueueHandler
+	eventRepo   logbase.EventRepository
+	orgUserRepo logbase.OrganizationUserRepository
 }
 
 type createEventRequest struct {
@@ -91,7 +93,32 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		Type:            req.Type,
 	}
 
-	err := e.eventRepo.Create(ctx, event)
+	orgUser, err := e.orgUserRepo.Find(ctx, &logbase.FindOrganizationUserOptions{
+		UserID:         event.UserID,
+		OrganizationID: event.OrganizationID,
+		Name:           event.Username,
+	})
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		logger.Error("failed to find organization user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to find organization user"), StatusFailed
+	}
+
+	if orgUser != nil {
+		event.UserID = orgUser.UserID
+		event.Username = orgUser.Name
+	} else {
+		_, err := e.orgUserRepo.Create(ctx, &logbase.OrganizationUser{
+			UserID:         event.UserID,
+			OrganizationID: event.OrganizationID,
+			Name:           event.Username,
+		})
+		if err != nil {
+			logger.Error("failed to create organization user", zap.Error(err))
+			return newAPIStatus(http.StatusInternalServerError, "failed to create organization user"), StatusFailed
+		}
+	}
+
+	err = e.eventRepo.Create(ctx, event)
 	if err != nil {
 		logger.Error("failed to save the event", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to save the event"), StatusFailed
