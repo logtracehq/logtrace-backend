@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"html"
 	"strings"
 	"time"
 
@@ -61,95 +62,99 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	events := []*logbase.Event{}
-	count := int64(0)
+	var events []*logbase.Event
+	var count int64
 
-	countSelect := e.inner.NewSelect().Model(&logbase.Event{}).Where("deleted_at IS NULL")
-
-	if !util.IsStringEmpty(opts.OrganizationID.String()) {
-		countSelect = countSelect.Where("organization_id = ?", opts.OrganizationID)
-	}
-
-	if !util.IsStringEmpty(opts.HTTPStatus) {
-		// Support grouped status filters like "2xx", "4xx", "5xx" by matching prefix.
-		if len(opts.HTTPStatus) == 3 && strings.HasSuffix(opts.HTTPStatus, "xx") {
-			prefix := string(opts.HTTPStatus[0])
-			countSelect = countSelect.Where("http_status LIKE ?", prefix+"%")
-		} else {
-			countSelect = countSelect.Where("http_status = ?", opts.HTTPStatus)
+	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
+		if !util.IsStringEmpty(opts.OrganizationID.String()) {
+			q = q.Where("organization_id = ?", opts.OrganizationID)
 		}
+
+		if !util.IsStringEmpty(opts.HTTPStatus) {
+			if len(opts.HTTPStatus) == 3 && strings.HasSuffix(opts.HTTPStatus, "xx") {
+				prefix := string(opts.HTTPStatus[0])
+				q = q.Where("http_status LIKE ?", prefix+"%")
+			} else {
+				q = q.Where("http_status = ?", opts.HTTPStatus)
+			}
+		}
+
+		if !util.IsStringEmpty(opts.HTTPMethod) {
+			q = q.Where("http_method = ?", opts.HTTPMethod)
+		}
+
+		if !util.IsStringEmpty(opts.Action) {
+			q = q.Where("action_name = ?", opts.Action)
+		}
+
+		if !util.IsStringEmpty(opts.UserID) {
+			q = q.Where("user_id = ?", opts.UserID)
+		}
+
+		if !util.IsStringEmpty(opts.Username) {
+			q = q.Where("username = ?", opts.Username)
+		}
+
+		if !util.IsStringEmpty(opts.StartDate) &&
+			!util.IsStringEmpty(opts.EndDate) {
+
+			q = q.Where(
+				"created_at BETWEEN ? AND ?",
+				opts.StartDate+" 00:00:00",
+				opts.EndDate+" 23:59:59",
+			)
+		} else if !util.IsStringEmpty(opts.StartDate) {
+			q = q.Where(
+				"created_at >= ?",
+				opts.StartDate+" 00:00:00",
+			)
+		} else if !util.IsStringEmpty(opts.EndDate) {
+			q = q.Where(
+				"created_at <= ?",
+				opts.EndDate+" 23:59:59",
+			)
+		}
+
+		if !util.IsStringEmpty(opts.Search) {
+			searchTerm := "%" + html.EscapeString(strings.TrimSpace(opts.Search)) + "%"
+
+			q = q.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
+				return q.WhereOr("user_id::text ILIKE ?", searchTerm).
+					WhereOr("http_status ILIKE ?", searchTerm).
+					WhereOr("http_method ILIKE ?", searchTerm).
+					WhereOr("action_name ILIKE ?", searchTerm).
+					WhereOr("username ILIKE ?", searchTerm).
+					WhereOr("client_user_agent ILIKE ?", searchTerm).
+					WhereOr("geo_ip_location ILIKE ?", searchTerm).
+					WhereOr("http_endpoint ILIKE ?", searchTerm)
+			})
+		}
+
+		return q
 	}
 
-	if !util.IsStringEmpty(opts.HTTPMethod) {
-		countSelect = countSelect.Where("http_method = ?", opts.HTTPMethod)
-	}
+	countQuery := buildQuery(
+		e.inner.NewSelect().Model((*logbase.Event)(nil)),
+	)
 
-	if !util.IsStringEmpty(opts.Action) {
-		countSelect = countSelect.Where("action_name = ?", opts.Action)
-	}
-
-	if !util.IsStringEmpty(opts.StartDate) {
-		countSelect = countSelect.Where("DATE(created_at) >= ?", opts.StartDate)
-	}
-
-	if !util.IsStringEmpty(opts.EndDate) {
-		countSelect = countSelect.Where("DATE(created_at) <= ?", opts.EndDate)
-	}
-
-	totalCount, err := countSelect.Count(ctx)
+	total, err := countQuery.Count(ctx)
 	if err != nil {
-		return events, count, err
+		return nil, 0, err
 	}
+	count = int64(total)
 
-	count = int64(totalCount)
+	listQuery := buildQuery(e.inner.NewSelect().Model(&events))
 
-	listSelect := e.inner.NewSelect().
-		Model(&events).
-		Where("deleted_at IS NULL")
-
-	if !util.IsStringEmpty(opts.OrganizationID.String()) {
-		listSelect = listSelect.Where("organization_id = ?", opts.OrganizationID)
-	}
-
-	if !util.IsStringEmpty(opts.HTTPStatus) {
-		if len(opts.HTTPStatus) == 3 && strings.HasSuffix(opts.HTTPStatus, "xx") {
-			prefix := string(opts.HTTPStatus[0])
-			listSelect = listSelect.Where("http_status LIKE ?", prefix+"%")
-		} else {
-			listSelect = listSelect.Where("http_status = ?", opts.HTTPStatus)
-		}
-	}
-
-	if !util.IsStringEmpty(opts.HTTPMethod) {
-		listSelect = listSelect.Where("http_method = ?", opts.HTTPMethod)
-	}
-
-	if !util.IsStringEmpty(opts.Action) {
-		listSelect = listSelect.Where("action_name = ?", opts.Action)
-	}
-
-	if !util.IsStringEmpty(opts.StartDate) {
-		listSelect = listSelect.Where("DATE(created_at) >= ?", opts.StartDate)
-	}
-
-	if !util.IsStringEmpty(opts.EndDate) {
-		listSelect = listSelect.Where("DATE(created_at) <= ?", opts.EndDate)
-	}
-	if !util.IsStringEmpty(opts.EndDate) && !util.IsStringEmpty(opts.StartDate) {
-		listSelect = listSelect.Where("DATE(created_at) BETWEEN ? AND ?", opts.StartDate, opts.EndDate)
-	}
-	if !util.IsStringEmpty(opts.UserID) {
-		listSelect = listSelect.Where("user_id = ?", opts.UserID)
-	}
-	if !util.IsStringEmpty(opts.Username) {
-		listSelect = listSelect.Where("username = ?", opts.Username)
-	}
-
-	return events, count, listSelect.
+	err = listQuery.
+		Order("created_at DESC").
 		Offset(int(opts.Paginator.Offset())).
 		Limit(int(opts.Paginator.PerPage)).
-		Order("created_at DESC").
 		Scan(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return events, count, nil
 }
 
 func (e eventRepo) Metrics(

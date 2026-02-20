@@ -42,7 +42,7 @@ type sessionRequest struct {
 }
 
 func (sr *sessionRequest) Validate() error {
-	if sr.Status != "ACTIVE" && sr.Status != "INACTIVE" && sr.Status != "EXPIRED" {
+	if sr.Status != SessionStatusActive && sr.Status != SessionStatusInactive {
 		return errors.New("invalid status")
 	}
 	return nil
@@ -151,7 +151,7 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 		DeviceInfo:     session.DeviceInfo,
 		IPAddress:      session.IPAddress,
 		Location:       session.Location,
-		Status:         session.Status,
+		Status:         logbase.SessionStatus(session.Status),
 		CreatedAt:      session.CreatedAt,
 	}
 
@@ -167,12 +167,14 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	status := r.URL.Query().Get("status")
 	startDate := r.URL.Query().Get("start_date")
 	endDate := r.URL.Query().Get("end_date")
+	search := r.URL.Query().Get("search")
 
 	opts := &logbase.ListSessionsOptions{
 		Paginator: logbase.PaginatorFromRequest(r),
 		Status:    status,
 		StartDate: startDate,
 		EndDate:   endDate,
+		Search:    search,
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
@@ -195,7 +197,7 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			DeviceInfo:     session.DeviceInfo,
 			IPAddress:      session.IPAddress,
 			Location:       session.Location,
-			Status:         session.Status,
+			Status:         logbase.SessionStatus(session.Status),
 			CreatedAt:      session.CreatedAt,
 		})
 	}

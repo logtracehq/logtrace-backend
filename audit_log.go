@@ -42,6 +42,9 @@ type FindAuditLogOptions struct {
 	UserID         string    `json:"user_id"`
 	UserName       string    `json:"username"`
 	Paginator      Paginator `json:"paginator"`
+	Search         string    `json:"search"`
+	StartDate      string    `json:"start_date"`
+	EndDate        string    `json:"end_date"`
 }
 
 type AuditLogRepository interface {

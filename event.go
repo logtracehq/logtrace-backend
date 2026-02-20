@@ -43,6 +43,7 @@ type ListEventOptions struct {
 	EndDate        string    `json:"end_date"`
 	Username       string    `json:"username"`
 	UserID         string    `json:"user_id"`
+	Search         string    `json:"search"`
 }
 
 type EventRepository interface {

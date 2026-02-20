@@ -89,17 +89,17 @@ type fetchUserResponse struct {
 }
 
 type Session struct {
-	ID             uuid.UUID `json:"id"`
-	UserID         string    `json:"user_id"`
-	UserName       string    `json:"username"`
-	LoginAt        time.Time `json:"login_at"`
-	OrganizationID uuid.UUID `json:"organization_id"`
-	LogoutAt       time.Time `json:"logout_at"`
-	DeviceInfo     string    `json:"device_info"`
-	IPAddress      string    `json:"ip_address"`
-	Location       string    `json:"location"`
-	Status         string    `json:"status"`
-	CreatedAt      time.Time `json:"created_at"`
+	ID             uuid.UUID             `json:"id"`
+	UserID         string                `json:"user_id"`
+	UserName       string                `json:"username"`
+	LoginAt        time.Time             `json:"login_at"`
+	OrganizationID uuid.UUID             `json:"organization_id"`
+	LogoutAt       time.Time             `json:"logout_at"`
+	DeviceInfo     string                `json:"device_info"`
+	IPAddress      string                `json:"ip_address"`
+	Location       string                `json:"location"`
+	Status         logbase.SessionStatus `json:"status"`
+	CreatedAt      time.Time             `json:"created_at"`
 }
 
 type fetchSessionResponse struct {

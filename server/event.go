@@ -62,7 +62,6 @@ func (e *createEventRequest) Validate() error {
 		return errors.New("client user agent is required")
 	}
 
-	// TODO: Add valdiation for the action name types
 	return nil
 }
 
@@ -183,6 +182,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	endDate := query.Get("end_date")
 	username := query.Get("username")
 	userID := query.Get("user_id")
+	search := query.Get("search")
 
 	opts := logbase.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
@@ -193,6 +193,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 		EndDate:        endDate,
 		Username:       username,
 		UserID:         userID,
+		Search:         search,
 	}
 
 	events := []*logbase.Event{}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"html"
+	"strings"
 
 	"github.com/uptrace/bun"
 	"gitlab.com/logbase/logbase"
@@ -36,23 +38,77 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logbase.FindAuditLogOpt
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	auditLogs := []*logbase.AuditLog{}
-	count := int64(0)
+	var auditLogs []*logbase.AuditLog
+	var count int64
 
-	totalCount, err := a.inner.NewSelect().
-		Model(&auditLogs).Where("deleted_at IS NULL").
-		Count(ctx)
+	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
+		if !util.IsStringEmpty(opts.UserID) {
+			q = q.Where("user_id = ?", opts.UserID)
+		}
+
+		if !util.IsStringEmpty(opts.UserName) {
+			q = q.Where("username = ?", opts.UserName)
+		}
+
+		if !util.IsStringEmpty(opts.StartDate) &&
+			!util.IsStringEmpty(opts.EndDate) {
+
+			q = q.Where(
+				"created_at BETWEEN ? AND ?",
+				opts.StartDate+" 00:00:00",
+				opts.EndDate+" 23:59:59",
+			)
+		} else if !util.IsStringEmpty(opts.StartDate) {
+			q = q.Where(
+				"created_at >= ?",
+				opts.StartDate+" 00:00:00",
+			)
+		} else if !util.IsStringEmpty(opts.EndDate) {
+			q = q.Where(
+				"created_at <= ?",
+				opts.EndDate+" 23:59:59",
+			)
+		}
+
+		if !util.IsStringEmpty(opts.Search) {
+			searchTerm := "%" + html.EscapeString(strings.TrimSpace(opts.Search)) + "%"
+
+			q = q.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
+				return q.
+					WhereOr("user_id::text ILIKE ?", searchTerm).
+					WhereOr("username ILIKE ?", searchTerm).
+					WhereOr("action ILIKE ?", searchTerm).
+					WhereOr("ip_address ILIKE ?", searchTerm)
+			})
+		}
+
+		return q
+	}
+
+	countQuery := buildQuery(
+		a.inner.NewSelect().Model((*logbase.AuditLog)(nil)),
+	)
+
+	total, err := countQuery.Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
-	count = int64(totalCount)
+	count = int64(total)
 
-	return auditLogs, count, a.inner.NewSelect().
-		Model(&auditLogs).
+	listQuery := buildQuery(
+		a.inner.NewSelect().Model(&auditLogs),
+	)
+
+	err = listQuery.
+		Order("created_at DESC").
 		Offset(int(opts.Paginator.Offset())).
 		Limit(int(opts.Paginator.PerPage)).
-		Order("created_at DESC").
 		Scan(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return auditLogs, count, nil
 }
 
 func (a *auditLogRepo) List(ctx context.Context, opts *logbase.FindAuditLogOptions) (*logbase.AuditLog, error) {

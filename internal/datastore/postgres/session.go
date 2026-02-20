@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"html"
+	"strings"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -58,50 +60,70 @@ func (s *sessionRepo) List(ctx context.Context, opts *logbase.FindSessionOptions
 	return session, nil
 }
 
-func (s *sessionRepo) ListAll(ctx context.Context, opts *logbase.ListSessionsOptions) ([]*logbase.Session, int64, error) {
+func (s *sessionRepo) ListAll(
+	ctx context.Context,
+	opts *logbase.ListSessionsOptions,
+) ([]*logbase.Session, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	sessions := []*logbase.Session{}
-	count := int64(0)
+	var sessions []*logbase.Session
+	var count int64
 
-	countSelect := s.inner.NewSelect().Model(&logbase.Session{}).Where("deleted_at IS NULL")
-	if opts.Status != "" && opts.Status != "all" {
-		countSelect = countSelect.Where("status = ?", opts.Status)
+	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
+		if util.IsStringEmpty(opts.Status) {
+			q = q.Where("status = ?", opts.Status)
+		}
+
+		if !util.IsStringEmpty(opts.StartDate) &&
+			!util.IsStringEmpty(opts.EndDate) {
+			q = q.Where("DATE(login_at) BETWEEN ? AND ?", opts.StartDate, opts.EndDate)
+		} else if !util.IsStringEmpty(opts.StartDate) {
+			q = q.Where("DATE(login_at) >= ?", opts.StartDate)
+		} else if !util.IsStringEmpty(opts.EndDate) {
+			q = q.Where("DATE(login_at) <= ?", opts.EndDate)
+		}
+
+		if !util.IsStringEmpty(opts.Search) {
+			searchTerm := "%" + html.EscapeString(strings.TrimSpace(opts.Search)) + "%"
+
+			q = q.WhereGroup(" AND ", func(q *bun.SelectQuery) *bun.SelectQuery {
+				return q.
+					WhereOr("user_id::text ILIKE ?", searchTerm).
+					WhereOr("ip_address::text ILIKE ?", searchTerm).
+					WhereOr("username ILIKE ?", searchTerm).
+					WhereOr("location ILIKE ?", searchTerm).
+					WhereOr("device_info ILIKE ?", searchTerm)
+			})
+		}
+
+		return q
 	}
 
-	if !util.IsStringEmpty(opts.StartDate) {
-		countSelect = countSelect.Where("DATE(login_at) >= ?", opts.StartDate)
-	}
+	countQuery := buildQuery(
+		s.inner.NewSelect().Model((*logbase.Session)(nil)),
+	)
 
-	if !util.IsStringEmpty(opts.EndDate) {
-		countSelect = countSelect.Where("DATE(login_at) <= ?", opts.EndDate)
-	}
-
-	totalCount, err := countSelect.Count(ctx)
+	total, err := countQuery.Count(ctx)
 	if err != nil {
-		return nil, count, err
+		return nil, 0, err
 	}
-	count = int64(totalCount)
+	count = int64(total)
 
-	listSelect := s.inner.NewSelect().Model(&sessions).Where("deleted_at IS NULL")
+	listQuery := buildQuery(
+		s.inner.NewSelect().Model(&sessions),
+	)
 
-	if opts.Status != "" && opts.Status != "all" {
-		listSelect = listSelect.Where("status = ?", opts.Status)
-	}
-
-	if !util.IsStringEmpty(opts.StartDate) {
-		listSelect = listSelect.Where("DATE(login_at) >= ?", opts.StartDate)
-	}
-
-	if !util.IsStringEmpty(opts.EndDate) {
-		listSelect = listSelect.Where("DATE(login_at) <= ?", opts.EndDate)
-	}
-
-	return sessions, count, listSelect.
+	err = listQuery.
+		Order("login_at DESC").
 		Limit(int(opts.Paginator.PerPage)).
 		Offset(int(opts.Paginator.Offset())).
 		Scan(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return sessions, count, nil
 }
 
 func (s *sessionRepo) Metrics(

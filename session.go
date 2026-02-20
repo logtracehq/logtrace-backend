@@ -8,6 +8,9 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// ENUM(succesful,failed)
+type SessionStatus string
+
 type Session struct {
 	ID             uuid.UUID  `json:"id"                bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	UserID         string     `json:"user_id"           bun:"user_id"`
@@ -34,9 +37,10 @@ type FindSessionOptions struct {
 
 type ListSessionsOptions struct {
 	Paginator Paginator
-	Status    string
-	StartDate string
-	EndDate   string
+	Status    string `json:"status"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	Search    string `json:"search"`
 }
 
 type SessionRepository interface {

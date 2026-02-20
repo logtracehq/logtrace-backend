@@ -157,9 +157,17 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 ) (render.Renderer, Status) {
 	logger.Debug("listing all audit logs")
 
+	query := r.URL.Query()
+	search := query.Get("search")
+	startDate := query.Get("start_date")
+	endDate := query.Get("end_date")
+
 	opts := logbase.FindAuditLogOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		Paginator:      logbase.PaginatorFromRequest(r),
+		Search:         search,
+		EndDate:        endDate,
+		StartDate:      startDate,
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
