@@ -11,43 +11,6 @@ import (
 )
 
 const (
-	// APIKeyScopeReadonly is a APIKeyScope of type readonly.
-	APIKeyScopeReadonly APIKeyScope = "readonly"
-	// APIKeyScopeReadwrite is a APIKeyScope of type readwrite.
-	APIKeyScopeReadwrite APIKeyScope = "readwrite"
-	// APIKeyScopeWriteonly is a APIKeyScope of type writeonly.
-	APIKeyScopeWriteonly APIKeyScope = "writeonly"
-)
-
-var ErrInvalidAPIKeyScope = errors.New("not a valid APIKeyScope")
-
-// String implements the Stringer interface.
-func (x APIKeyScope) String() string {
-	return string(x)
-}
-
-// IsValid provides a quick way to determine if the typed value is
-// part of the allowed enumerated values
-func (x APIKeyScope) IsValid() bool {
-	_, err := ParseAPIKeyScope(string(x))
-	return err == nil
-}
-
-var _APIKeyScopeValue = map[string]APIKeyScope{
-	"readonly":  APIKeyScopeReadonly,
-	"readwrite": APIKeyScopeReadwrite,
-	"writeonly": APIKeyScopeWriteonly,
-}
-
-// ParseAPIKeyScope attempts to convert a string to a APIKeyScope.
-func ParseAPIKeyScope(name string) (APIKeyScope, error) {
-	if x, ok := _APIKeyScopeValue[name]; ok {
-		return x, nil
-	}
-	return APIKeyScope(""), fmt.Errorf("%s is %w", name, ErrInvalidAPIKeyScope)
-}
-
-const (
 	// RevocationTypeImmediate is a RevocationType of type immediate.
 	RevocationTypeImmediate RevocationType = "immediate"
 	// RevocationTypeDay is a RevocationType of type day.

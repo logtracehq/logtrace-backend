@@ -24,8 +24,7 @@ type apiKeyHandler struct {
 type createAPIKeyRequest struct {
 	GenericRequest
 
-	Name  string `json:"name,omitempty" validate:"required"`
-	Scope string `json:"scope,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
 }
 
 func (c *createAPIKeyRequest) Validate() error {
@@ -39,10 +38,6 @@ func (c *createAPIKeyRequest) Validate() error {
 
 	if len(c.Name) > 20 {
 		return errors.New("name must be less than 20 characters")
-	}
-
-	if c.Scope != "" && !logbase.APIKeyScope(c.Scope).IsValid() {
-		return errors.New("please provide a valid api key scope")
 	}
 
 	p := bluemonday.StrictPolicy()
@@ -97,7 +92,6 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 		CreatedBy:      user.ID,
 		Value:          encrypted,
 		Name:           req.Name,
-		Scope:          logbase.APIKeyScope(req.Scope),
 	}
 
 	if err := d.apiKeyRepo.Create(ctx, key); err != nil {
@@ -148,7 +142,6 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 		dto := &Key{
 			ID:             k.ID,
 			Name:           k.Name,
-			Scope:          logbase.APIKeyScope(k.Scope).String(),
 			OrganizationID: k.OrganizationID,
 			CreatedAt:      k.CreatedAt,
 			LastUsedAt:     k.LastUsedAt,

@@ -1,4 +1,3 @@
-CREATE TYPE api_key_scope AS ENUM ('readonly', 'readwrite', 'writeonly');
 
 CREATE TABLE
     api_keys (
@@ -6,7 +5,6 @@ CREATE TABLE
         created_by UUID REFERENCES users (id),
         value VARCHAR NOT NULL,
         organization_id UUID REFERENCES organizations (id),
-        scope api_key_scope NOT NULL,
         last_used_at TIMESTAMP
         WITH
             TIME ZONE,
