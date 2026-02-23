@@ -267,6 +267,7 @@ func setUpRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Get("/sessions", WrapLogbaseHTTPHandler(logger, session.Metrics, cfg, "Metrics.sessions"))
 			r.Get("/events", WrapLogbaseHTTPHandler(logger, event.Metrics, cfg, "Metrics.events"))
+			r.Get("/auditlogs", WrapLogbaseHTTPHandler(logger, auditLog.Metrics, cfg, "Metrics.auditLogs"))
 		})
 
 		r.Route("/invitations", func(r chi.Router) {

@@ -171,9 +171,15 @@ type OrganizationResponse struct {
 type sessionMetricsResponse struct {
 	Count int64 `json:"count"`
 	APIStatus
+	SuspiciousCount int64 `json:"suspicious_count"`
 }
 
 type eventMetricsResponse struct {
+	Count int64 `json:"count"`
+	APIStatus
+}
+
+type auditLogMetrics struct {
 	Count int64 `json:"count"`
 	APIStatus
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"html"
 	"strings"
+	"time"
 
 	"github.com/uptrace/bun"
 	"gitlab.com/logbase/logbase"
@@ -151,4 +152,31 @@ func (a *auditLogRepo) Delete(ctx context.Context, opts logbase.FindAuditLogOpti
 
 	_, err = a.inner.NewDelete().Model(&auditLog).Where("id = ?", auditLog.ID).Exec(ctx)
 	return err
+}
+
+func (a *auditLogRepo) Metrics(
+	ctx context.Context,
+	opts *logbase.FindAuditLogOptions,
+) (int64, error) {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	var count int64
+
+	last24h := time.Now().Add(-24 * time.Hour)
+
+	countQuery := a.inner.NewSelect().
+		Model((*logbase.AuditLog)(nil)).
+		Where("deleted_at IS NULL").
+		Where("created_at >= ?", last24h).
+		Where("organization_id = ?", opts.OrganizationID.String())
+
+	totalCount, err := countQuery.Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	count = int64(totalCount)
+
+	return count, nil
 }

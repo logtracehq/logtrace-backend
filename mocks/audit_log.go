@@ -99,3 +99,18 @@ func (mr *MockAuditLogRepositoryMockRecorder) ListAll(arg0, arg1 any) *gomock.Ca
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAll", reflect.TypeOf((*MockAuditLogRepository)(nil).ListAll), arg0, arg1)
 }
+
+// Metrics mocks base method.
+func (m *MockAuditLogRepository) Metrics(arg0 context.Context, arg1 *logbase.FindAuditLogOptions) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Metrics", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Metrics indicates an expected call of Metrics.
+func (mr *MockAuditLogRepositoryMockRecorder) Metrics(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metrics", reflect.TypeOf((*MockAuditLogRepository)(nil).Metrics), arg0, arg1)
+}

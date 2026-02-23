@@ -52,4 +52,5 @@ type AuditLogRepository interface {
 	ListAll(context.Context, FindAuditLogOptions) ([]*AuditLog, int64, error)
 	List(context.Context, *FindAuditLogOptions) (*AuditLog, error)
 	Delete(context.Context, FindAuditLogOptions) error
+	Metrics(context.Context, *FindAuditLogOptions) (int64, error)
 }

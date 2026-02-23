@@ -408,6 +408,11 @@ func requireAPIKeyOnly(logger *zap.Logger, _ config.Config, apiKeyRepo logbase.A
 				return
 			}
 
+			// Update last used at timestamp
+			if err := apiKeyRepo.UpdateLastUsedAt(ctx, key.ID); err != nil {
+				logger.Warn("failed to update api key last used at", zap.Error(err))
+			}
+
 			organization, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
 				ID: key.OrganizationID,
 			})

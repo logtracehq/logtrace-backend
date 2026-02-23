@@ -207,3 +207,24 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		APIStatus: newAPIStatus(http.StatusOK, "Audit logs fetched successfully"),
 	}, StatusSuccess
 }
+
+func (a *auditLogHandler) Metrics(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("fetching audit log metrics")
+
+	opts := logbase.FindAuditLogOptions{
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+	}
+
+	totalCount, err := a.auditLogRepo.Metrics(ctx, &opts)
+	if err != nil {
+		logger.Error("failed to fetch audit log metrics", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch metrics"), StatusFailed
+	}
+
+	return auditLogMetrics{
+		Count:     totalCount,
+		APIStatus: newAPIStatus(http.StatusOK, "Audit log metrics fetched successfully"),
+	}, StatusSuccess
+}

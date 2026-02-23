@@ -128,3 +128,19 @@ func (a *apiKeyRepo) FetchByName(ctx context.Context, name string, organizationI
 
 	return apiKey, err
 }
+
+func (a *apiKeyRepo) Update(ctx context.Context, opts *logbase.APIKeyOptions) error {
+	opts.APIKey.UpdatedAt = time.Now()
+	_, err := a.inner.NewUpdate().Model(opts.APIKey).Where("id = ?", opts.APIKey.ID).Exec(ctx)
+	return err
+}
+
+func (a *apiKeyRepo) UpdateLastUsedAt(ctx context.Context, apiKeyID uuid.UUID) error {
+	now := time.Now()
+	_, err := a.inner.NewUpdate().
+		Model((*logbase.APIKey)(nil)).
+		Set("last_used_at = ?", now).
+		Where("id = ?", apiKeyID).
+		Exec(ctx)
+	return err
+}

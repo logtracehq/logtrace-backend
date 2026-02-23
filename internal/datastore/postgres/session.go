@@ -129,26 +129,25 @@ func (s *sessionRepo) ListAll(
 func (s *sessionRepo) Metrics(
 	ctx context.Context,
 	opts *logbase.FindSessionOptions,
-) (int64, error) {
+) (int64, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	var count int64
-
 	last24h := time.Now().Add(-24 * time.Hour)
 
-	countQuery := s.inner.NewSelect().
+	query := s.inner.NewSelect().
 		Model((*logbase.Session)(nil)).
 		Where("deleted_at IS NULL").
-		Where("created_at >= ?", last24h).
 		Where("organization_id = ?", opts.OrganizationID.String())
 
+	countQuery := query.Where("created_at >= ?", last24h)
+	suspiciousCountQuery := query.Where("user_id = NULL AND username = NULL").Where("created_at >= ?", last24h)
+
 	totalCount, err := countQuery.Count(ctx)
+	suspiciousCount, _ := suspiciousCountQuery.Count(ctx)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	count = int64(totalCount)
-
-	return count, nil
+	return int64(totalCount), int64(suspiciousCount), nil
 }

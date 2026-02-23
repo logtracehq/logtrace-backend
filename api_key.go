@@ -57,7 +57,9 @@ type APIKeyRepository interface {
 	Create(context.Context, *APIKey) error
 	Revoke(context.Context, APIKeyOptions) error
 	List(context.Context, APIKeyOptions) ([]*APIKey, error)
+	Update(context.Context, *APIKeyOptions) error
 	Fetch(context.Context, APIKeyOptions) (*APIKey, error)
 	FetchByValue(context.Context, string) (*APIKey, error)
 	FetchByName(context.Context, string, uuid.UUID) (*APIKey, error)
+	UpdateLastUsedAt(context.Context, uuid.UUID) error
 }
