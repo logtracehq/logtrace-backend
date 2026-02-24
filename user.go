@@ -36,7 +36,7 @@ func (e Email) Value() (driver.Value, error) { return driver.Value(e.String()), 
 
 type UserMetadata struct {
 	OrganizationID []uuid.UUID `json:"organization_id"`
-	UserRole       RoleName    `json:"role_name"`
+	UserRole       RoleName    `json:"user_role"`
 }
 
 type User struct {
