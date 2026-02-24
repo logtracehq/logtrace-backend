@@ -203,6 +203,7 @@ func setUpRoutes(
 			r.Post("/invite", WrapLogbaseHTTPHandler(logger, auth.inviteUserByEmail, cfg, "Auth.inviteUserByEmail"))
 			r.Get("/users", WrapLogbaseHTTPHandler(logger, auth.listOrganizationUsers, cfg, "Auth.listOrganizationUsers"))
 			r.Patch("/revoke/{reference}", WrapLogbaseHTTPHandler(logger, auth.revokeUserRole, cfg, "Auth.revokeUserRole"))
+			r.Patch("/edit", WrapLogbaseHTTPHandler(logger, auth.editProfile, cfg, "Auth.editProfile"))
 		})
 
 		r.Route("/organizations", func(r chi.Router) {

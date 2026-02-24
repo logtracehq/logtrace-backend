@@ -188,3 +188,8 @@ type fetchInvitationsResponse struct {
 	Invitations []*logbase.Invitation `json:"invitations"`
 	APIStatus
 }
+
+type UserResponse struct {
+	User *logbase.User `json:"user"`
+	APIStatus
+}

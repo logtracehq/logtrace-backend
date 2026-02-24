@@ -45,6 +45,7 @@ type User struct {
 	FullName        string        `json:"full_name" bun:"full_name"`
 	EmailVerifiedAt *time.Time    `json:"email_verified_at" bun:"email_verified_at,nullzero"`
 	Metadata        *UserMetadata `json:"metadata"   bun:"type:jsonb"`
+	Phone           string        `json:"phone"`
 	Status          string        `json:"status"            bun:"status,default:'active',notnull"`
 	Roles           []UserRole    `json:"roles"       bun:"rel:has-many,join:id=user_id"`
 	CreatedAt       time.Time     `json:"created_at"  bun:"default:current_timestamp,notnull"`
@@ -54,9 +55,9 @@ type User struct {
 }
 
 type FindUserOptions struct {
-	Email          Email `json:"email,omitempty"`
-	ID             uuid.UUID
-	OrganizationID uuid.UUID
+	Email          Email     `json:"email,omitempty"`
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
 	Paginator      Paginator
 }
 
@@ -64,5 +65,5 @@ type UserRepository interface {
 	Create(context.Context, *User) (*User, error)
 	List(context.Context, *FindUserOptions) (*User, error)
 	ListAll(context.Context, *FindUserOptions) ([]*User, int64, error)
-	Update(context.Context, *User) error
+	Update(context.Context, *User) (*User, error)
 }

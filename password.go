@@ -58,4 +58,5 @@ func ComparePasswordAndHash(password, hash string) (bool, error) {
 type PasswordRepository interface {
 	Create(context.Context, *Password) error
 	List(context.Context, uuid.UUID) (*Password, error)
+	Update(context.Context, *Password) error
 }

@@ -45,3 +45,15 @@ func (p *passwordRepo) List(ctx context.Context, userID uuid.UUID) (*logbase.Pas
 
 	return password, err
 }
+
+func (p *passwordRepo) Update(ctx context.Context, password *logbase.Password) error {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	_, err := p.inner.NewUpdate().Model(password).Where("user_id = ?", password.UserID).Exec(ctx)
+	if err != nil {
+		return nil
+	}
+
+	return nil
+}

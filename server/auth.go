@@ -45,6 +45,14 @@ type signUpRequest struct {
 	ConfirmPassword string        `json:"confirm_password"`
 }
 
+type updateUserRequest struct {
+	GenericRequest
+
+	FullName string `json:"full_name"`
+	Password string `json:"password"`
+	Phone    string `json:"phone"`
+}
+
 func (sr *signUpRequest) Validate() error {
 	if util.IsStringEmpty(sr.FullName) {
 		return errors.New("name is required")
@@ -297,6 +305,54 @@ func (a *authHandler) fetchCurrentUser(
 	}, StatusSuccess
 }
 
+func (a authHandler) editProfile(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("updating the user profile")
+
+	currentUsuser := getUserFromContext(ctx)
+	req := new(updateUserRequest)
+
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	user := &logbase.User{
+		ID:       currentUsuser.ID,
+		FullName: req.FullName,
+		Phone:    req.Phone,
+	}
+
+	updatedUser, err := a.userRepo.Update(ctx, user)
+	if err != nil {
+		logger.Error("an error occurred while updating the user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError,
+			"Could not update user details"), StatusFailed
+	}
+
+	hashedPassword, err := logbase.HashPassword(req.Password)
+	if err != nil {
+		logger.Debug("failed to hash password", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to hash password"), StatusFailed
+	}
+
+	password := &logbase.Password{
+		UserID:       currentUsuser.ID,
+		UserPassword: hashedPassword,
+	}
+
+	err = a.passwordRepo.Update(ctx, password)
+	if err != nil {
+		logger.Debug("failed to update the password", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to update user paasword"), StatusFailed
+	}
+
+	return UserResponse{
+		User:      updatedUser,
+		APIStatus: newAPIStatus(http.StatusOK, "User details updated successfully"),
+	}, StatusSuccess
+}
+
 func (a *authHandler) generateUserToken(
 	user *logbase.User,
 	logger *zap.Logger,
@@ -348,9 +404,6 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 
 	existingOrg, err := a.orgRepo.List(ctx, opts)
 
-	logger.Info("this is the incoming org ", zap.String("name", saveOrg.Name))
-	logger.Info("this is the existing org ", zap.Any("exising_org", existingOrg.Name))
-
 	if existingOrg.Name == saveOrg.Name {
 		logger.Error("business name is taken")
 		return newAPIStatus(http.StatusConflict, "Business name is already taken"), StatusFailed
@@ -369,6 +422,7 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		Email:    req.Email,
 		FullName: req.FullName,
 		Status:   logbase.UserStatusActive.String(),
+		Phone:    req.Phone,
 		Roles:    []logbase.UserRole{},
 		Metadata: &logbase.UserMetadata{
 			OrganizationID: []uuid.UUID{org.ID},
@@ -604,7 +658,7 @@ func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logge
 	}
 
 	user.Metadata.UserRole = "member"
-	err = a.userRepo.Update(ctx, user)
+	_, err = a.userRepo.Update(ctx, user)
 	if err != nil {
 		logger.Error("error updating user role", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not update user role"), StatusFailed

@@ -101,14 +101,14 @@ func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) (*lo
 	return user, nil
 }
 
-func (r *userRepo) Update(ctx context.Context, u *logbase.User) error {
+func (r *userRepo) Update(ctx context.Context, u *logbase.User) (*logbase.User, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := r.inner.NewUpdate().Model(u).Where("id = ?", u.ID).Exec(ctx)
+	_, err := r.inner.NewUpdate().Model(u).Where("id = ?", u.ID).
+		OmitZero().Returning("*").Exec(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	return nil
+	return u, nil
 }

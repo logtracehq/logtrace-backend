@@ -6,6 +6,7 @@ CREATE TABLE
         email VARCHAR NOT NULL UNIQUE,
         full_name VARCHAR NOT NULL,
         metadata JSONB,
+        phone VARCHAR(20),
         status user_status NOT NULL DEFAULT 'pending',
         email_verified_at TIMESTAMP
         WITH

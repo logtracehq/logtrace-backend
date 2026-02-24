@@ -88,11 +88,12 @@ func (mr *MockUserRepositoryMockRecorder) ListAll(arg0, arg1 any) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockUserRepository) Update(arg0 context.Context, arg1 *logbase.User) error {
+func (m *MockUserRepository) Update(arg0 context.Context, arg1 *logbase.User) (*logbase.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*logbase.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
