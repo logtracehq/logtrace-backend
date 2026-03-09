@@ -9,21 +9,21 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type eventHander struct {
 	cfg         config.Config
-	userRepo    logbase.UserRepository
-	orgRepo     logbase.OrganizationRepository
+	userRepo    logtrace.UserRepository
+	orgRepo     logtrace.OrganizationRepository
 	queue       queue.QueueHandler
-	eventRepo   logbase.EventRepository
-	orgUserRepo logbase.OrganizationUserRepository
+	eventRepo   logtrace.EventRepository
+	orgUserRepo logtrace.OrganizationUserRepository
 }
 
 type createEventRequest struct {
@@ -65,6 +65,15 @@ func (e *createEventRequest) Validate() error {
 	return nil
 }
 
+// @Description Create a new event log entry
+// @Tags Events
+// @Accept json
+// @Produce json
+// @Param event body createEventRequest true "Event creation request"
+// @Success 201 {object} APIStatus "Event created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create event at this time. an error occurred"
+// @Router /v1/events [post]
 func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -79,7 +88,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	event := &logbase.Event{
+	event := &logtrace.Event{
 		ActionName:      req.ActionName,
 		HTTPMethod:      req.HTTPMethod,
 		Username:        req.Username,
@@ -92,7 +101,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		Type:            req.Type,
 	}
 
-	orgUser, err := e.orgUserRepo.Find(ctx, &logbase.FindOrganizationUserOptions{
+	orgUser, err := e.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
 		UserID:         event.UserID,
 		OrganizationID: event.OrganizationID,
 		Name:           event.Username,
@@ -106,7 +115,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		event.UserID = orgUser.UserID
 		event.Username = orgUser.Name
 	} else {
-		_, err := e.orgUserRepo.Create(ctx, &logbase.OrganizationUser{
+		_, err := e.orgUserRepo.Create(ctx, &logtrace.OrganizationUser{
 			UserID:         event.UserID,
 			OrganizationID: event.OrganizationID,
 			Name:           event.Username,
@@ -126,6 +135,16 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 	return newAPIStatus(http.StatusCreated, "Event has been created successfully"), StatusSuccess
 }
 
+// @Description Get a specific event by ID
+// @Tags Events
+// @Accept json
+// @Produce json
+// @Param reference path string true "Event ID"
+// @Success 200 {object} fetchEventResponse "Event has been fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid event reference"
+// @Failure 404 {object} APIStatus "Event not found"
+// @Failure 500 {object} APIStatus "Failed to fetch event"
+// @Router /v1/events/{reference} [get]
 func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -139,7 +158,7 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 		return newAPIStatus(http.StatusBadRequest, "invalid event ID format"), StatusFailed
 	}
 
-	opts := logbase.ListEventOptions{
+	opts := logtrace.ListEventOptions{
 		ID:             eventIdentifier,
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 	}
@@ -172,6 +191,20 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 	}, StatusSuccess
 }
 
+// @Description Get a list of events with optional filters and pagination
+// @Tags Events
+// @Accept json
+// @Produce json
+// @Param http_status query string false "Filter by HTTP status"
+// @Param http_method query string false "Filter by HTTP method"
+// @Param start_date query string false "Filter by start date (ISO format)"
+// @Param end_date query string false "Filter by end date (ISO format)"
+// @Param username query string false "Filter by username"
+// @Param user_id query string false "Filter by user ID"
+// @Param search query string false "Search term for action name or endpoint"
+// @Success 200 {object} fetchEventsResponse "Events fetched successfully"
+// @Failure 500 {object} APIStatus "Failed to fetch events"
+// @Router /v1/events [get]
 func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -184,9 +217,9 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	userID := query.Get("user_id")
 	search := query.Get("search")
 
-	opts := logbase.ListEventOptions{
+	opts := logtrace.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
-		Paginator:      logbase.PaginatorFromRequest(r),
+		Paginator:      logtrace.PaginatorFromRequest(r),
 		HTTPStatus:     httpStatus,
 		HTTPMethod:     httpMethod,
 		StartDate:      startDate,
@@ -196,7 +229,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 		Search:         search,
 	}
 
-	events := []*logbase.Event{}
+	events := []*logtrace.Event{}
 
 	events, totalCount, err := e.eventRepo.ListAll(ctx, &opts)
 	if err != nil {
@@ -235,12 +268,19 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	}, StatusSuccess
 }
 
+// @Description Get metrics for events
+// @Tags Events
+// @Accept json
+// @Produce json
+// @Success 200 {object} eventMetricsResponse "Events metrics fetched successfully"
+// @Failure 500 {object} APIStatus "Failed to fetch events metrics"
+// @Router /v1/events/metrics [get]
 func (e *eventHander) Metrics(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("fetching events metrics")
 
-	opts := logbase.ListEventOptions{
+	opts := logtrace.ListEventOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 	}
 

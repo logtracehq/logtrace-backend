@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	googleauth "gitlab.com/logbase/logbase/internal/pkg/googleauth"
+	googleauth "gitlab.com/logtrace/logtrace/internal/pkg/googleauth"
 	gomock "go.uber.org/mock/gomock"
 	oauth2 "golang.org/x/oauth2"
 )

@@ -1,4 +1,4 @@
-// @title Logbase's API documentation
+// @title Logtrace's API documentation
 // @version 0.1.0
 
 // @contact.name Luigi Morel
@@ -7,4 +7,4 @@
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-package logbase
+package logtrace

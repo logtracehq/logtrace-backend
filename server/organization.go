@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type orgHandler struct {
 	cfg      config.Config
-	orgRepo  logbase.OrganizationRepository
-	userRepo logbase.UserRepository
+	orgRepo  logtrace.OrganizationRepository
+	userRepo logtrace.UserRepository
 }
 
 type createOrgRequest struct {
@@ -67,7 +67,7 @@ func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, lo
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	org := &logbase.Organization{
+	org := &logtrace.Organization{
 		Name:                 req.Name,
 		IsActive:             true,
 		IsSubscriptionActive: false,
@@ -87,6 +87,17 @@ func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, lo
 	return newAPIStatus(http.StatusCreated, "Organization created successfully"), StatusSuccess
 }
 
+// @Description Update an existing organization by ID
+// @Tags Organization
+// @Accept json
+// @Produce json
+// @Param reference path string true "Organization ID"
+// @Param organization body updateOrgRequest true "Organization update request"
+// @Success 200 {object} OrganizationResponse "Organization updated successfully"
+// @Failure 400 {object} APIStatus "Invalid organization reference or request body"
+// @Failure 404 {object} APIStatus "Organization not found"
+// @Failure 500 {object} APIStatus "Failed to update organization"
+// @Router /v1/organizations/{reference} [put]
 func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -95,7 +106,7 @@ func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, lo
 	organizationID := getOrganizationFromContext(ctx).ID
 	req := new(updateOrgRequest)
 
-	opts := logbase.FindOrganizationOptions{
+	opts := logtrace.FindOrganizationOptions{
 		ID: organizationID,
 	}
 
@@ -103,7 +114,7 @@ func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, lo
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
 
-	org := &logbase.Organization{
+	org := &logtrace.Organization{
 		ID:                   opts.ID,
 		Name:                 req.Name,
 		ImageURL:             req.ImageURL,
@@ -127,6 +138,16 @@ func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, lo
 	}, StatusSuccess
 }
 
+// @Description Delete an existing organization by ID
+// @Tags Organization
+// @Accept json
+// @Produce json
+// @Param reference path string true "Organization ID"
+// @Success 200 {object} APIStatus "Organization deleted successfully"
+// @Failure 400 {object} APIStatus "Invalid organization reference"
+// @Failure 404 {object} APIStatus "Organization not found"
+// @Failure 500 {object} APIStatus "Failed to delete organization"
+// @Router /v1/organizations/{reference} [delete]
 func (o *orgHandler) deleteOrganization(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -134,7 +155,7 @@ func (o *orgHandler) deleteOrganization(ctx context.Context, span trace.Span, lo
 
 	organizationID := getOrganizationFromContext(ctx).ID
 
-	opts := logbase.FindOrganizationOptions{
+	opts := logtrace.FindOrganizationOptions{
 		ID: organizationID,
 	}
 

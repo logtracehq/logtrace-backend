@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type invitationHandler struct {
 	cfg            config.Config
-	invitationRepo logbase.InvitationRepository
-	userRepo       logbase.UserRepository
+	invitationRepo logtrace.InvitationRepository
+	userRepo       logtrace.UserRepository
 }
 
 type createInvitationRequest struct {
@@ -42,6 +42,15 @@ func (c *createInvitationRequest) Validate() error {
 	return nil
 }
 
+// @Description Create a new invitation
+// @Tags Invitations
+// @Accept json
+// @Produce json
+// @Param invitation body createInvitationRequest true "Invitation creation request"
+// @Success 201 {object} APIStatus "Invitation created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create invitation at this time. an error occurred"
+// @Router /v1/invitations [post]
 func (i *invitationHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -58,11 +67,11 @@ func (i *invitationHandler) Create(ctx context.Context, span trace.Span, logger 
 
 	orgID := getOrganizationFromContext(ctx).ID
 
-	invitation := &logbase.Invitation{
+	invitation := &logtrace.Invitation{
 		Fullname:       req.Fullname,
-		Email:          logbase.Email(req.Email),
+		Email:          logtrace.Email(req.Email),
 		OrganizationID: orgID,
-		Role:           logbase.RoleName(req.Role),
+		Role:           logtrace.RoleName(req.Role),
 		Status:         "PENDING",
 		Token:          "token", // TODO: generate a secure token
 	}
@@ -76,12 +85,22 @@ func (i *invitationHandler) Create(ctx context.Context, span trace.Span, logger 
 	return newAPIStatus(http.StatusCreated, "Invitation created successfully"), StatusSuccess
 }
 
+// @Description Accept an invitation by token
+// @Tags Invitations
+// @Accept json
+// @Produce json
+// @Param token path string true "Invitation token"
+// @Success 200 {object} APIStatus "Invitation accepted successfully"
+// @Failure 400 {object} APIStatus "Invalid invitation token"
+// @Failure 404 {object} APIStatus "Invitation not found"
+// @Failure 500 {object} APIStatus "Failed to accept invitation"
+// @Router /v1/invitations/{token}/accept [post]
 func (i *invitationHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("listing invitations")
 
-	opts := logbase.ListInvitationOptions{
+	opts := logtrace.ListInvitationOptions{
 		OrganizationID: getOrganizationFromContext(ctx).ID,
 	}
 

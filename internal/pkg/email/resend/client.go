@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	resendclient "github.com/resend/resend-go/v2"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/email"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/email"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type client struct {

@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/logbase/logbase"
-	logbase_mocks "gitlab.com/logbase/logbase/mocks"
+	"gitlab.com/logtrace/logtrace"
+	logtrace_mocks "gitlab.com/logtrace/logtrace/mocks"
 	"go.uber.org/mock/gomock"
 )
 
@@ -37,7 +37,7 @@ func TestAuditLogHandler_Create(t *testing.T) {
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
-			auditLogRepo := logbase_mocks.NewMockAuditLogRepository(controller)
+			auditLogRepo := logtrace_mocks.NewMockAuditLogRepository(controller)
 
 			v.mockFn(auditLogRepo)
 
@@ -55,10 +55,10 @@ func TestAuditLogHandler_Create(t *testing.T) {
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 			req.Header.Add("Content-Type", "application/json")
 
-			req = req.WithContext(writeUserToCtx(req.Context(), &logbase.User{ID: testUserID}))
-			req = req.WithContext(writeOrganizationToCtx(req.Context(), &logbase.Organization{ID: testOrgID}))
+			req = req.WithContext(writeUserToCtx(req.Context(), &logtrace.User{ID: testUserID}))
+			req = req.WithContext(writeOrganizationToCtx(req.Context(), &logtrace.Organization{ID: testOrgID}))
 
-			WrapLogbaseHTTPHandler(getLogger(t), a.Create, getConfig(), "AuditLog.Create").
+			WrapLogtraceHTTPHandler(getLogger(t), a.Create, getConfig(), "AuditLog.Create").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
@@ -69,19 +69,19 @@ func TestAuditLogHandler_Create(t *testing.T) {
 
 func generateCreateAuditLogTestTable() []struct {
 	name               string
-	mockFn             func(auditLogRepo *logbase_mocks.MockAuditLogRepository)
+	mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository)
 	expectedStatusCode int
 	req                createAuditLogRequest
 } {
 	return []struct {
 		name               string
-		mockFn             func(auditLogRepo *logbase_mocks.MockAuditLogRepository)
+		mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository)
 		expectedStatusCode int
 		req                createAuditLogRequest
 	}{
 		{
 			name: "missing action",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
@@ -92,7 +92,7 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "missing timestamp",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
@@ -103,7 +103,7 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "missing user id",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
@@ -114,7 +114,7 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "failed to create audit log",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(errors.New("database error"))
@@ -127,7 +127,7 @@ func generateCreateAuditLogTestTable() []struct {
 				UserName:  testAuditLogUserName,
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
-				Metadata: &logbase.Metadata{
+				Metadata: &logtrace.Metadata{
 					Event:       "login",
 					Type:        "authentication",
 					Description: "User logged in",
@@ -136,7 +136,7 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "successfully created audit log",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
@@ -149,7 +149,7 @@ func generateCreateAuditLogTestTable() []struct {
 				UserName:  testAuditLogUserName,
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
-				Metadata: &logbase.Metadata{
+				Metadata: &logtrace.Metadata{
 					Event:       "login",
 					Type:        "authentication",
 					Description: "User logged in",
@@ -165,7 +165,7 @@ func TestAuditLogHandler_List(t *testing.T) {
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
-			auditLogRepo := logbase_mocks.NewMockAuditLogRepository(controller)
+			auditLogRepo := logtrace_mocks.NewMockAuditLogRepository(controller)
 
 			v.mockFn(auditLogRepo)
 
@@ -180,10 +180,10 @@ func TestAuditLogHandler_List(t *testing.T) {
 			ctx.URLParams.Add("reference", v.reference)
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 
-			req = req.WithContext(writeUserToCtx(req.Context(), &logbase.User{ID: testUserID}))
-			req = req.WithContext(writeOrganizationToCtx(req.Context(), &logbase.Organization{ID: testOrgID}))
+			req = req.WithContext(writeUserToCtx(req.Context(), &logtrace.User{ID: testUserID}))
+			req = req.WithContext(writeOrganizationToCtx(req.Context(), &logtrace.Organization{ID: testOrgID}))
 
-			WrapLogbaseHTTPHandler(getLogger(t), a.List, getConfig(), "AuditLog.List").
+			WrapLogtraceHTTPHandler(getLogger(t), a.List, getConfig(), "AuditLog.List").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
@@ -195,26 +195,26 @@ func TestAuditLogHandler_List(t *testing.T) {
 func generateListAuditLogTestTable() []struct {
 	name               string
 	reference          string
-	mockFn             func(auditLogRepo *logbase_mocks.MockAuditLogRepository)
+	mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository)
 	expectedStatusCode int
 } {
 	return []struct {
 		name               string
 		reference          string
-		mockFn             func(auditLogRepo *logbase_mocks.MockAuditLogRepository)
+		mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository)
 		expectedStatusCode int
 	}{
 		{
 			name:      "invalid audit log id",
 			reference: "invalid-uuid",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:      "failed to fetch audit log",
 			reference: testAuditLogID.String(),
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, errors.New("database error"))
@@ -224,7 +224,7 @@ func generateListAuditLogTestTable() []struct {
 		{
 			name:      "audit log not found",
 			reference: testAuditLogID.String(),
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, nil)
@@ -234,10 +234,10 @@ func generateListAuditLogTestTable() []struct {
 		{
 			name:      "successfully fetched audit log",
 			reference: testAuditLogID.String(),
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(&logbase.AuditLog{
+					Return(&logtrace.AuditLog{
 						ID:             testAuditLogID,
 						Action:         "user.login",
 						Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
@@ -259,7 +259,7 @@ func TestAuditLogHandler_ListAll(t *testing.T) {
 			controller := gomock.NewController(t)
 			defer controller.Finish()
 
-			auditLogRepo := logbase_mocks.NewMockAuditLogRepository(controller)
+			auditLogRepo := logtrace_mocks.NewMockAuditLogRepository(controller)
 
 			v.mockFn(auditLogRepo)
 
@@ -273,10 +273,10 @@ func TestAuditLogHandler_ListAll(t *testing.T) {
 			ctx := chi.NewRouteContext()
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, ctx))
 
-			req = req.WithContext(writeUserToCtx(req.Context(), &logbase.User{ID: testUserID}))
-			req = req.WithContext(writeOrganizationToCtx(req.Context(), &logbase.Organization{ID: testOrgID}))
+			req = req.WithContext(writeUserToCtx(req.Context(), &logtrace.User{ID: testUserID}))
+			req = req.WithContext(writeOrganizationToCtx(req.Context(), &logtrace.Organization{ID: testOrgID}))
 
-			WrapLogbaseHTTPHandler(getLogger(t), a.ListAll, getConfig(), "AuditLog.ListAll").
+			WrapLogtraceHTTPHandler(getLogger(t), a.ListAll, getConfig(), "AuditLog.ListAll").
 				ServeHTTP(rr, req)
 
 			require.Equal(t, v.expectedStatusCode, rr.Code)
@@ -287,17 +287,17 @@ func TestAuditLogHandler_ListAll(t *testing.T) {
 
 func generateListAllAuditLogsTestTable() []struct {
 	name               string
-	mockFn             func(auditLogRepo *logbase_mocks.MockAuditLogRepository)
+	mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository)
 	expectedStatusCode int
 } {
 	return []struct {
 		name               string
-		mockFn             func(auditLogRepo *logbase_mocks.MockAuditLogRepository)
+		mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository)
 		expectedStatusCode int
 	}{
 		{
 			name: "failed to list audit logs",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil, int64(0), errors.New("database error"))
@@ -306,19 +306,19 @@ func generateListAllAuditLogsTestTable() []struct {
 		},
 		{
 			name: "successfully listed audit logs with empty result",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]*logbase.AuditLog{}, int64(0), nil)
+					Return([]*logtrace.AuditLog{}, int64(0), nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name: "successfully listed audit logs",
-			mockFn: func(auditLogRepo *logbase_mocks.MockAuditLogRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository) {
 				auditLogRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]*logbase.AuditLog{
+					Return([]*logtrace.AuditLog{
 						{
 							ID:             testAuditLogID,
 							Action:         "user.login",

@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"gitlab.com/logbase/logbase/internal/pkg/cache"
+	"gitlab.com/logtrace/logtrace/internal/pkg/cache"
 )
 
 func makeKey(s string) string {
-	return "logbase-cache-" + s
+	return "logtrace-cache-" + s
 }
 
 type redisCache struct {

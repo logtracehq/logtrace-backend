@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 type GenericRequest struct{}
@@ -71,35 +71,35 @@ type fetchEventsResponse struct {
 }
 
 type fetchPlanResponse struct {
-	Plan *logbase.Plan `json:"plan"`
+	Plan *logtrace.Plan `json:"plan"`
 	APIStatus
 }
 
 type fetchPlansResponse struct {
-	Plans []logbase.Plan `json:"plans"`
+	Plans []logtrace.Plan `json:"plans"`
 	APIStatus
 }
 
 type fetchUserResponse struct {
-	User          logbase.User           `json:"user"`
-	Organization  *logbase.Organization  `json:"organization"`
-	Organizations []logbase.Organization `json:"organizations"`
-	Token         string                 `json:"token"`
+	User          logtrace.User           `json:"user"`
+	Organization  *logtrace.Organization  `json:"organization"`
+	Organizations []logtrace.Organization `json:"organizations"`
+	Token         string                  `json:"token"`
 	APIStatus
 }
 
 type Session struct {
-	ID             uuid.UUID             `json:"id"`
-	UserID         string                `json:"user_id"`
-	UserName       string                `json:"username"`
-	LoginAt        time.Time             `json:"login_at"`
-	OrganizationID uuid.UUID             `json:"organization_id"`
-	LogoutAt       time.Time             `json:"logout_at"`
-	DeviceInfo     string                `json:"device_info"`
-	IPAddress      string                `json:"ip_address"`
-	Location       string                `json:"location"`
-	Status         logbase.SessionStatus `json:"status"`
-	CreatedAt      time.Time             `json:"created_at"`
+	ID             uuid.UUID              `json:"id"`
+	UserID         string                 `json:"user_id"`
+	UserName       string                 `json:"username"`
+	LoginAt        time.Time              `json:"login_at"`
+	OrganizationID uuid.UUID              `json:"organization_id"`
+	LogoutAt       time.Time              `json:"logout_at"`
+	DeviceInfo     string                 `json:"device_info"`
+	IPAddress      string                 `json:"ip_address"`
+	Location       string                 `json:"location"`
+	Status         logtrace.SessionStatus `json:"status"`
+	CreatedAt      time.Time              `json:"created_at"`
 }
 
 type fetchSessionResponse struct {
@@ -134,16 +134,16 @@ type listAPIKeysResponse struct {
 }
 
 type AuditLog struct {
-	ID             uuid.UUID         `json:"id"`
-	Action         string            `json:"action"`
-	Timestamp      time.Time         `json:"timestamp"`
-	IPAddress      string            `json:"ip_address"`
-	UserID         string            `json:"user_id"`
-	UserName       string            `json:"username"`
-	CreatedAt      time.Time         `json:"created_at"`
-	RequestID      string            `json:"request_id"`
-	OrganizationID uuid.UUID         `json:"organization_id"`
-	Metadata       *logbase.Metadata `json:"metadata"`
+	ID             uuid.UUID          `json:"id"`
+	Action         string             `json:"action"`
+	Timestamp      time.Time          `json:"timestamp"`
+	IPAddress      string             `json:"ip_address"`
+	UserID         string             `json:"user_id"`
+	UserName       string             `json:"username"`
+	CreatedAt      time.Time          `json:"created_at"`
+	RequestID      string             `json:"request_id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	Metadata       *logtrace.Metadata `json:"metadata"`
 }
 
 type listAllAuditLogs struct {
@@ -158,13 +158,13 @@ type listAuditLog struct {
 }
 
 type listUsersResponse struct {
-	Users []*logbase.User `json:"users"`
-	Meta  meta            `json:"meta"`
+	Users []*logtrace.User `json:"users"`
+	Meta  meta             `json:"meta"`
 	APIStatus
 }
 
 type OrganizationResponse struct {
-	Organization *logbase.Organization `json:"organization"`
+	Organization *logtrace.Organization `json:"organization"`
 	APIStatus
 }
 
@@ -185,11 +185,11 @@ type auditLogMetrics struct {
 }
 
 type fetchInvitationsResponse struct {
-	Invitations []*logbase.Invitation `json:"invitations"`
+	Invitations []*logtrace.Invitation `json:"invitations"`
 	APIStatus
 }
 
 type UserResponse struct {
-	User *logbase.User `json:"user"`
+	User *logtrace.User `json:"user"`
 	APIStatus
 }

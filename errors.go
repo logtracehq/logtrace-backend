@@ -1,12 +1,12 @@
-package logbase
+package logtrace
 
 import "strings"
 
 var ErrDuplicateRecord = "duplicate key value violates unique constraint"
 
-type LogbaseError string
+type LogtraceError string
 
-func (m LogbaseError) Error() string { return string(m) }
+func (m LogtraceError) Error() string { return string(m) }
 
 func IsDuplicateUniqueError(e error) bool {
 	if e == nil {

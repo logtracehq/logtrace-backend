@@ -3,7 +3,7 @@ package config
 import (
 	"time"
 
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 // ENUM(prod,dev)
@@ -77,9 +77,9 @@ type APIKey struct {
 }
 
 type Email struct {
-	Provider   string        `yaml:"provider" mapstructure:"provider"`
-	Sender     logbase.Email `yaml:"sender" mapstructure:"sender"`
-	SenderName string        `yaml:"sender_name" mapstructure:"sender_name"`
+	Provider   string         `yaml:"provider" mapstructure:"provider"`
+	Sender     logtrace.Email `yaml:"sender" mapstructure:"sender"`
+	SenderName string         `yaml:"sender_name" mapstructure:"sender_name"`
 	Resend     struct {
 		APIKey        string `yaml:"api_key" mapstructure:"api_key"`
 		WebhookSecret string `yaml:"webhook_secret" mapstructure:"webhook_secret"`
@@ -88,6 +88,19 @@ type Email struct {
 
 type Billing struct {
 	TrialDays int `yaml:"trial_days" mapstructure:"trial_days"`
+}
+
+type Uploader struct {
+	S3 struct {
+		Region                 string `yaml:"region" mapstructure:"region"`
+		AccessKey              string `yaml:"access_key" mapstructure:"access_key"`
+		AccessSecret           string `yaml:"access_secret" mapstructure:"access_secret"`
+		Endpoint               string `yaml:"endpoint" mapstructure:"endpoint"`
+		UseTLS                 bool   `yaml:"use_tls" mapstructure:"use_tls"`
+		LogOperations          bool   `yaml:"log_operations" mapstructure:"log_operations"`
+		Bucket                 string `yaml:"bucket" mapstructure:"bucket"`
+		CloudflareBucketDomain string `yaml:"cloudflare_bucket_domain" mapstructure:"cloudflare_bucket_domain"`
+	} `yaml:"s3" mapstructure:"s3"`
 }
 
 type Config struct {
@@ -111,5 +124,6 @@ type Config struct {
 	Email      Email      `yaml:"email" mapstructure:"email"`
 	APIKey     APIKey     `yaml:"api_key" mapstructure:"api_key"`
 	Billing    Billing    `yaml:"billing" mapstructure:"billing"`
+	Uploader   Uploader   `yaml:"uploader" mapstructure:"uploader"`
 	CSRFSecret string     `yaml:"csrf_secret" mapstructure:"csrf_secret"`
 }

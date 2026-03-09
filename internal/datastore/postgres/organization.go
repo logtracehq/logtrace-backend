@@ -6,21 +6,21 @@ import (
 	"errors"
 
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type orgRepo struct {
 	inner *bun.DB
 }
 
-func NewOrganizationRepository(db *bun.DB) logbase.OrganizationRepository {
+func NewOrganizationRepository(db *bun.DB) logtrace.OrganizationRepository {
 	return &orgRepo{
 		inner: db,
 	}
 }
 
-func (org *orgRepo) Create(ctx context.Context, organization *logbase.Organization) (*logbase.Organization, error) {
+func (org *orgRepo) Create(ctx context.Context, organization *logtrace.Organization) (*logtrace.Organization, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -32,11 +32,11 @@ func (org *orgRepo) Create(ctx context.Context, organization *logbase.Organizati
 	return organization, nil
 }
 
-func (org *orgRepo) List(ctx context.Context, opts logbase.FindOrganizationOptions) (*logbase.Organization, error) {
+func (org *orgRepo) List(ctx context.Context, opts logtrace.FindOrganizationOptions) (*logtrace.Organization, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	organization := &logbase.Organization{}
+	organization := &logtrace.Organization{}
 
 	sel := org.inner.NewSelect().Model(organization)
 	if !util.IsStringEmpty(opts.ID.String()) {
@@ -49,13 +49,13 @@ func (org *orgRepo) List(ctx context.Context, opts logbase.FindOrganizationOptio
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return organization, logbase.ErrOrganizationNotFound
+		return organization, logtrace.ErrOrganizationNotFound
 	}
 
 	return organization, err
 }
 
-func (org *orgRepo) Update(ctx context.Context, o *logbase.Organization) (*logbase.Organization, error) {
+func (org *orgRepo) Update(ctx context.Context, o *logtrace.Organization) (*logtrace.Organization, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -70,11 +70,11 @@ func (org *orgRepo) Update(ctx context.Context, o *logbase.Organization) (*logba
 	return o, nil
 }
 
-func (org *orgRepo) Delete(ctx context.Context, opts *logbase.FindOrganizationOptions) error {
+func (org *orgRepo) Delete(ctx context.Context, opts *logtrace.FindOrganizationOptions) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	organization := &logbase.Organization{}
+	organization := &logtrace.Organization{}
 
 	sel := org.inner.NewDelete().Model(organization)
 	if !util.IsStringEmpty(opts.ID.String()) {
@@ -93,12 +93,12 @@ func (org *orgRepo) Delete(ctx context.Context, opts *logbase.FindOrganizationOp
 	return nil
 }
 
-func (org *orgRepo) ListAll(ctx context.Context, opts *logbase.FindOrganizationOptions) ([]logbase.Organization, int64, error) {
+func (org *orgRepo) ListAll(ctx context.Context, opts *logtrace.FindOrganizationOptions) ([]logtrace.Organization, int64, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	count := int64(0)
-	organizations := []logbase.Organization{}
+	organizations := []logtrace.Organization{}
 
 	countSelect := org.inner.NewSelect().Model(&organizations).Where("deleted_at IS NULL")
 	if !util.IsStringEmpty(opts.UserID.String()) {

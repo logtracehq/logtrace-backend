@@ -5,20 +5,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 type organizationUserRepo struct {
 	inner *bun.DB
 }
 
-func NewOrganizationUserRepository(db *bun.DB) logbase.OrganizationUserRepository {
+func NewOrganizationUserRepository(db *bun.DB) logtrace.OrganizationUserRepository {
 	return &organizationUserRepo{
 		inner: db,
 	}
 }
 
-func (e *organizationUserRepo) Create(ctx context.Context, organizationUser *logbase.OrganizationUser) (*logbase.OrganizationUser, error) {
+func (e *organizationUserRepo) Create(ctx context.Context, organizationUser *logtrace.OrganizationUser) (*logtrace.OrganizationUser, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -30,11 +30,11 @@ func (e *organizationUserRepo) Create(ctx context.Context, organizationUser *log
 	return organizationUser, nil
 }
 
-func (e *organizationUserRepo) Find(ctx context.Context, opts *logbase.FindOrganizationUserOptions) (*logbase.OrganizationUser, error) {
+func (e *organizationUserRepo) Find(ctx context.Context, opts *logtrace.FindOrganizationUserOptions) (*logtrace.OrganizationUser, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	organizationUser := &logbase.OrganizationUser{}
+	organizationUser := &logtrace.OrganizationUser{}
 
 	query := e.inner.NewSelect().Model(organizationUser).Where("deleted_at IS NULL")
 
@@ -58,11 +58,11 @@ func (e *organizationUserRepo) Find(ctx context.Context, opts *logbase.FindOrgan
 	return organizationUser, nil
 }
 
-func (e *organizationUserRepo) List(ctx context.Context, opts *logbase.ListOrganizationUserOptions) ([]*logbase.OrganizationUser, int64, error) {
+func (e *organizationUserRepo) List(ctx context.Context, opts *logtrace.ListOrganizationUserOptions) ([]*logtrace.OrganizationUser, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	organizationUsers := []*logbase.OrganizationUser{}
+	organizationUsers := []*logtrace.OrganizationUser{}
 	count := int64(0)
 
 	query := e.inner.NewSelect().Model(organizationUsers).Where("deleted_at IS NULL")

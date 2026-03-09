@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-var ErrAuditLogNotFound = LogbaseError("audit log not found")
+var ErrAuditLogNotFound = LogtraceError("audit log not found")
 
 type (
 	ActionType string

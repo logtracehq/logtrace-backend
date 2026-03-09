@@ -11,22 +11,22 @@ import (
 
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/datastore/postgres"
-	"gitlab.com/logbase/logbase/internal/pkg/cache/rediscache"
-	"gitlab.com/logbase/logbase/internal/pkg/email"
-	"gitlab.com/logbase/logbase/internal/pkg/email/resend"
-	"gitlab.com/logbase/logbase/internal/pkg/googleauth"
-	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
-	watermillqueue "gitlab.com/logbase/logbase/internal/pkg/queues/watermill"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
-	"gitlab.com/logbase/logbase/server"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/datastore/postgres"
+	"gitlab.com/logtrace/logtrace/internal/pkg/cache/rediscache"
+	"gitlab.com/logtrace/logtrace/internal/pkg/email"
+	"gitlab.com/logtrace/logtrace/internal/pkg/email/resend"
+	"gitlab.com/logtrace/logtrace/internal/pkg/googleauth"
+	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
+	watermillqueue "gitlab.com/logtrace/logtrace/internal/pkg/queues/watermill"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace/server"
 	"go.uber.org/zap"
 )
 
-// @title Logbase API
+// @title Logtrace API
 // @version 0.1.0
-// @description Logbase API documentation
+// @description Logtrace API documentation
 // @host localhost:8080
 // @BasePath /
 // @schemes http https
@@ -140,11 +140,11 @@ func main() {
 		}
 	}()
 
-	logger.Info("logbase server started successfully on port", zap.Int("port", cfg.HTTP.Port))
+	logger.Info("logtrace server started successfully on port", zap.Int("port", cfg.HTTP.Port))
 
 	<-sig
 
-	logger.Info("shutting down logbase server")
+	logger.Info("shutting down logtrace server")
 	ctx := context.Background()
 	cleanupSrv(ctx)
 

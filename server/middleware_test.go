@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
-	jwttoken_mocks "gitlab.com/logbase/logbase/internal/pkg/jwttoken/mocks"
-	logbase_mocks "gitlab.com/logbase/logbase/mocks"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
+	jwttoken_mocks "gitlab.com/logtrace/logtrace/internal/pkg/jwttoken/mocks"
+	logtrace_mocks "gitlab.com/logtrace/logtrace/mocks"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )
@@ -52,7 +52,7 @@ func TestRequireOrganizationValidSubscription(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		req.Header.Add("Content-Type", "application/json")
-		req = req.WithContext(writeOrganizationToCtx(req.Context(), &logbase.Organization{}))
+		req = req.WithContext(writeOrganizationToCtx(req.Context(), &logtrace.Organization{}))
 
 		requireOrganizationValidSubscription(getConfig())(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			require.NoError(t, json.NewEncoder(w).Encode("{}"))
@@ -67,7 +67,7 @@ func TestRequireOrganizationValidSubscription(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodPost, "/", nil)
 		req.Header.Add("Content-Type", "application/json")
-		req = req.WithContext(writeOrganizationToCtx(req.Context(), &logbase.Organization{
+		req = req.WithContext(writeOrganizationToCtx(req.Context(), &logtrace.Organization{
 			IsSubscriptionActive: true,
 		}))
 
@@ -189,7 +189,7 @@ func TestGetIP(t *testing.T) {
 func TestHTTPThrottleKeyFunc(t *testing.T) {
 	t.Run("authenticated user", func(t *testing.T) {
 		userID := uuid.New()
-		user := &logbase.User{ID: userID}
+		user := &logtrace.User{ID: userID}
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		ctx := writeUserToCtx(req.Context(), user)
 		req = req.WithContext(ctx)
@@ -212,7 +212,7 @@ func TestHTTPThrottleKeyFunc(t *testing.T) {
 func TestContextHelpers(t *testing.T) {
 	t.Run("user context", func(t *testing.T) {
 		ctx := t.Context()
-		user := &logbase.User{ID: uuid.New()}
+		user := &logtrace.User{ID: uuid.New()}
 
 		// Test writing and reading user
 		ctx = writeUserToCtx(ctx, user)
@@ -222,7 +222,7 @@ func TestContextHelpers(t *testing.T) {
 
 	t.Run("organization context", func(t *testing.T) {
 		ctx := t.Context()
-		organization := &logbase.Organization{ID: uuid.New()}
+		organization := &logtrace.Organization{ID: uuid.New()}
 
 		// Test writing and reading organization
 		ctx = writeOrganizationToCtx(ctx, organization)
@@ -256,8 +256,8 @@ func TestRequireAuthentication(t *testing.T) {
 		defer ctrl.Finish()
 
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -281,8 +281,8 @@ func TestRequireAuthentication(t *testing.T) {
 		defer ctrl.Finish()
 
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("invalid-token").
@@ -312,8 +312,8 @@ func TestRequireAuthentication(t *testing.T) {
 
 		userID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("invalid-token").
@@ -343,15 +343,15 @@ func TestRequireAuthentication(t *testing.T) {
 
 		userID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
+			List(gomock.Any(), &logtrace.FindUserOptions{ID: userID}).
 			Return(nil, errors.New("user not found"))
 
 		rr := httptest.NewRecorder()
@@ -378,18 +378,18 @@ func TestRequireAuthentication(t *testing.T) {
 
 		userID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
-			Return(&logbase.User{
+			List(gomock.Any(), &logtrace.FindUserOptions{ID: userID}).
+			Return(&logtrace.User{
 				ID: userID,
-				Metadata: &logbase.UserMetadata{
+				Metadata: &logtrace.UserMetadata{
 					OrganizationID: []uuid.UUID{}, // No organization
 				},
 			}, nil)
@@ -430,25 +430,25 @@ func TestRequireAuthentication(t *testing.T) {
 		userID := uuid.New()
 		orgID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
-			Return(&logbase.User{
+			List(gomock.Any(), &logtrace.FindUserOptions{ID: userID}).
+			Return(&logtrace.User{
 				ID: userID,
-				Metadata: &logbase.UserMetadata{
+				Metadata: &logtrace.UserMetadata{
 					OrganizationID: []uuid.UUID{orgID},
 				},
 			}, nil)
 
 		orgRepo.EXPECT().
-			List(gomock.Any(), &logbase.FindOrganizationOptions{ID: orgID}).
-			Return(&logbase.Organization{ID: orgID}, nil)
+			List(gomock.Any(), &logtrace.FindOrganizationOptions{ID: orgID}).
+			Return(&logtrace.Organization{ID: orgID}, nil)
 
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/v1/protected", nil)
@@ -483,18 +483,18 @@ func TestRequireAuthentication(t *testing.T) {
 		userID := uuid.New()
 		orgID := uuid.New()
 		jwtManager := jwttoken_mocks.NewMockJWTokenManager(ctrl)
-		userRepo := logbase_mocks.NewMockUserRepository(ctrl)
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		userRepo := logtrace_mocks.NewMockUserRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
 		jwtManager.EXPECT().
 			ParseJWToken("valid-token").
 			Return(jwttoken.JWTokenData{UserID: userID, ExpiresAt: time.Now().Add(time.Hour)}, nil)
 
 		userRepo.EXPECT().
-			List(gomock.Any(), &logbase.FindUserOptions{ID: userID}).
-			Return(&logbase.User{
+			List(gomock.Any(), &logtrace.FindUserOptions{ID: userID}).
+			Return(&logtrace.User{
 				ID: userID,
-				Metadata: &logbase.UserMetadata{
+				Metadata: &logtrace.UserMetadata{
 					OrganizationID: []uuid.UUID{orgID},
 				},
 			}, nil)
@@ -521,8 +521,8 @@ func TestRequireAuthentication(t *testing.T) {
 func TestResolveOrganizationIDForRequest(t *testing.T) {
 	t.Run("fallback to only organization when header is missing", func(t *testing.T) {
 		orgID := uuid.New()
-		user := &logbase.User{
-			Metadata: &logbase.UserMetadata{
+		user := &logtrace.User{
+			Metadata: &logtrace.UserMetadata{
 				OrganizationID: []uuid.UUID{orgID},
 			},
 		}
@@ -536,8 +536,8 @@ func TestResolveOrganizationIDForRequest(t *testing.T) {
 
 	t.Run("fallback to only organization when header is stale", func(t *testing.T) {
 		orgID := uuid.New()
-		user := &logbase.User{
-			Metadata: &logbase.UserMetadata{
+		user := &logtrace.User{
+			Metadata: &logtrace.UserMetadata{
 				OrganizationID: []uuid.UUID{orgID},
 			},
 		}
@@ -551,8 +551,8 @@ func TestResolveOrganizationIDForRequest(t *testing.T) {
 	})
 
 	t.Run("reject stale header when user has multiple organizations", func(t *testing.T) {
-		user := &logbase.User{
-			Metadata: &logbase.UserMetadata{
+		user := &logtrace.User{
+			Metadata: &logtrace.UserMetadata{
 				OrganizationID: []uuid.UUID{uuid.New(), uuid.New()},
 			},
 		}

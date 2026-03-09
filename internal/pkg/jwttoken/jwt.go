@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logtrace/logtrace/config"
 )
 
 // ENUM(access,refresh)
@@ -38,9 +38,9 @@ func New(cfg *config.Config) JWTokenManager {
 
 func (t *jwtokenManager) GenerateJWToken(data JWTokenData) (JWTokenData, error) {
 	claims := jwt.MapClaims{
-		"signer": "logbase",
+		"signer": "logtrace",
 		"id":     data.UserID,
-		"aud":    "logbase",
+		"aud":    "logtrace",
 		"exp":    time.Now().Add(time.Hour * 168), // 7 days
 	}
 	jwtoken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -84,7 +84,7 @@ func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {
 	}
 
 	audience, ok := claims["aud"].(string)
-	if audience != "logbase" {
+	if audience != "logtrace" {
 		return JWTokenData{}, errors.New("incorrect audience")
 	}
 

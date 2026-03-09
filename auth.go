@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type EmailVerification struct {

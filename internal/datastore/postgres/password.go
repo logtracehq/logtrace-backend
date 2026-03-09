@@ -7,20 +7,20 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 type passwordRepo struct {
 	inner *bun.DB
 }
 
-func NewPasswordRepository(db *bun.DB) logbase.PasswordRepository {
+func NewPasswordRepository(db *bun.DB) logtrace.PasswordRepository {
 	return &passwordRepo{
 		inner: db,
 	}
 }
 
-func (p *passwordRepo) Create(ctx context.Context, password *logbase.Password) error {
+func (p *passwordRepo) Create(ctx context.Context, password *logtrace.Password) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -32,21 +32,21 @@ func (p *passwordRepo) Create(ctx context.Context, password *logbase.Password) e
 	return nil
 }
 
-func (p *passwordRepo) List(ctx context.Context, userID uuid.UUID) (*logbase.Password, error) {
+func (p *passwordRepo) List(ctx context.Context, userID uuid.UUID) (*logtrace.Password, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	password := &logbase.Password{}
+	password := &logtrace.Password{}
 
 	err := p.inner.NewSelect().Model(password).Where("user_id = ?", userID).Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, logbase.ErrPasswordNotFound
+		return nil, logtrace.ErrPasswordNotFound
 	}
 
 	return password, err
 }
 
-func (p *passwordRepo) Update(ctx context.Context, password *logbase.Password) error {
+func (p *passwordRepo) Update(ctx context.Context, password *logtrace.Password) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

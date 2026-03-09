@@ -4,20 +4,20 @@ import (
 	"context"
 
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 type emailRepo struct {
 	inner *bun.DB
 }
 
-func NewEmailRepository(db *bun.DB) logbase.EmailVerificationRepository {
+func NewEmailRepository(db *bun.DB) logtrace.EmailVerificationRepository {
 	return &emailRepo{
 		inner: db,
 	}
 }
 
-func (ev *emailRepo) Create(ctx context.Context, emailVerification *logbase.EmailVerification) error {
+func (ev *emailRepo) Create(ctx context.Context, emailVerification *logtrace.EmailVerification) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

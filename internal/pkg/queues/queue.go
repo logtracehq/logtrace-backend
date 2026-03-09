@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,
@@ -35,25 +35,25 @@ func ToPayload(m any) []byte {
 }
 
 type BillingCreateCustomerOptions struct {
-	Organization *logbase.Organization
-	Email        logbase.Email
+	Organization *logtrace.Organization
+	Email        logtrace.Email
 }
 
 type SendEmailOptions struct {
-	Organization *logbase.Organization
+	Organization *logtrace.Organization
 	Token        string
-	Recipient    logbase.Email
+	Recipient    logtrace.Email
 }
 
 type SendBillingTrialEmailOptions struct {
-	Organization *logbase.Organization
+	Organization *logtrace.Organization
 	Expiration   string
-	Recipient    logbase.Email
+	Recipient    logtrace.Email
 }
 
 type SubscriptionExpiredOptions struct {
-	Organization *logbase.Organization
-	Recipient    logbase.Email
+	Organization *logtrace.Organization
+	Recipient    logtrace.Email
 }
 
 type EmailVerificationOptions struct {
@@ -62,7 +62,7 @@ type EmailVerificationOptions struct {
 }
 
 type InviteUserOptions struct {
-	Email        logbase.Email
+	Email        logtrace.Email
 	Organization uuid.UUID
 	Token        string
 }

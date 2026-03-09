@@ -9,15 +9,15 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type apiKeyHandler struct {
-	apiKeyRepo logbase.APIKeyRepository
+	apiKeyRepo logtrace.APIKeyRepository
 	cfg        config.Config
 }
 
@@ -75,7 +75,7 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	}
 
 	existingAPIKey, err := d.apiKeyRepo.FetchByName(ctx, req.Name, organization.ID)
-	if err != nil && !errors.Is(err, logbase.ErrAPIKeyNotFound) {
+	if err != nil && !errors.Is(err, logtrace.ErrAPIKeyNotFound) {
 		logger.Error("error checking for existing api key", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not verify api key name"), StatusFailed
 	}
@@ -85,9 +85,9 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 	}
 
 	value := util.GenerateRandom()
-	encrypted := "lg_" + logbase.HashKey(d.cfg.APIKey.HashSecret, value)
+	encrypted := "lg_" + logtrace.HashKey(d.cfg.APIKey.HashSecret, value)
 
-	key := &logbase.APIKey{
+	key := &logtrace.APIKey{
 		OrganizationID: organization.ID,
 		CreatedBy:      user.ID,
 		Value:          encrypted,
@@ -99,7 +99,7 @@ func (d *apiKeyHandler) create(ctx context.Context, span trace.Span, logger *zap
 		status := http.StatusInternalServerError
 		msg := "could not create api key"
 
-		if errors.Is(err, logbase.ErrAPIKeyMaxLimit) {
+		if errors.Is(err, logtrace.ErrAPIKeyMaxLimit) {
 			status = http.StatusBadRequest
 			msg = err.Error()
 		}
@@ -127,7 +127,7 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 ) (render.Renderer, Status) {
 	logger.Debug("listing api keys")
 
-	opts := logbase.APIKeyOptions{
+	opts := logtrace.APIKeyOptions{
 		OrganizationID: getOrganizationFromContext(ctx).ID,
 	}
 
@@ -163,7 +163,7 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 type revokeAPIKeyRequest struct {
 	GenericRequest
 
-	Strategy logbase.RevocationType `json:"strategy,omitempty" validate:"required"`
+	Strategy logtrace.RevocationType `json:"strategy,omitempty" validate:"required"`
 }
 
 func (c *revokeAPIKeyRequest) Validate() error {
@@ -218,7 +218,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "invalid api key reference"), StatusFailed
 	}
 
-	opts := logbase.APIKeyOptions{
+	opts := logtrace.APIKeyOptions{
 		ID: apiKeyID,
 	}
 
@@ -228,7 +228,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		status := http.StatusInternalServerError
 		logger.Error("error fetching api key", zap.Error(err))
 
-		if errors.Is(err, logbase.ErrAPIKeyNotFound) {
+		if errors.Is(err, logtrace.ErrAPIKeyNotFound) {
 			msg = err.Error()
 			status = http.StatusNotFound
 		}
@@ -244,7 +244,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "api key already revoked"), StatusFailed
 	}
 
-	opts = logbase.APIKeyOptions{
+	opts = logtrace.APIKeyOptions{
 		APIKey:         key,
 		RevocationType: req.Strategy,
 	}
@@ -255,7 +255,7 @@ func (d *apiKeyHandler) revoke(ctx context.Context, span trace.Span, logger *zap
 		status := http.StatusInternalServerError
 		msg := "could not revoke api key"
 
-		if errors.Is(err, logbase.ErrAPIKeyMaxLimit) {
+		if errors.Is(err, logtrace.ErrAPIKeyMaxLimit) {
 			status = http.StatusBadRequest
 			msg = err.Error()
 		}

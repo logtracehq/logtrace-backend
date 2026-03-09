@@ -6,8 +6,8 @@ import (
 	"errors"
 	"io"
 
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 //go:embed templates/*
@@ -48,8 +48,8 @@ func (s SendOptionsBatch) Validate() error {
 
 type SendOptions struct {
 	HTML      string
-	Sender    logbase.Email
-	Recipient logbase.Email
+	Sender    logtrace.Email
+	Recipient logtrace.Email
 	Subject   string
 	DKIM      struct {
 		Sign       bool

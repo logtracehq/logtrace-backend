@@ -3,7 +3,7 @@
 
 // Built By: go install
 
-package logbase
+package logtrace
 
 import (
 	"errors"

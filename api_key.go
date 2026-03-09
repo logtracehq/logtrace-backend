@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	ErrAPIKeyNotFound = LogbaseError("api key not found")
-	ErrAPIKeyMaxLimit = LogbaseError("you can only have a maximum of 10 active api keys")
+	ErrAPIKeyNotFound = LogtraceError("api key not found")
+	ErrAPIKeyMaxLimit = LogtraceError("you can only have a maximum of 10 active api keys")
 )
 
 type APIKey struct {

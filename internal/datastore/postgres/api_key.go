@@ -8,39 +8,39 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 type apiKeyRepo struct {
 	inner *bun.DB
 }
 
-func NewAPIKeyRepository(db *bun.DB) logbase.APIKeyRepository {
+func NewAPIKeyRepository(db *bun.DB) logtrace.APIKeyRepository {
 	return &apiKeyRepo{
 		inner: db,
 	}
 }
 
 func (a *apiKeyRepo) FetchByValue(ctx context.Context, val string) (
-	*logbase.APIKey, error,
+	*logtrace.APIKey, error,
 ) {
-	apiKey := new(logbase.APIKey)
+	apiKey := new(logtrace.APIKey)
 
 	err := a.inner.NewSelect().
 		Model(apiKey).
 		Where("value = ?", val).
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		err = logbase.ErrAPIKeyNotFound
+		err = logtrace.ErrAPIKeyNotFound
 	}
 
 	return apiKey, err
 }
 
-func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.APIKeyOptions) (
-	*logbase.APIKey, error,
+func (a *apiKeyRepo) Fetch(ctx context.Context, opts logtrace.APIKeyOptions) (
+	*logtrace.APIKey, error,
 ) {
-	apiKey := new(logbase.APIKey)
+	apiKey := new(logtrace.APIKey)
 	query := a.inner.NewSelect().Model(apiKey)
 
 	if opts.ID != uuid.Nil {
@@ -55,20 +55,20 @@ func (a *apiKeyRepo) Fetch(ctx context.Context, opts logbase.APIKeyOptions) (
 
 	err := query.Order("created_at DESC").Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		err = logbase.ErrAPIKeyNotFound
+		err = logtrace.ErrAPIKeyNotFound
 	}
 	return apiKey, err
 }
 
-func (r *apiKeyRepo) List(ctx context.Context, opts logbase.APIKeyOptions) ([]*logbase.APIKey, error) {
-	var apiKeys []*logbase.APIKey
+func (r *apiKeyRepo) List(ctx context.Context, opts logtrace.APIKeyOptions) ([]*logtrace.APIKey, error) {
+	var apiKeys []*logtrace.APIKey
 
 	return apiKeys, r.inner.NewSelect().Model(&apiKeys).
 		Where("?TableAlias.organization_id = ?", opts.OrganizationID).
 		Scan(ctx)
 }
 
-func (r *apiKeyRepo) Create(ctx context.Context, apiKey *logbase.APIKey) error {
+func (r *apiKeyRepo) Create(ctx context.Context, apiKey *logtrace.APIKey) error {
 	return r.inner.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		_, err := tx.NewInsert().Model(apiKey).Exec(ctx)
 		if err != nil {
@@ -76,7 +76,7 @@ func (r *apiKeyRepo) Create(ctx context.Context, apiKey *logbase.APIKey) error {
 		}
 
 		count, err := tx.NewSelect().
-			Model(new(logbase.APIKey)).
+			Model(new(logtrace.APIKey)).
 			Where("organization_id = ?", apiKey.OrganizationID).
 			Count(ctx)
 		if err != nil {
@@ -84,14 +84,14 @@ func (r *apiKeyRepo) Create(ctx context.Context, apiKey *logbase.APIKey) error {
 		}
 
 		if count > 10 {
-			return logbase.ErrAPIKeyMaxLimit
+			return logtrace.ErrAPIKeyMaxLimit
 		}
 
 		return nil
 	})
 }
 
-func (r *apiKeyRepo) Revoke(ctx context.Context, opts logbase.APIKeyOptions) error {
+func (r *apiKeyRepo) Revoke(ctx context.Context, opts logtrace.APIKeyOptions) error {
 	now := time.Now()
 
 	q := r.inner.NewUpdate().
@@ -99,12 +99,12 @@ func (r *apiKeyRepo) Revoke(ctx context.Context, opts logbase.APIKeyOptions) err
 		Set("updated_at = ?", now)
 
 	switch opts.RevocationType {
-	case logbase.RevocationTypeImmediate:
+	case logtrace.RevocationTypeImmediate:
 		q = q.Set("expires_at = CURRENT_DATE + INTERVAL '1 day' - INTERVAL '1 hour'")
 		q = q.Set("deleted_at = NOW()")
-	case logbase.RevocationTypeDay:
+	case logtrace.RevocationTypeDay:
 		q = q.Set("expires_at = CURRENT_DATE + INTERVAL '2 days' - INTERVAL '1 hour'")
-	case logbase.RevocationTypeWeek:
+	case logtrace.RevocationTypeWeek:
 		q = q.Set("expires_at = CURRENT_DATE + INTERVAL '8 days' - INTERVAL '1 hour'")
 	}
 
@@ -114,8 +114,8 @@ func (r *apiKeyRepo) Revoke(ctx context.Context, opts logbase.APIKeyOptions) err
 	return err
 }
 
-func (a *apiKeyRepo) FetchByName(ctx context.Context, name string, organizationID uuid.UUID) (*logbase.APIKey, error) {
-	apiKey := new(logbase.APIKey)
+func (a *apiKeyRepo) FetchByName(ctx context.Context, name string, organizationID uuid.UUID) (*logtrace.APIKey, error) {
+	apiKey := new(logtrace.APIKey)
 
 	err := a.inner.NewSelect().
 		Model(apiKey).
@@ -123,13 +123,13 @@ func (a *apiKeyRepo) FetchByName(ctx context.Context, name string, organizationI
 		Scan(ctx)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, logbase.ErrAPIKeyNotFound
+		return nil, logtrace.ErrAPIKeyNotFound
 	}
 
 	return apiKey, err
 }
 
-func (a *apiKeyRepo) Update(ctx context.Context, opts *logbase.APIKeyOptions) error {
+func (a *apiKeyRepo) Update(ctx context.Context, opts *logtrace.APIKeyOptions) error {
 	opts.APIKey.UpdatedAt = time.Now()
 	_, err := a.inner.NewUpdate().Model(opts.APIKey).Where("id = ?", opts.APIKey.ID).Exec(ctx)
 	return err
@@ -138,7 +138,7 @@ func (a *apiKeyRepo) Update(ctx context.Context, opts *logbase.APIKeyOptions) er
 func (a *apiKeyRepo) UpdateLastUsedAt(ctx context.Context, apiKeyID uuid.UUID) error {
 	now := time.Now()
 	_, err := a.inner.NewUpdate().
-		Model((*logbase.APIKey)(nil)).
+		Model((*logtrace.APIKey)(nil)).
 		Set("last_used_at = ?", now).
 		Where("id = ?", apiKeyID).
 		Exec(ctx)

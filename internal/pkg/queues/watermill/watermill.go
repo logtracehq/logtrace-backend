@@ -14,10 +14,10 @@ import (
 	"github.com/google/uuid"
 	redis "github.com/redis/go-redis/v9"
 	wotel "github.com/voi-oss/watermill-opentelemetry/pkg/opentelemetry"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/email"
-	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/email"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
@@ -30,8 +30,8 @@ type WatermillClient struct {
 	messager   message.Publisher
 	logger     *zap.Logger
 
-	userRepo    logbase.UserRepository
-	orgRepo     logbase.OrganizationRepository
+	userRepo    logtrace.UserRepository
+	orgRepo     logtrace.OrganizationRepository
 	cfg         config.Config
 	emailClient email.Client
 }
@@ -40,8 +40,8 @@ func New(redisClient *redis.Client,
 	cfg config.Config,
 	logger *zap.Logger,
 	emailClient email.Client,
-	userRepo logbase.UserRepository,
-	orgRepo logbase.OrganizationRepository,
+	userRepo logtrace.UserRepository,
+	orgRepo logtrace.OrganizationRepository,
 ) (queue.QueueHandler, error) {
 	p, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{

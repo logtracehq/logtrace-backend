@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 const (
-	ErrCacheMiss = logbase.LogbaseError("cache has been missed")
+	ErrCacheMiss = logtrace.LogtraceError("cache has been missed")
 )
 
 type Cache interface {

@@ -8,9 +8,9 @@ import (
 	"text/template"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/email"
-	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/email"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
 	"go.uber.org/zap"
 )
 
@@ -51,9 +51,9 @@ func (t *WatermillClient) sendSubExpiredEmail(msg *message.Message) error {
 
 	emailOpts := email.SendOptions{
 		HTML:      buf.String(),
-		Sender:    logbase.Email(t.cfg.Email.Sender),
+		Sender:    logtrace.Email(t.cfg.Email.Sender),
 		Recipient: opts.Recipient,
-		Subject:   "Your Logbase subscription has come to an end. Please resubscribe",
+		Subject:   "Your Logtrace subscription has come to an end. Please resubscribe",
 		DKIM: struct {
 			Sign       bool
 			PrivateKey []byte
@@ -112,7 +112,7 @@ func (t *WatermillClient) sendBillingTrialEmail(msg *message.Message) error {
 		HTML:      buf.String(),
 		Sender:    t.cfg.Email.Sender,
 		Recipient: opts.Recipient,
-		Subject:   "Your Logbase trial is coming to an end",
+		Subject:   "Your Logtrace trial is coming to an end",
 		DKIM: struct {
 			Sign       bool
 			PrivateKey []byte
@@ -212,7 +212,7 @@ func (t *WatermillClient) sendEmailVerification(msg *message.Message) error {
 		return err
 	}
 
-	user, err := t.userRepo.List(ctx, &logbase.FindUserOptions{
+	user, err := t.userRepo.List(ctx, &logtrace.FindUserOptions{
 		ID: opts.UserID,
 	})
 	if err != nil {
@@ -235,7 +235,7 @@ func (t *WatermillClient) sendEmailVerification(msg *message.Message) error {
 		HTML:      buf.String(),
 		Sender:    t.cfg.Email.Sender,
 		Recipient: user.Email,
-		Subject:   "Verify your account to get started with Logbase",
+		Subject:   "Verify your account to get started with Logtrace",
 		DKIM: struct {
 			Sign       bool
 			PrivateKey []byte

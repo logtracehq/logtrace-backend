@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-var ErrPasswordNotFound = LogbaseError("password not found")
+var ErrPasswordNotFound = LogtraceError("password not found")
 
 type Password struct {
 	ID           uuid.UUID  `bun:"id,pk,type:uuid,default:uuid_generate_v4()"`

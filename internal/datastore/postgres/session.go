@@ -7,21 +7,21 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type sessionRepo struct {
 	inner *bun.DB
 }
 
-func NewSessionRepository(db *bun.DB) logbase.SessionRepository {
+func NewSessionRepository(db *bun.DB) logtrace.SessionRepository {
 	return &sessionRepo{
 		inner: db,
 	}
 }
 
-func (s *sessionRepo) Create(ctx context.Context, session *logbase.Session) error {
+func (s *sessionRepo) Create(ctx context.Context, session *logtrace.Session) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -33,11 +33,11 @@ func (s *sessionRepo) Create(ctx context.Context, session *logbase.Session) erro
 	return nil
 }
 
-func (s *sessionRepo) List(ctx context.Context, opts *logbase.FindSessionOptions) (*logbase.Session, error) {
+func (s *sessionRepo) List(ctx context.Context, opts *logtrace.FindSessionOptions) (*logtrace.Session, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	session := &logbase.Session{}
+	session := &logtrace.Session{}
 
 	sel := s.inner.NewSelect().Model(session)
 
@@ -62,12 +62,12 @@ func (s *sessionRepo) List(ctx context.Context, opts *logbase.FindSessionOptions
 
 func (s *sessionRepo) ListAll(
 	ctx context.Context,
-	opts *logbase.ListSessionsOptions,
-) ([]*logbase.Session, int64, error) {
+	opts *logtrace.ListSessionsOptions,
+) ([]*logtrace.Session, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	var sessions []*logbase.Session
+	var sessions []*logtrace.Session
 	var count int64
 
 	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
@@ -101,7 +101,7 @@ func (s *sessionRepo) ListAll(
 	}
 
 	countQuery := buildQuery(
-		s.inner.NewSelect().Model((*logbase.Session)(nil)),
+		s.inner.NewSelect().Model((*logtrace.Session)(nil)),
 	)
 
 	total, err := countQuery.Count(ctx)
@@ -128,7 +128,7 @@ func (s *sessionRepo) ListAll(
 
 func (s *sessionRepo) Metrics(
 	ctx context.Context,
-	opts *logbase.FindSessionOptions,
+	opts *logtrace.FindSessionOptions,
 ) (int64, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
@@ -136,7 +136,7 @@ func (s *sessionRepo) Metrics(
 	last24h := time.Now().Add(-24 * time.Hour)
 
 	query := s.inner.NewSelect().
-		Model((*logbase.Session)(nil)).
+		Model((*logtrace.Session)(nil)).
 		Where("deleted_at IS NULL").
 		Where("organization_id = ?", opts.OrganizationID.String())
 

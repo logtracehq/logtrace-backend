@@ -8,21 +8,21 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type userRepo struct {
 	inner *bun.DB
 }
 
-func NewUserRepository(db *bun.DB) logbase.UserRepository {
+func NewUserRepository(db *bun.DB) logtrace.UserRepository {
 	return &userRepo{
 		inner: db,
 	}
 }
 
-func (r *userRepo) Create(ctx context.Context, u *logbase.User) (*logbase.User, error) {
+func (r *userRepo) Create(ctx context.Context, u *logtrace.User) (*logtrace.User, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -34,13 +34,13 @@ func (r *userRepo) Create(ctx context.Context, u *logbase.User) (*logbase.User, 
 	return u, nil
 }
 
-func (r *userRepo) ListAll(ctx context.Context, opts *logbase.FindUserOptions) ([]*logbase.User, int64, error) {
+func (r *userRepo) ListAll(ctx context.Context, opts *logtrace.FindUserOptions) ([]*logtrace.User, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	var users []*logbase.User
+	var users []*logtrace.User
 
-	countSelect := r.inner.NewSelect().Model(&logbase.User{}).Where("deleted_at IS NULL")
+	countSelect := r.inner.NewSelect().Model(&logtrace.User{}).Where("deleted_at IS NULL")
 
 	if !util.IsStringEmpty(opts.Email.String()) {
 		countSelect = countSelect.Where("email = ?", opts.Email)
@@ -70,12 +70,12 @@ func (r *userRepo) ListAll(ctx context.Context, opts *logbase.FindUserOptions) (
 	return users, int64(totalCount), nil
 }
 
-func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) (*logbase.User, error) {
+func (r *userRepo) List(ctx context.Context, opts *logtrace.FindUserOptions) (*logtrace.User, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	user := &logbase.User{
-		Roles: []logbase.UserRole{},
+	user := &logtrace.User{
+		Roles: []logtrace.UserRole{},
 	}
 
 	selectUser := r.inner.NewSelect().Model(user).Relation("Roles")
@@ -92,7 +92,7 @@ func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) (*lo
 	err := selectUser.Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, logbase.ErrUserNotFound
+			return nil, logtrace.ErrUserNotFound
 		}
 
 		return nil, err
@@ -101,7 +101,7 @@ func (r *userRepo) List(ctx context.Context, opts *logbase.FindUserOptions) (*lo
 	return user, nil
 }
 
-func (r *userRepo) Update(ctx context.Context, u *logbase.User) (*logbase.User, error) {
+func (r *userRepo) Update(ctx context.Context, u *logtrace.User) (*logtrace.User, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 

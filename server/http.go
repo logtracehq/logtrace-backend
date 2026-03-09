@@ -12,29 +12,29 @@ import (
 	"github.com/riandyrn/otelchi"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/cache"
-	"gitlab.com/logbase/logbase/internal/pkg/googleauth"
-	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
-	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
-	_ "gitlab.com/logbase/logbase/swagger"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/cache"
+	"gitlab.com/logtrace/logtrace/internal/pkg/googleauth"
+	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
+	_ "gitlab.com/logtrace/logtrace/swagger"
 	"go.uber.org/zap"
 )
 
 func New(
 	logger *zap.Logger,
 	cfg config.Config,
-	userRepo logbase.UserRepository,
-	orgRepo logbase.OrganizationRepository,
-	emailVerificationRepo logbase.EmailVerificationRepository,
+	userRepo logtrace.UserRepository,
+	orgRepo logtrace.OrganizationRepository,
+	emailVerificationRepo logtrace.EmailVerificationRepository,
 	jwtTokenManager jwttoken.JWTokenManager,
 	queueHandler queue.QueueHandler,
 	googleAuthProvider googleauth.GoogleAuthProvider,
-	eventRepo logbase.EventRepository, sessionRepo logbase.SessionRepository,
-	redisCache cache.Cache, apiKeyRepo logbase.APIKeyRepository,
-	planRepo logbase.PlanRepository, passwordRepo logbase.PasswordRepository,
-	auditLogRepo logbase.AuditLogRepository, organizationUserRepo logbase.OrganizationUserRepository, invitationRepo logbase.InvitationRepository,
+	eventRepo logtrace.EventRepository, sessionRepo logtrace.SessionRepository,
+	redisCache cache.Cache, apiKeyRepo logtrace.APIKeyRepository,
+	planRepo logtrace.PlanRepository, passwordRepo logtrace.PasswordRepository,
+	auditLogRepo logtrace.AuditLogRepository, organizationUserRepo logtrace.OrganizationUserRepository, invitationRepo logtrace.InvitationRepository,
 ) (*http.Server, func(context.Context)) {
 	if err := cfg.Validate(); err != nil {
 		logger.Fatal("invalid configuration", zap.Error(err))
@@ -71,17 +71,17 @@ func New(
 func setUpRoutes(
 	logger *zap.Logger,
 	cfg config.Config,
-	userRepo logbase.UserRepository,
-	orgRepo logbase.OrganizationRepository,
+	userRepo logtrace.UserRepository,
+	orgRepo logtrace.OrganizationRepository,
 	jwtTokenManager jwttoken.JWTokenManager,
 	queueHandler queue.QueueHandler,
-	emailVerificationRepo logbase.EmailVerificationRepository,
+	emailVerificationRepo logtrace.EmailVerificationRepository,
 	googleAuthProvider googleauth.GoogleAuthProvider,
-	eventRepo logbase.EventRepository,
-	sessionRepo logbase.SessionRepository, _ cache.Cache,
-	apiKeyRepo logbase.APIKeyRepository, planRepo logbase.PlanRepository,
-	passwordRepo logbase.PasswordRepository, auditLogRepo logbase.AuditLogRepository,
-	organizationUserRepo logbase.OrganizationUserRepository, invitationRepo logbase.InvitationRepository,
+	eventRepo logtrace.EventRepository,
+	sessionRepo logtrace.SessionRepository, _ cache.Cache,
+	apiKeyRepo logtrace.APIKeyRepository, planRepo logtrace.PlanRepository,
+	passwordRepo logtrace.PasswordRepository, auditLogRepo logtrace.AuditLogRepository,
+	organizationUserRepo logtrace.OrganizationUserRepository, invitationRepo logtrace.InvitationRepository,
 ) http.Handler {
 	router := chi.NewRouter()
 
@@ -102,7 +102,7 @@ func setUpRoutes(
 		middleware.AllowContentType("application/json", "multipart/form-data"))
 
 	router.Use(
-		otelchi.Middleware("logbase.server",
+		otelchi.Middleware("logtrace.server",
 			otelchi.WithChiRoutes(router)))
 
 	if cfg.Env == config.EnvTypeDevelopment {
@@ -192,90 +192,90 @@ func setUpRoutes(
 		})
 
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/connect/{provider}", WrapLogbaseHTTPHandler(logger, auth.login, cfg, "Auth.provider"))
-			r.Post("/register", WrapLogbaseHTTPHandler(logger, auth.emailSignUp, cfg, "Auth.register"))
+			r.Post("/connect/{provider}", WrapLogtraceHTTPHandler(logger, auth.login, cfg, "Auth.provider"))
+			r.Post("/register", WrapLogtraceHTTPHandler(logger, auth.emailSignUp, cfg, "Auth.register"))
 		})
 
 		r.Route("/auth/account", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Get("/me", WrapLogbaseHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.me"))
-			r.Post("/invite", WrapLogbaseHTTPHandler(logger, auth.inviteUserByEmail, cfg, "Auth.inviteUserByEmail"))
-			r.Get("/users", WrapLogbaseHTTPHandler(logger, auth.listOrganizationUsers, cfg, "Auth.listOrganizationUsers"))
-			r.Patch("/revoke/{reference}", WrapLogbaseHTTPHandler(logger, auth.revokeUserRole, cfg, "Auth.revokeUserRole"))
-			r.Patch("/edit", WrapLogbaseHTTPHandler(logger, auth.editProfile, cfg, "Auth.editProfile"))
+			r.Get("/me", WrapLogtraceHTTPHandler(logger, auth.fetchCurrentUser, cfg, "Auth.me"))
+			r.Post("/invite", WrapLogtraceHTTPHandler(logger, auth.inviteUserByEmail, cfg, "Auth.inviteUserByEmail"))
+			r.Get("/users", WrapLogtraceHTTPHandler(logger, auth.listOrganizationUsers, cfg, "Auth.listOrganizationUsers"))
+			r.Patch("/revoke/{reference}", WrapLogtraceHTTPHandler(logger, auth.revokeUserRole, cfg, "Auth.revokeUserRole"))
+			r.Patch("/edit", WrapLogtraceHTTPHandler(logger, auth.editProfile, cfg, "Auth.editProfile"))
 		})
 
 		r.Route("/organizations", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, org.createOrganization, cfg, "Organization.create"))
-			r.Patch("/", WrapLogbaseHTTPHandler(logger, org.updateOrganization, cfg, "Organization.update"))
-			r.Delete("/", WrapLogbaseHTTPHandler(logger, org.deleteOrganization, cfg, "Organization.delete"))
+			r.Post("/", WrapLogtraceHTTPHandler(logger, org.createOrganization, cfg, "Organization.create"))
+			r.Patch("/", WrapLogtraceHTTPHandler(logger, org.updateOrganization, cfg, "Organization.update"))
+			r.Delete("/", WrapLogtraceHTTPHandler(logger, org.deleteOrganization, cfg, "Organization.delete"))
 		})
 
 		r.Route("/audit-logs", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, auditLog.List, cfg, "AuditLog.listAuditLog"))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, auditLog.ListAll, cfg, "AuditLog.listAll"))
+			r.Get("/{reference}", WrapLogtraceHTTPHandler(logger, auditLog.List, cfg, "AuditLog.listAuditLog"))
+			r.Get("/", WrapLogtraceHTTPHandler(logger, auditLog.ListAll, cfg, "AuditLog.listAll"))
 		})
 
 		r.Route("/events", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
-			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, event.List, cfg, "Event.list"))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, event.ListAll, cfg, "Event.listAll"))
+			r.Post("/", WrapLogtraceHTTPHandler(logger, event.Create, cfg, "Event.create"))
+			r.Get("/{reference}", WrapLogtraceHTTPHandler(logger, event.List, cfg, "Event.list"))
+			r.Get("/", WrapLogtraceHTTPHandler(logger, event.ListAll, cfg, "Event.listAll"))
 		})
 
 		r.Route("/sessions", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, session.List, cfg, "Session.list"))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, session.ListAll, cfg, "Session.listAll"))
+			r.Get("/{reference}", WrapLogtraceHTTPHandler(logger, session.List, cfg, "Session.list"))
+			r.Get("/", WrapLogtraceHTTPHandler(logger, session.ListAll, cfg, "Session.listAll"))
 		})
 
 		r.Route("/developers/keys", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, apiKey.create, cfg, "APIKeys.create"))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, apiKey.list, cfg, "APIKeys.list"))
-			r.Delete("/{reference}", WrapLogbaseHTTPHandler(logger, apiKey.revoke, cfg, "APIKeys.revoke"))
+			r.Post("/", WrapLogtraceHTTPHandler(logger, apiKey.create, cfg, "APIKeys.create"))
+			r.Get("/", WrapLogtraceHTTPHandler(logger, apiKey.list, cfg, "APIKeys.list"))
+			r.Delete("/{reference}", WrapLogtraceHTTPHandler(logger, apiKey.revoke, cfg, "APIKeys.revoke"))
 		})
 
 		r.Route("/plans/admin", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, plan.Create, cfg, "Plan.create"))
-			r.Get("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Get, cfg, "Plan.listAll"))
-			r.Patch("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Update, cfg, "Plan.update"))
-			r.Delete("/{reference}", WrapLogbaseHTTPHandler(logger, plan.Delete, cfg, "Plan.delete"))
+			r.Post("/", WrapLogtraceHTTPHandler(logger, plan.Create, cfg, "Plan.create"))
+			r.Get("/{reference}", WrapLogtraceHTTPHandler(logger, plan.Get, cfg, "Plan.listAll"))
+			r.Patch("/{reference}", WrapLogtraceHTTPHandler(logger, plan.Update, cfg, "Plan.update"))
+			r.Delete("/{reference}", WrapLogtraceHTTPHandler(logger, plan.Delete, cfg, "Plan.delete"))
 		})
 
 		r.Route("/plans", func(r chi.Router) {
-			r.Get("/", WrapLogbaseHTTPHandler(logger, plan.ListAll, cfg, "Plan.listAll"))
+			r.Get("/", WrapLogtraceHTTPHandler(logger, plan.ListAll, cfg, "Plan.listAll"))
 		})
 
 		r.Route("/developers/", func(r chi.Router) {
 			r.Use(requireAPIKeyOnly(logger, cfg, apiKeyRepo, orgRepo))
 			requireOrganizationValidSubscription(cfg)
-			r.Post("/events", WrapLogbaseHTTPHandler(logger, event.Create, cfg, "Event.create"))
-			r.Post("/sessions", WrapLogbaseHTTPHandler(logger, session.Create, cfg, "Session.create"))
-			r.Post("/audit-logs", WrapLogbaseHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
+			r.Post("/events", WrapLogtraceHTTPHandler(logger, event.Create, cfg, "Event.create"))
+			r.Post("/sessions", WrapLogtraceHTTPHandler(logger, session.Create, cfg, "Session.create"))
+			r.Post("/audit-logs", WrapLogtraceHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
 		})
 
 		r.Route("/metrics", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
-			r.Get("/sessions", WrapLogbaseHTTPHandler(logger, session.Metrics, cfg, "Metrics.sessions"))
-			r.Get("/events", WrapLogbaseHTTPHandler(logger, event.Metrics, cfg, "Metrics.events"))
-			r.Get("/auditlogs", WrapLogbaseHTTPHandler(logger, auditLog.Metrics, cfg, "Metrics.auditLogs"))
+			r.Get("/sessions", WrapLogtraceHTTPHandler(logger, session.Metrics, cfg, "Metrics.sessions"))
+			r.Get("/events", WrapLogtraceHTTPHandler(logger, event.Metrics, cfg, "Metrics.events"))
+			r.Get("/auditlogs", WrapLogtraceHTTPHandler(logger, auditLog.Metrics, cfg, "Metrics.auditLogs"))
 		})
 
 		r.Route("/invitations", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Use(requireOrganizationValidSubscription(cfg))
-			r.Post("/", WrapLogbaseHTTPHandler(logger, invitation.Create, cfg, "Invitation.create"))
-			r.Get("/", WrapLogbaseHTTPHandler(logger, invitation.List, cfg, "Invitation.list"))
+			r.Post("/", WrapLogtraceHTTPHandler(logger, invitation.Create, cfg, "Invitation.create"))
+			r.Get("/", WrapLogtraceHTTPHandler(logger, invitation.List, cfg, "Invitation.list"))
 		})
 	})
 	return cors.AllowAll().Handler(router)

@@ -12,7 +12,7 @@ package jwttoken_mocks
 import (
 	reflect "reflect"
 
-	jwttoken "gitlab.com/logbase/logbase/internal/pkg/jwttoken"
+	jwttoken "gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
 	gomock "go.uber.org/mock/gomock"
 )
 

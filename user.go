@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	ErrUserNotFound = LogbaseError("user not found")
-	ErrUserExists   = LogbaseError("user with same email address already exists")
+	ErrUserNotFound = LogtraceError("user not found")
+	ErrUserExists   = LogtraceError("user with same email address already exists")
 )
 
 type RoleName string

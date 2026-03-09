@@ -10,18 +10,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type sessionHandler struct {
 	cfg         config.Config
-	userRepo    logbase.UserRepository
-	sessionRepo logbase.SessionRepository
-	orgRepo     logbase.OrganizationRepository
-	orgUserRepo logbase.OrganizationUserRepository
+	userRepo    logtrace.UserRepository
+	sessionRepo logtrace.SessionRepository
+	orgRepo     logtrace.OrganizationRepository
+	orgUserRepo logtrace.OrganizationUserRepository
 }
 
 const (
@@ -48,6 +48,15 @@ func (sr *sessionRequest) Validate() error {
 	return nil
 }
 
+// @Description Create a new session
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Param session body sessionRequest true "Session creation request"
+// @Success 201 {object} APIStatus "Session created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create session at this time. an error occurred"
+// @Router /v1/sessions [post]
 func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -70,7 +79,7 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, "invalid login at format"), StatusFailed
 	}
 
-	session := &logbase.Session{
+	session := &logtrace.Session{
 		UserID:         req.UserID,
 		DeviceInfo:     req.DeviceInfo,
 		UserName:       req.UserName,
@@ -81,7 +90,7 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		LoginAt:        loginAt,
 	}
 
-	orgUser, err := sh.orgUserRepo.Find(ctx, &logbase.FindOrganizationUserOptions{
+	orgUser, err := sh.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
 		UserID:         session.UserID,
 		OrganizationID: session.OrganizationID,
 		Name:           session.UserName,
@@ -96,7 +105,7 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		session.UserID = orgUser.UserID
 		session.UserName = orgUser.Name
 	} else {
-		_, err := sh.orgUserRepo.Create(ctx, &logbase.OrganizationUser{
+		_, err := sh.orgUserRepo.Create(ctx, &logtrace.OrganizationUser{
 			UserID:         session.UserID,
 			OrganizationID: session.OrganizationID,
 			Name:           session.UserName,
@@ -118,6 +127,16 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 	return newAPIStatus(http.StatusCreated, "Session created successfully"), StatusSuccess
 }
 
+// @Description Get a session by ID
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Param reference path string true "Session ID"
+// @Success 200 {object} fetchSessionResponse "Session fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid session ID"
+// @Failure 404 {object} APIStatus "Session not found"
+// @Failure 500 {object} APIStatus "Failed to fetch session"
+// @Router /v1/sessions/{reference} [get]
 func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -129,7 +148,7 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "invalid session ID format"), StatusFailed
 	}
 
-	opts := &logbase.FindSessionOptions{
+	opts := &logtrace.FindSessionOptions{
 		ID:             sessionIdentifier,
 		UserID:         getUserFromContext(ctx).ID,
 		OrganizationID: getOrganizationFromContext(ctx).ID,
@@ -151,7 +170,7 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 		DeviceInfo:     session.DeviceInfo,
 		IPAddress:      session.IPAddress,
 		Location:       session.Location,
-		Status:         logbase.SessionStatus(session.Status),
+		Status:         logtrace.SessionStatus(session.Status),
 		CreatedAt:      session.CreatedAt,
 	}
 
@@ -161,6 +180,18 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 	}, StatusSuccess
 }
 
+// @Description List all sessions with optional filters
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Param status query string false "Filter by session status (ACTIVE or INACTIVE)"
+// @Param start_date query string false "Filter sessions created after this date (RFC3339 format)"
+// @Param end_date query string false "Filter sessions created before this date (RFC3339 format)"
+// @Param search query string false "Search term to filter sessions by user name or IP address"
+// @Success 200 {object} fetchAllSessionsResponse "Sessions have been fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid query parameters"
+// @Failure 500 {object} APIStatus "Failed to fetch sessions"
+// @Router /v1/sessions [get]
 func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -169,8 +200,8 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	endDate := r.URL.Query().Get("end_date")
 	search := r.URL.Query().Get("search")
 
-	opts := &logbase.ListSessionsOptions{
-		Paginator: logbase.PaginatorFromRequest(r),
+	opts := &logtrace.ListSessionsOptions{
+		Paginator: logtrace.PaginatorFromRequest(r),
 		Status:    status,
 		StartDate: startDate,
 		EndDate:   endDate,
@@ -197,7 +228,7 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			DeviceInfo:     session.DeviceInfo,
 			IPAddress:      session.IPAddress,
 			Location:       session.Location,
-			Status:         logbase.SessionStatus(session.Status),
+			Status:         logtrace.SessionStatus(session.Status),
 			CreatedAt:      session.CreatedAt,
 		})
 	}
@@ -215,13 +246,20 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	}, StatusSuccess
 }
 
+// @Description Fetch sessions metrics
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Success 200 {object} sessionMetricsResponse "Sessions metrics have been fetched successfully"
+// @Failure 500 {object} APIStatus "Failed to fetch sessions metrics"
+// @Router /v1/sessions/metrics [get]
 func (sh *sessionHandler) Metrics(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("fetching sessions metrics")
 
 	orgID := getOrganizationFromContext(ctx).ID
-	opts := logbase.FindSessionOptions{
+	opts := logtrace.FindSessionOptions{
 		OrganizationID: orgID,
 	}
 	totalCount, suspiciousCount, err := sh.sessionRepo.Metrics(ctx, &opts)

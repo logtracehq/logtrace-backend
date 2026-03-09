@@ -3,13 +3,13 @@ package googleauth
 import (
 	"context"
 
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 	"golang.org/x/oauth2"
 )
 
 type User struct {
-	FullName string        `json:"full_name"`
-	Email    logbase.Email `json:"email"`
+	FullName string         `json:"full_name"`
+	Email    logtrace.Email `json:"email"`
 }
 
 type ValidateOptions struct {

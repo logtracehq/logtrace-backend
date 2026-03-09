@@ -1,6 +1,6 @@
-## Logbase
+## Logtrace
 
-Logbase is a secure audit trail and logging system designed to provide tamper-evident logging capabilities
+Logtrace is a secure audit trail and logging system designed to provide tamper-evident logging capabilities
 for applications and systems.
 
 ### Features
@@ -16,7 +16,7 @@ for applications and systems.
 
 ### Database Migrations
 
-Logbase uses the `golang-migrate` tool for schema migrations.
+Logtrace uses the `golang-migrate` tool for schema migrations.
 
 #### Install CLI
 

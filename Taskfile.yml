@@ -15,6 +15,7 @@ tasks:
     desc: Build all
     cmds:
       - go generate ./...
+      - cd ../app && npm run swagger && cd -
 
   migrate:create:
     desc: Create a new migration file
@@ -26,12 +27,12 @@ tasks:
   migrate:down:one:
     desc: Rollback the last database migration
     cmds:
-      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://postgres:password@localhost:5432/logbase?sslmode=disable" down 1
+      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable" down 1
 
   migrate:
     desc: Apply all up database migrations
     cmds:
-      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://postgres:password@localhost:5432/logbase?sslmode=disable" up
+      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable" up
 
   run:http:
     desc: Run the HTTP server

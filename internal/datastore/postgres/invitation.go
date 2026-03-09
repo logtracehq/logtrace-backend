@@ -4,20 +4,20 @@ import (
 	"context"
 
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
+	"gitlab.com/logtrace/logtrace"
 )
 
 type invitationRepo struct {
 	inner *bun.DB
 }
 
-func NewInvitationRepository(db *bun.DB) logbase.InvitationRepository {
+func NewInvitationRepository(db *bun.DB) logtrace.InvitationRepository {
 	return &invitationRepo{
 		inner: db,
 	}
 }
 
-func (i *invitationRepo) Create(ctx context.Context, invitation *logbase.Invitation) error {
+func (i *invitationRepo) Create(ctx context.Context, invitation *logtrace.Invitation) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -29,11 +29,11 @@ func (i *invitationRepo) Create(ctx context.Context, invitation *logbase.Invitat
 	return nil
 }
 
-func (i *invitationRepo) List(ctx context.Context, opts logbase.ListInvitationOptions) ([]*logbase.Invitation, error) {
+func (i *invitationRepo) List(ctx context.Context, opts logtrace.ListInvitationOptions) ([]*logtrace.Invitation, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	var invitations []*logbase.Invitation
+	var invitations []*logtrace.Invitation
 	err := i.inner.NewSelect().Model(&invitations).Where("organization_id = ?", opts.OrganizationID.String()).
 		Where("status = ?", "PENDING").Scan(ctx)
 	if err != nil {

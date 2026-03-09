@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
-	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logtrace/logtrace/config"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -19,17 +19,17 @@ const (
 	StatusFailed
 )
 
-// logbaseHTTPHandler is a wrapper for HTTP handlers
+// logtraceHTTPHandler is a wrapper for HTTP handlers
 // that helps to centralizes error handling, otel tracing amongst others
-type LogbaseHTTPHandler func(
+type LogtraceHTTPHandler func(
 	context.Context,
 	trace.Span,
 	*zap.Logger,
 	http.ResponseWriter,
 	*http.Request) (render.Renderer, Status)
 
-// WrapLogbaseHTTPHandler is a middleware that wraps our handlers and manages errors
-func WrapLogbaseHTTPHandler(logger *zap.Logger, handler LogbaseHTTPHandler, cfg config.Config, spanName string) http.HandlerFunc {
+// WrapLogtraceHTTPHandler is a middleware that wraps our handlers and manages errors
+func WrapLogtraceHTTPHandler(logger *zap.Logger, handler LogtraceHTTPHandler, cfg config.Config, spanName string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, span, rid := getTracer(r.Context(), r, spanName)
 		defer span.End()

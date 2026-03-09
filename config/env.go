@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 
 const (
 	defaultConfigFilePath = "config"
-	envPrefix             = "LOGBASE_"
+	envPrefix             = "logtrace_"
 )
 
 func (googleCfg GoogleAuth) Validate(ctx context.Context, code string) error {
@@ -42,14 +42,14 @@ func (googleCfg GoogleAuth) Validate(ctx context.Context, code string) error {
 func (cfg *Config) SetDefaultValues() {
 	viper.SetDefault("http.port", "8080")
 	viper.SetDefault("http.log_level", "info")
-	viper.SetDefault("database.postgres.dsn", "postgres://postgres:password@localhost:5432/logbase?sslmode=disable")
+	viper.SetDefault("database.postgres.dsn", "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable")
 	viper.SetDefault("database.redis.dsn", "redis://localhost:6379")
 	viper.SetDefault("email.resend.api_key", "resend")
 	viper.SetDefault("email.resend.webhook_secret", "secret")
 	viper.SetDefault("http.metrics.username", "username")
 	viper.SetDefault("http.metrics.password", "password")
 	viper.SetDefault("auth.jwt.key", "thisisaweaksecret")
-	viper.SetDefault("auth.jwt.audience", "logbase")
+	viper.SetDefault("auth.jwt.audience", "logtrace")
 	viper.SetDefault("api_key.hash_secret", "hash_secret")
 	viper.SetDefault("frontend.app_url", "http://localhost:5173")
 }

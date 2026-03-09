@@ -10,31 +10,31 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type auditLogHandler struct {
-	auditLogRepo logbase.AuditLogRepository
-	userRepo     logbase.UserRepository
-	orgRepo      logbase.OrganizationRepository
-	orgUserRepo  logbase.OrganizationUserRepository
+	auditLogRepo logtrace.AuditLogRepository
+	userRepo     logtrace.UserRepository
+	orgRepo      logtrace.OrganizationRepository
+	orgUserRepo  logtrace.OrganizationUserRepository
 }
 
 type createAuditLogRequest struct {
 	GenericRequest
 
-	Action         string            `json:"action"`
-	Timestamp      string            `json:"timestamp"`
-	IPAddress      string            `json:"ip_address"`
-	UserID         string            `json:"user_id"`
-	UserName       string            `json:"username"`
-	RequestID      string            `json:"request_id"`
-	OrganizationID string            `json:"organization_id"`
-	Metadata       *logbase.Metadata `json:"metadata" `
+	Action         string             `json:"action"`
+	Timestamp      string             `json:"timestamp"`
+	IPAddress      string             `json:"ip_address"`
+	UserID         string             `json:"user_id"`
+	UserName       string             `json:"username"`
+	RequestID      string             `json:"request_id"`
+	OrganizationID string             `json:"organization_id"`
+	Metadata       *logtrace.Metadata `json:"metadata" `
 }
 
 func (a *createAuditLogRequest) Validate() error {
@@ -47,6 +47,15 @@ func (a *createAuditLogRequest) Validate() error {
 	return nil
 }
 
+// @Description Create a new audit log entry
+// @Tags Audit Logs
+// @Accept json
+// @Produce json
+// @Param auditLog body createAuditLogRequest true "Audit log creation request"
+// @Success 201 {object} APIStatus "Audit log created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create audit log at this time. an error occurred"
+// @Router /v1/audit-logs [post]
 func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -64,7 +73,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, "failed to process request"), StatusFailed
 	}
 
-	auditLog := &logbase.AuditLog{
+	auditLog := &logtrace.AuditLog{
 		Action:         req.Action,
 		IPAddress:      req.IPAddress,
 		Timestamp:      time.Now().UTC(),
@@ -74,7 +83,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		RequestID:      req.RequestID,
 	}
 
-	orgUser, err := a.orgUserRepo.Find(ctx, &logbase.FindOrganizationUserOptions{
+	orgUser, err := a.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
 		UserID:         auditLog.UserID,
 		OrganizationID: auditLog.OrganizationID,
 		Name:           auditLog.UserName,
@@ -88,7 +97,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		auditLog.UserID = orgUser.UserID
 		auditLog.UserName = orgUser.Name
 	} else {
-		_, err := a.orgUserRepo.Create(ctx, &logbase.OrganizationUser{
+		_, err := a.orgUserRepo.Create(ctx, &logtrace.OrganizationUser{
 			UserID:         auditLog.UserID,
 			OrganizationID: auditLog.OrganizationID,
 			Name:           auditLog.UserName,
@@ -108,6 +117,16 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 	return newAPIStatus(http.StatusCreated, "Audit log created successfully"), StatusSuccess
 }
 
+// @Description Get a specific audit log entry by ID
+// @Tags Audit Logs
+// @Accept json
+// @Produce json
+// @Param reference path string true "Audit log ID"
+// @Success 200 {object} listAuditLog "Audit log fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid audit log reference"
+// @Failure 404 {object} APIStatus "Audit log not found"
+// @Failure 500 {object} APIStatus "Failed to fetch audit log"
+// @Router /v1/audit-logs/{reference} [get]
 func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger, w http.ResponseWriter,
 	r *http.Request,
 ) (render.Renderer, Status) {
@@ -120,7 +139,7 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 		return newAPIStatus(http.StatusBadRequest, "invalid audit log reference"), StatusFailed
 	}
 
-	opts := &logbase.FindAuditLogOptions{
+	opts := &logtrace.FindAuditLogOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		ID:             auditLogID,
 	}
@@ -152,6 +171,19 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 	}, StatusSuccess
 }
 
+// @Description Get a list of audit log entries with pagination and filtering
+// @Tags Audit Logs
+// @Accept json
+// @Produce json
+// @Param search query string false "Search term for filtering audit logs"
+// @Param start_date query string false "Start date for filtering audit logs (ISO 8601 format)"
+// @Param end_date query string false "End date for filtering audit logs (ISO 8601 format)"
+// @Param page query int false "Page number for pagination"
+// @Param per_page query int false "Number of items per page for pagination"
+// @Success 200 {object} listAllAuditLogs "Audit logs fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid query parameters"
+// @Failure 500 {object} APIStatus "Failed to fetch audit logs"
+// @Router /v1/audit-logs [get]
 func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.Logger, w http.ResponseWriter,
 	r *http.Request,
 ) (render.Renderer, Status) {
@@ -162,9 +194,9 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	startDate := query.Get("start_date")
 	endDate := query.Get("end_date")
 
-	opts := logbase.FindAuditLogOptions{
+	opts := logtrace.FindAuditLogOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
-		Paginator:      logbase.PaginatorFromRequest(r),
+		Paginator:      logtrace.PaginatorFromRequest(r),
 		Search:         search,
 		EndDate:        endDate,
 		StartDate:      startDate,
@@ -208,12 +240,19 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	}, StatusSuccess
 }
 
+// @Description Get audit log metrics such as total count of audit logs
+// @Tags Audit Logs
+// @Accept json
+// @Produce json
+// @Success 200 {object} auditLogMetrics "Audit log metrics fetched successfully"
+// @Failure 500 {object} APIStatus "Failed to fetch metrics"
+// @Router /v1/audit-logs/metrics [get]
 func (a *auditLogHandler) Metrics(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("fetching audit log metrics")
 
-	opts := logbase.FindAuditLogOptions{
+	opts := logtrace.FindAuditLogOptions{
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 	}
 

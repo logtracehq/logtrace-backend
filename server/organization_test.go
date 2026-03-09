@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/logbase/logbase"
-	logbase_mocks "gitlab.com/logbase/logbase/mocks"
+	"gitlab.com/logtrace/logtrace"
+	logtrace_mocks "gitlab.com/logtrace/logtrace/mocks"
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 )
@@ -28,7 +28,7 @@ func getLogger(t *testing.T) *zap.Logger {
 func TestOrganizationContextOperations(t *testing.T) {
 	t.Run("write and read organization from context", func(t *testing.T) {
 		ctx := context.Background()
-		org := &logbase.Organization{
+		org := &logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "Test Organization",
 			IsActive:             true,
@@ -72,7 +72,7 @@ func TestOrganizationSubscriptionMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		org := &logbase.Organization{
+		org := &logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "Test Org",
 			IsActive:             true,
@@ -93,7 +93,7 @@ func TestOrganizationSubscriptionMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		org := &logbase.Organization{
+		org := &logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "Test Org",
 			IsActive:             true,
@@ -114,7 +114,7 @@ func TestOrganizationSubscriptionMiddleware(t *testing.T) {
 		rr := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-		org := &logbase.Organization{
+		org := &logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "Test Org",
 			IsActive:             false,
@@ -135,7 +135,7 @@ func TestOrganizationSubscriptionMiddleware(t *testing.T) {
 func TestOrganizationModel(t *testing.T) {
 	t.Run("organization with all fields", func(t *testing.T) {
 		now := time.Now()
-		org := logbase.Organization{
+		org := logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "My Organization",
 			IsActive:             true,
@@ -157,7 +157,7 @@ func TestOrganizationModel(t *testing.T) {
 	t.Run("organization with deleted timestamp", func(t *testing.T) {
 		now := time.Now()
 		deletedAt := now.Add(-time.Hour)
-		org := logbase.Organization{
+		org := logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "Deleted Organization",
 			IsActive:             false,
@@ -176,7 +176,7 @@ func TestOrganizationModel(t *testing.T) {
 
 func TestFindOrganizationOptions(t *testing.T) {
 	t.Run("find by ID", func(t *testing.T) {
-		opts := logbase.FindOrganizationOptions{
+		opts := logtrace.FindOrganizationOptions{
 			ID: orgID,
 		}
 
@@ -185,7 +185,7 @@ func TestFindOrganizationOptions(t *testing.T) {
 	})
 
 	t.Run("find by name", func(t *testing.T) {
-		opts := logbase.FindOrganizationOptions{
+		opts := logtrace.FindOrganizationOptions{
 			Name: "Test Organization",
 		}
 
@@ -194,7 +194,7 @@ func TestFindOrganizationOptions(t *testing.T) {
 	})
 
 	t.Run("find by both ID and name", func(t *testing.T) {
-		opts := logbase.FindOrganizationOptions{
+		opts := logtrace.FindOrganizationOptions{
 			ID:   orgID,
 			Name: "Test Organization",
 		}
@@ -206,8 +206,8 @@ func TestFindOrganizationOptions(t *testing.T) {
 
 func TestListOrganizationOptions(t *testing.T) {
 	t.Run("with pagination", func(t *testing.T) {
-		opts := logbase.ListOrganizationOptions{
-			Paginator: logbase.Paginator{
+		opts := logtrace.ListOrganizationOptions{
+			Paginator: logtrace.Paginator{
 				PerPage: 10,
 				Page:    1,
 			},
@@ -218,7 +218,7 @@ func TestListOrganizationOptions(t *testing.T) {
 	})
 
 	t.Run("default pagination", func(t *testing.T) {
-		opts := logbase.ListOrganizationOptions{}
+		opts := logtrace.ListOrganizationOptions{}
 
 		require.Equal(t, int64(0), opts.Paginator.PerPage)
 		require.Equal(t, int64(0), opts.Paginator.Page)
@@ -230,16 +230,16 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
-		newOrg := &logbase.Organization{
+		newOrg := &logtrace.Organization{
 			Name:                 "New Organization",
 			IsActive:             true,
 			PlanName:             "free",
 			IsSubscriptionActive: true,
 		}
 
-		expectedOrg := &logbase.Organization{
+		expectedOrg := &logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "New Organization",
 			IsActive:             true,
@@ -265,9 +265,9 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
-		newOrg := &logbase.Organization{
+		newOrg := &logtrace.Organization{
 			Name:     "New Organization",
 			IsActive: true,
 			PlanName: "free",
@@ -288,10 +288,10 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
-		opts := logbase.FindOrganizationOptions{ID: orgID}
-		expectedOrg := &logbase.Organization{
+		opts := logtrace.FindOrganizationOptions{ID: orgID}
+		expectedOrg := &logtrace.Organization{
 			ID:                   orgID,
 			Name:                 "Test Organization",
 			IsActive:             true,
@@ -315,30 +315,30 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
-		opts := logbase.FindOrganizationOptions{ID: uuid.New()}
+		opts := logtrace.FindOrganizationOptions{ID: uuid.New()}
 
 		orgRepo.EXPECT().
 			List(gomock.Any(), opts).
 			Times(1).
-			Return(nil, logbase.ErrOrganizationNotFound)
+			Return(nil, logtrace.ErrOrganizationNotFound)
 
 		result, err := orgRepo.List(context.Background(), opts)
 		require.Error(t, err)
 		require.Nil(t, result)
-		require.ErrorIs(t, err, logbase.ErrOrganizationNotFound)
+		require.ErrorIs(t, err, logtrace.ErrOrganizationNotFound)
 	})
 
 	t.Run("list organizations for user", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 		userID := uuid.New()
-		user := &logbase.FindOrganizationOptions{ID: userID}
+		user := &logtrace.FindOrganizationOptions{ID: userID}
 
-		expectedOrgs := []logbase.Organization{
+		expectedOrgs := []logtrace.Organization{
 			{
 				ID:                   orgID,
 				Name:                 "Organization 1",
@@ -371,14 +371,14 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 		userID := uuid.New()
-		user := &logbase.FindOrganizationOptions{ID: userID}
+		user := &logtrace.FindOrganizationOptions{ID: userID}
 
 		orgRepo.EXPECT().
 			ListAll(gomock.Any(), user).
 			Times(1).
-			Return([]logbase.Organization{}, nil)
+			Return([]logtrace.Organization{}, nil)
 
 		result, _, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)
@@ -389,9 +389,9 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
-		opts := &logbase.FindOrganizationOptions{ID: orgID}
+		opts := &logtrace.FindOrganizationOptions{ID: orgID}
 
 		orgRepo.EXPECT().
 			Delete(gomock.Any(), opts).
@@ -406,17 +406,17 @@ func TestOrganizationRepository(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		orgRepo := logbase_mocks.NewMockOrganizationRepository(ctrl)
+		orgRepo := logtrace_mocks.NewMockOrganizationRepository(ctrl)
 
-		opts := &logbase.FindOrganizationOptions{ID: uuid.New()}
+		opts := &logtrace.FindOrganizationOptions{ID: uuid.New()}
 
 		orgRepo.EXPECT().
 			Delete(gomock.Any(), opts).
 			Times(1).
-			Return(logbase.ErrOrganizationNotFound)
+			Return(logtrace.ErrOrganizationNotFound)
 
 		err := orgRepo.Delete(context.Background(), opts)
 		require.Error(t, err)
-		require.ErrorIs(t, err, logbase.ErrOrganizationNotFound)
+		require.ErrorIs(t, err, logtrace.ErrOrganizationNotFound)
 	})
 }

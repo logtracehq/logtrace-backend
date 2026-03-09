@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrEventNotFound  = LogbaseError("Event not found")
-	ErrEventsNotFound = LogbaseError("Events not found")
+	ErrEventNotFound  = LogtraceError("Event not found")
+	ErrEventsNotFound = LogtraceError("Events not found")
 )
 
 type Event struct {

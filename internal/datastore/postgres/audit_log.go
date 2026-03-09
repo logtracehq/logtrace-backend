@@ -9,21 +9,21 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type auditLogRepo struct {
 	inner *bun.DB
 }
 
-func NewAuditLogRepository(db *bun.DB) logbase.AuditLogRepository {
+func NewAuditLogRepository(db *bun.DB) logtrace.AuditLogRepository {
 	return &auditLogRepo{
 		inner: db,
 	}
 }
 
-func (e *auditLogRepo) Create(ctx context.Context, auditLog *logbase.AuditLog) error {
+func (e *auditLogRepo) Create(ctx context.Context, auditLog *logtrace.AuditLog) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -35,11 +35,11 @@ func (e *auditLogRepo) Create(ctx context.Context, auditLog *logbase.AuditLog) e
 	return nil
 }
 
-func (a *auditLogRepo) ListAll(ctx context.Context, opts logbase.FindAuditLogOptions) ([]*logbase.AuditLog, int64, error) {
+func (a *auditLogRepo) ListAll(ctx context.Context, opts logtrace.FindAuditLogOptions) ([]*logtrace.AuditLog, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	var auditLogs []*logbase.AuditLog
+	var auditLogs []*logtrace.AuditLog
 	var count int64
 
 	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
@@ -87,7 +87,7 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logbase.FindAuditLogOpt
 	}
 
 	countQuery := buildQuery(
-		a.inner.NewSelect().Model((*logbase.AuditLog)(nil)),
+		a.inner.NewSelect().Model((*logtrace.AuditLog)(nil)),
 	)
 
 	total, err := countQuery.Count(ctx)
@@ -112,11 +112,11 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logbase.FindAuditLogOpt
 	return auditLogs, count, nil
 }
 
-func (a *auditLogRepo) List(ctx context.Context, opts *logbase.FindAuditLogOptions) (*logbase.AuditLog, error) {
+func (a *auditLogRepo) List(ctx context.Context, opts *logtrace.FindAuditLogOptions) (*logtrace.AuditLog, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	auditLog := &logbase.AuditLog{}
+	auditLog := &logtrace.AuditLog{}
 
 	sel := a.inner.NewSelect().Model(auditLog)
 
@@ -126,16 +126,16 @@ func (a *auditLogRepo) List(ctx context.Context, opts *logbase.FindAuditLogOptio
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return auditLog, logbase.ErrAuditLogNotFound
+		return auditLog, logtrace.ErrAuditLogNotFound
 	}
 	return auditLog, err
 }
 
-func (a *auditLogRepo) Delete(ctx context.Context, opts logbase.FindAuditLogOptions) error {
+func (a *auditLogRepo) Delete(ctx context.Context, opts logtrace.FindAuditLogOptions) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	auditLog := &logbase.AuditLog{}
+	auditLog := &logtrace.AuditLog{}
 
 	sel := a.inner.NewSelect().Model(&auditLog)
 
@@ -144,7 +144,7 @@ func (a *auditLogRepo) Delete(ctx context.Context, opts logbase.FindAuditLogOpti
 	}
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return logbase.ErrAuditLogNotFound
+		return logtrace.ErrAuditLogNotFound
 	}
 	if err != nil {
 		return err
@@ -156,7 +156,7 @@ func (a *auditLogRepo) Delete(ctx context.Context, opts logbase.FindAuditLogOpti
 
 func (a *auditLogRepo) Metrics(
 	ctx context.Context,
-	opts *logbase.FindAuditLogOptions,
+	opts *logtrace.FindAuditLogOptions,
 ) (int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
@@ -166,7 +166,7 @@ func (a *auditLogRepo) Metrics(
 	last24h := time.Now().Add(-24 * time.Hour)
 
 	countQuery := a.inner.NewSelect().
-		Model((*logbase.AuditLog)(nil)).
+		Model((*logtrace.AuditLog)(nil)).
 		Where("deleted_at IS NULL").
 		Where("created_at >= ?", last24h).
 		Where("organization_id = ?", opts.OrganizationID.String())

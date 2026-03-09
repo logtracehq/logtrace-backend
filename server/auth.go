@@ -10,12 +10,12 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/theopenlane/utils/passwd"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/googleauth"
-	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
-	queue "gitlab.com/logbase/logbase/internal/pkg/queues"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/googleauth"
+	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -25,24 +25,24 @@ type CookieName string
 
 type authHandler struct {
 	googleCfg         googleauth.GoogleAuthProvider
-	userRepo          logbase.UserRepository
+	userRepo          logtrace.UserRepository
 	cfg               config.Config
-	orgRepo           logbase.OrganizationRepository
+	orgRepo           logtrace.OrganizationRepository
 	tokenManager      jwttoken.JWTokenManager
 	queue             queue.QueueHandler
-	emailVerification logbase.EmailVerificationRepository
-	passwordRepo      logbase.PasswordRepository
+	emailVerification logtrace.EmailVerificationRepository
+	passwordRepo      logtrace.PasswordRepository
 }
 
 type signUpRequest struct {
 	GenericRequest
 
-	FullName        string        `json:"full_name"`
-	Email           logbase.Email `json:"email"`
-	Password        string        `json:"password"`
-	Organization    string        `json:"organization"`
-	Phone           string        `json:"phone"`
-	ConfirmPassword string        `json:"confirm_password"`
+	FullName        string         `json:"full_name"`
+	Email           logtrace.Email `json:"email"`
+	Password        string         `json:"password"`
+	Organization    string         `json:"organization"`
+	Phone           string         `json:"phone"`
+	ConfirmPassword string         `json:"confirm_password"`
 }
 
 type updateUserRequest struct {
@@ -82,7 +82,7 @@ func (sr *signUpRequest) Validate() error {
 		return errors.New("password is too weak")
 	}
 
-	hashedPassword, err := logbase.HashPassword(sr.Password)
+	hashedPassword, err := logtrace.HashPassword(sr.Password)
 	if err != nil {
 		return errors.New("could not hash password")
 	}
@@ -192,7 +192,7 @@ func (a *authHandler) loginWithGoogle(
 		return newAPIStatus(http.StatusBadRequest, "could not fetch user details from oauth2 provider"), StatusFailed
 	}
 
-	user := &logbase.User{
+	user := &logtrace.User{
 		Email:    u.Email,
 		FullName: u.FullName,
 	}
@@ -202,13 +202,13 @@ func (a *authHandler) loginWithGoogle(
 
 func (a *authHandler) loginWithEmail(ctx context.Context, logger *zap.Logger, req *loginRequest,
 ) (render.Renderer, Status) {
-	opts := &logbase.FindUserOptions{
-		Email: logbase.Email(req.Email),
+	opts := &logtrace.FindUserOptions{
+		Email: logtrace.Email(req.Email),
 	}
 
 	user, err := a.userRepo.List(ctx, opts)
 	if err != nil {
-		if errors.Is(err, logbase.ErrUserNotFound) {
+		if errors.Is(err, logtrace.ErrUserNotFound) {
 			logger.Debug("user not found", zap.String("email", req.Email))
 			return newAPIStatus(http.StatusUnauthorized, "invalid email or password"), StatusFailed
 		}
@@ -223,7 +223,7 @@ func (a *authHandler) loginWithEmail(ctx context.Context, logger *zap.Logger, re
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred while logging in"), StatusFailed
 	}
 
-	_, err = logbase.ComparePasswordAndHash(req.Password, userPassword.UserPassword)
+	_, err = logtrace.ComparePasswordAndHash(req.Password, userPassword.UserPassword)
 	if err != nil {
 		logger.Debug("invalid password", zap.String("email", req.Email))
 		return newAPIStatus(http.StatusUnauthorized, "invalid email or password"), StatusFailed
@@ -235,11 +235,11 @@ func (a *authHandler) loginWithEmail(ctx context.Context, logger *zap.Logger, re
 func (a *authHandler) getOrCreateUser(
 	ctx context.Context,
 	logger *zap.Logger,
-	user *logbase.User,
+	user *logtrace.User,
 ) (render.Renderer, Status) {
 	_, err := a.userRepo.Create(ctx, user)
-	if errors.Is(err, logbase.ErrUserExists) {
-		user, err := a.userRepo.List(ctx, &logbase.FindUserOptions{
+	if errors.Is(err, logtrace.ErrUserExists) {
+		user, err := a.userRepo.List(ctx, &logtrace.FindUserOptions{
 			Email: user.Email,
 		})
 		if err != nil {
@@ -279,12 +279,12 @@ func (a *authHandler) fetchCurrentUser(
 
 	user := getUserFromContext(ctx)
 
-	var org *logbase.Organization = nil
+	var org *logtrace.Organization = nil
 	if doesOrganizationExistInContext(ctx) {
 		org = getOrganizationFromContext(ctx)
 	}
 
-	opts := &logbase.FindOrganizationOptions{
+	opts := &logtrace.FindOrganizationOptions{
 		UserID: user.ID,
 	}
 
@@ -317,7 +317,7 @@ func (a authHandler) editProfile(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
 
-	user := &logbase.User{
+	user := &logtrace.User{
 		ID:       currentUsuser.ID,
 		FullName: req.FullName,
 		Phone:    req.Phone,
@@ -330,13 +330,13 @@ func (a authHandler) editProfile(ctx context.Context, span trace.Span, logger *z
 			"Could not update user details"), StatusFailed
 	}
 
-	hashedPassword, err := logbase.HashPassword(req.Password)
+	hashedPassword, err := logtrace.HashPassword(req.Password)
 	if err != nil {
 		logger.Debug("failed to hash password", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to hash password"), StatusFailed
 	}
 
-	password := &logbase.Password{
+	password := &logtrace.Password{
 		UserID:       currentUsuser.ID,
 		UserPassword: hashedPassword,
 	}
@@ -354,7 +354,7 @@ func (a authHandler) editProfile(ctx context.Context, span trace.Span, logger *z
 }
 
 func (a *authHandler) generateUserToken(
-	user *logbase.User,
+	user *logtrace.User,
 	logger *zap.Logger,
 ) (render.Renderer, Status) {
 	token, err := a.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
@@ -391,14 +391,14 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	saveOrg := &logbase.Organization{
+	saveOrg := &logtrace.Organization{
 		Name:                 req.Organization,
 		IsActive:             true,
 		IsSubscriptionActive: false,
 		PlanName:             "free",
 	}
 
-	opts := logbase.FindOrganizationOptions{
+	opts := logtrace.FindOrganizationOptions{
 		Name: saveOrg.Name,
 	}
 
@@ -418,20 +418,20 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		), StatusFailed
 	}
 
-	user := &logbase.User{
+	user := &logtrace.User{
 		Email:    req.Email,
 		FullName: req.FullName,
-		Status:   logbase.UserStatusActive.String(),
+		Status:   logtrace.UserStatusActive.String(),
 		Phone:    req.Phone,
-		Roles:    []logbase.UserRole{},
-		Metadata: &logbase.UserMetadata{
+		Roles:    []logtrace.UserRole{},
+		Metadata: &logtrace.UserMetadata{
 			OrganizationID: []uuid.UUID{org.ID},
 			UserRole:       "admin",
 		},
 	}
 
 	user, err = a.userRepo.Create(ctx, user)
-	if errors.Is(err, logbase.ErrUserExists) {
+	if errors.Is(err, logtrace.ErrUserExists) {
 		return newAPIStatus(http.StatusConflict, "Account already exists. Please use a different email"), StatusFailed
 	}
 
@@ -451,13 +451,13 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		), StatusFailed
 	}
 
-	hashPassword, err := logbase.HashPassword(req.Password)
+	hashPassword, err := logtrace.HashPassword(req.Password)
 	if err != nil {
 		logger.Error("failed to save passsword", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to save password"), StatusFailed
 	}
 
-	userPassword := &logbase.Password{
+	userPassword := &logtrace.Password{
 		UserPassword: hashPassword,
 		UserID:       user.ID,
 	}
@@ -473,12 +473,12 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 	return a.generateUserToken(user, logger)
 }
 
-func (a *authHandler) sendVerificationEmail(user *logbase.User, logger *zap.Logger) error {
+func (a *authHandler) sendVerificationEmail(user *logtrace.User, logger *zap.Logger) error {
 	if user.EmailVerifiedAt != nil {
 		return nil
 	}
 
-	token, err := logbase.NewEmailVerification(user)
+	token, err := logtrace.NewEmailVerification(user)
 	if err != nil {
 		logger.Error("could not generate email verification token", zap.Error(err))
 		return nil
@@ -498,9 +498,9 @@ func (a *authHandler) sendVerificationEmail(user *logbase.User, logger *zap.Logg
 type inviteUserRequest struct {
 	GenericRequest
 
-	Email    logbase.Email `json:"email"`
-	FullName string        `json:"full_name"`
-	Role     string        `json:"role"`
+	Email    logtrace.Email `json:"email"`
+	FullName string         `json:"full_name"`
+	Role     string         `json:"role"`
 }
 
 func (ir *inviteUserRequest) Validate() error {
@@ -541,31 +541,31 @@ func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, lo
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	findOpts := &logbase.FindUserOptions{Email: req.Email}
+	findOpts := &logtrace.FindUserOptions{Email: req.Email}
 	_, err := a.userRepo.List(ctx, findOpts)
 	if err == nil {
 		return newAPIStatus(http.StatusConflict, "User already exists"), StatusFailed
 	}
-	if !errors.Is(err, logbase.ErrUserNotFound) {
+	if !errors.Is(err, logtrace.ErrUserNotFound) {
 		logger.Error("error checking user existence", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not check user existence"), StatusFailed
 	}
-	user := &logbase.User{
+	user := &logtrace.User{
 		Email:    req.Email,
 		FullName: req.FullName,
-		Status:   logbase.UserStatusPending.String(),
-		Metadata: &logbase.UserMetadata{
+		Status:   logtrace.UserStatusPending.String(),
+		Metadata: &logtrace.UserMetadata{
 			OrganizationID: []uuid.UUID{getOrganizationFromContext(ctx).ID},
-			UserRole:       logbase.RoleName(req.Role),
+			UserRole:       logtrace.RoleName(req.Role),
 		},
 	}
 
 	_, err = a.userRepo.Create(ctx, user)
-	if errors.Is(err, logbase.ErrUserExists) {
+	if errors.Is(err, logtrace.ErrUserExists) {
 		return newAPIStatus(http.StatusConflict, "User already exists"), StatusFailed
 	}
 
-	token, err := logbase.NewEmailVerification(user)
+	token, err := logtrace.NewEmailVerification(user)
 	if err != nil {
 		logger.Error("could not generate invite token", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "could not generate invite token"), StatusFailed
@@ -597,7 +597,7 @@ func (a *authHandler) listOrganizationUsers(ctx context.Context, span trace.Span
 
 	org := getOrganizationFromContext(ctx)
 
-	opts := &logbase.FindUserOptions{
+	opts := &logtrace.FindUserOptions{
 		OrganizationID: org.ID,
 	}
 
@@ -641,11 +641,11 @@ func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logge
 		return newAPIStatus(http.StatusBadRequest, "invalid user reference"), StatusFailed
 	}
 
-	user, err := a.userRepo.List(ctx, &logbase.FindUserOptions{
+	user, err := a.userRepo.List(ctx, &logtrace.FindUserOptions{
 		ID: userID,
 	})
 	if err != nil {
-		if errors.Is(err, logbase.ErrUserNotFound) {
+		if errors.Is(err, logtrace.ErrUserNotFound) {
 			return newAPIStatus(http.StatusNotFound, "user not found"), StatusFailed
 		}
 		logger.Error("error fetching user", zap.Error(err))

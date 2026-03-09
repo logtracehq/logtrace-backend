@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logtrace/logtrace/config"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	tracer     = otel.Tracer("logbase.socialauth")
-	noopTracer = noop.NewTracerProvider().Tracer("logbase.socialauth")
+	tracer     = otel.Tracer("logtrace.socialauth")
+	noopTracer = noop.NewTracerProvider().Tracer("logtrace.socialauth")
 )
 
 func getTracer(ctx context.Context, operationName string) (context.Context, trace.Span) {

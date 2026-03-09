@@ -16,10 +16,10 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/jwttoken"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.uber.org/zap"
 )
 
@@ -70,29 +70,29 @@ func tokenFromRequest(r *http.Request) (string, error) {
 	return ss[1], nil
 }
 
-func getOrganizationFromContext(ctx context.Context) *logbase.Organization {
-	return ctx.Value(organizationCtx).(*logbase.Organization)
+func getOrganizationFromContext(ctx context.Context) *logtrace.Organization {
+	return ctx.Value(organizationCtx).(*logtrace.Organization)
 }
 
 func doesOrganizationExistInContext(ctx context.Context) bool {
-	_, ok := ctx.Value(organizationCtx).(*logbase.Organization)
+	_, ok := ctx.Value(organizationCtx).(*logtrace.Organization)
 	return ok
 }
 
 func doesUserExistInContext(ctx context.Context) bool {
-	_, ok := ctx.Value(userCtx).(*logbase.User)
+	_, ok := ctx.Value(userCtx).(*logtrace.User)
 	return ok
 }
 
-func writeUserToCtx(ctx context.Context, user *logbase.User) context.Context {
+func writeUserToCtx(ctx context.Context, user *logtrace.User) context.Context {
 	return context.WithValue(ctx, userCtx, user)
 }
 
-func getUserFromContext(ctx context.Context) *logbase.User {
-	return ctx.Value(userCtx).(*logbase.User)
+func getUserFromContext(ctx context.Context) *logtrace.User {
+	return ctx.Value(userCtx).(*logtrace.User)
 }
 
-func userOrganizationIDs(user *logbase.User) []uuid.UUID {
+func userOrganizationIDs(user *logtrace.User) []uuid.UUID {
 	if user == nil || user.Metadata == nil {
 		return nil
 	}
@@ -100,7 +100,7 @@ func userOrganizationIDs(user *logbase.User) []uuid.UUID {
 	return user.Metadata.OrganizationID
 }
 
-func hasOrganizationMembership(user *logbase.User, orgID uuid.UUID) bool {
+func hasOrganizationMembership(user *logtrace.User, orgID uuid.UUID) bool {
 	if orgID == uuid.Nil {
 		return false
 	}
@@ -134,7 +134,7 @@ func shouldSkipOrganizationSelection(path, method string) bool {
 		path == "/v1/auth/account/me"
 }
 
-func resolveOrganizationIDForRequest(r *http.Request, user *logbase.User) (uuid.UUID, error) {
+func resolveOrganizationIDForRequest(r *http.Request, user *logtrace.User) (uuid.UUID, error) {
 	organizationIDs := userOrganizationIDs(user)
 	if len(organizationIDs) == 0 {
 		return uuid.Nil, errors.New("you must be a member of a organization")
@@ -241,7 +241,7 @@ func writeRequestIDHeader(next http.Handler) http.Handler {
 
 func retrieveRequestID(r *http.Request) string { return middleware.GetReqID(r.Context()) }
 
-func writeOrganizationToCtx(ctx context.Context, org *logbase.Organization) context.Context {
+func writeOrganizationToCtx(ctx context.Context, org *logtrace.Organization) context.Context {
 	return context.WithValue(ctx, organizationCtx, org)
 }
 
@@ -299,8 +299,8 @@ func requireAuthentication(
 	logger *zap.Logger,
 	jwtManager jwttoken.JWTokenManager,
 	_ config.Config,
-	userRepo logbase.UserRepository,
-	orgRepo logbase.OrganizationRepository,
+	userRepo logtrace.UserRepository,
+	orgRepo logtrace.OrganizationRepository,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -330,7 +330,7 @@ func requireAuthentication(
 				return
 			}
 
-			user, err := userRepo.List(ctx, &logbase.FindUserOptions{
+			user, err := userRepo.List(ctx, &logtrace.FindUserOptions{
 				ID: data.UserID,
 			})
 			if err != nil {
@@ -357,7 +357,7 @@ func requireAuthentication(
 				return
 			}
 
-			org, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
+			org, err := orgRepo.List(ctx, logtrace.FindOrganizationOptions{
 				ID: selectedOrganizationID,
 			})
 			if err != nil {
@@ -372,8 +372,8 @@ func requireAuthentication(
 	}
 }
 
-func requireAPIKeyOnly(logger *zap.Logger, _ config.Config, apiKeyRepo logbase.APIKeyRepository,
-	orgRepo logbase.OrganizationRepository,
+func requireAPIKeyOnly(logger *zap.Logger, _ config.Config, apiKeyRepo logtrace.APIKeyRepository,
+	orgRepo logtrace.OrganizationRepository,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -398,7 +398,7 @@ func requireAPIKeyOnly(logger *zap.Logger, _ config.Config, apiKeyRepo logbase.A
 
 			key, err := apiKeyRepo.FetchByValue(ctx, token)
 			if err != nil {
-				if errors.Is(err, logbase.ErrAPIKeyNotFound) {
+				if errors.Is(err, logtrace.ErrAPIKeyNotFound) {
 					_ = render.Render(w, r, newAPIStatus(http.StatusUnauthorized, "API key not found"))
 					return
 				}
@@ -413,7 +413,7 @@ func requireAPIKeyOnly(logger *zap.Logger, _ config.Config, apiKeyRepo logbase.A
 				logger.Warn("failed to update api key last used at", zap.Error(err))
 			}
 
-			organization, err := orgRepo.List(ctx, logbase.FindOrganizationOptions{
+			organization, err := orgRepo.List(ctx, logtrace.FindOrganizationOptions{
 				ID: key.OrganizationID,
 			})
 			if err != nil {

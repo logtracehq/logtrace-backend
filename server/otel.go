@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logtrace/logtrace/config"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -21,7 +21,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var tracer = otel.Tracer("logbase.server")
+var tracer = otel.Tracer("logtrace.server")
 
 func getTracer(ctx context.Context, r *http.Request,
 	operationName string,
@@ -37,7 +37,7 @@ func initResources() (*resource.Resource, error) {
 	return resource.New(
 		context.Background(),
 		resource.WithAttributes(
-			attribute.String("service.name", "logbase"),
+			attribute.String("service.name", "logtrace"),
 			attribute.String("library.language", "go"),
 		),
 	)

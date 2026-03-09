@@ -9,16 +9,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/config"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 type planHandler struct {
 	cfg      config.Config
-	planRepo logbase.PlanRepository
+	planRepo logtrace.PlanRepository
 }
 
 type planRequest struct {
@@ -40,6 +40,15 @@ func (p *planRequest) Validate() error {
 	return nil
 }
 
+// @Description Create a new plan
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param plan body planRequest true "Plan creation request"
+// @Success 201 {object} APIStatus "Plan created successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not create plan at this time. an error occurred"
+// @Router /v1/plans [post]
 func (p *planHandler) Create(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -54,12 +63,12 @@ func (p *planHandler) Create(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	features := make([]logbase.Feature, len(req.Features))
+	features := make([]logtrace.Feature, len(req.Features))
 	for i, f := range req.Features {
-		features[i] = logbase.Feature(strings.ToLower(f))
+		features[i] = logtrace.Feature(strings.ToLower(f))
 	}
 
-	plan := &logbase.Plan{
+	plan := &logtrace.Plan{
 		Name:        req.Name,
 		Price:       req.Price,
 		Description: req.Description,
@@ -77,6 +86,16 @@ func (p *planHandler) Create(ctx context.Context, span trace.Span, logger *zap.L
 	return newAPIStatus(http.StatusCreated, "plan has been created successfully"), StatusSuccess
 }
 
+// @Description Get a specific plan by ID
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param reference path string true "Plan ID"
+// @Success 200 {object} fetchPlanResponse "Plan has been fetched successfully"
+// @Failure 400 {object} APIStatus "Invalid plan reference"
+// @Failure 404 {object} APIStatus "Plan not found"
+// @Failure 500 {object} APIStatus "Failed to fetch plan"
+// @Router /v1/plans/{reference} [get]
 func (p *planHandler) Get(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -91,7 +110,7 @@ func (p *planHandler) Get(ctx context.Context, span trace.Span, logger *zap.Logg
 	}
 	plan, err := p.planRepo.List(ctx, planId)
 	if err != nil {
-		logger.Error("failed to fetch plan by ID")
+		logger.Error("failed to fetch plan by ID", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to list the plan by it's ID"), StatusFailed
 	}
 
@@ -108,7 +127,7 @@ func (p *planHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.
 
 	plans, err := p.planRepo.ListAll(ctx)
 	if err != nil {
-		logger.Error("failed to fetch all plans")
+		logger.Error("failed to fetch all plans", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to list all plans"), StatusFailed
 	}
 
@@ -118,6 +137,17 @@ func (p *planHandler) ListAll(ctx context.Context, span trace.Span, logger *zap.
 	}, StatusSuccess
 }
 
+// @Description Update an existing plan by ID
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param reference path string true "Plan ID"
+// @Param plan body planRequest true "Plan update request"
+// @Success 200 {object} fetchPlanResponse "Plan has been updated successfully"
+// @Failure 400 {object} APIStatus "Invalid plan reference or request body"
+// @Failure 404 {object} APIStatus "Plan not found"
+// @Failure 500 {object} APIStatus "Failed to update plan"
+// @Router /v1/plans/{reference} [put]
 func (p *planHandler) Update(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
@@ -140,12 +170,12 @@ func (p *planHandler) Update(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	features := make([]logbase.Feature, len(req.Features))
+	features := make([]logtrace.Feature, len(req.Features))
 	for i, f := range req.Features {
-		features[i] = logbase.Feature(strings.ToLower(f))
+		features[i] = logtrace.Feature(strings.ToLower(f))
 	}
 
-	plan := &logbase.Plan{
+	plan := &logtrace.Plan{
 		ID:          planId,
 		Name:        req.Name,
 		Price:       req.Price,
@@ -167,6 +197,16 @@ func (p *planHandler) Update(ctx context.Context, span trace.Span, logger *zap.L
 	}, StatusSuccess
 }
 
+// @Description Delete an existing plan by ID
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param reference path string true "Plan ID"
+// @Success 200 {object} APIStatus "Plan has been deleted successfully"
+// @Failure 400 {object} APIStatus "Invalid plan reference"
+// @Failure 404 {object} APIStatus "Plan not found"
+// @Failure 500 {object} APIStatus "Failed to delete plan"
+// @Router /v1/plans/{reference} [delete]
 func (p *planHandler) Delete(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {

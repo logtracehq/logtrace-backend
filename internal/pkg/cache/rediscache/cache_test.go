@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"gitlab.com/logbase/logbase/internal/pkg/cache"
+	"gitlab.com/logtrace/logtrace/internal/pkg/cache"
 )
 
 func setupRedis(t *testing.T) (*redis.Client, func()) {
@@ -126,9 +126,9 @@ func TestMakeKey(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"test", "logbase-cache-test"},
-		{"", "logbase-cache-"},
-		{"long-key-name", "logbase-cache-long-key-name"},
+		{"test", "logtrace-cache-test"},
+		{"", "logtrace-cache-"},
+		{"long-key-name", "logtrace-cache-long-key-name"},
 	}
 
 	for _, tt := range tests {

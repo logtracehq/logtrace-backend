@@ -1,10 +1,10 @@
-package logbase
+package logtrace
 
 import (
 	"net/http"
 	"strconv"
 
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 )
 

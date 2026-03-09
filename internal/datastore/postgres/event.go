@@ -9,21 +9,21 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
-	"gitlab.com/logbase/logbase"
-	"gitlab.com/logbase/logbase/internal/pkg/util"
+	"gitlab.com/logtrace/logtrace"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
 type eventRepo struct {
 	inner *bun.DB
 }
 
-func NewEventRepository(db *bun.DB) logbase.EventRepository {
+func NewEventRepository(db *bun.DB) logtrace.EventRepository {
 	return &eventRepo{
 		inner: db,
 	}
 }
 
-func (e *eventRepo) Create(ctx context.Context, event *logbase.Event) error {
+func (e *eventRepo) Create(ctx context.Context, event *logtrace.Event) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
@@ -35,11 +35,11 @@ func (e *eventRepo) Create(ctx context.Context, event *logbase.Event) error {
 	return nil
 }
 
-func (e *eventRepo) List(ctx context.Context, opts logbase.ListEventOptions) (*logbase.Event, error) {
+func (e *eventRepo) List(ctx context.Context, opts logtrace.ListEventOptions) (*logtrace.Event, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	event := &logbase.Event{}
+	event := &logtrace.Event{}
 
 	sel := e.inner.NewSelect().Model(event).Where("organization_id = ?", opts.OrganizationID)
 
@@ -53,16 +53,16 @@ func (e *eventRepo) List(ctx context.Context, opts logbase.ListEventOptions) (*l
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return event, logbase.ErrEventNotFound
+		return event, logtrace.ErrEventNotFound
 	}
 	return event, err
 }
 
-func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions) ([]*logbase.Event, int64, error) {
+func (e *eventRepo) ListAll(ctx context.Context, opts *logtrace.ListEventOptions) ([]*logtrace.Event, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	var events []*logbase.Event
+	var events []*logtrace.Event
 	var count int64
 
 	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
@@ -134,7 +134,7 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 	}
 
 	countQuery := buildQuery(
-		e.inner.NewSelect().Model((*logbase.Event)(nil)),
+		e.inner.NewSelect().Model((*logtrace.Event)(nil)),
 	)
 
 	total, err := countQuery.Count(ctx)
@@ -159,7 +159,7 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logbase.ListEventOptions)
 
 func (e eventRepo) Metrics(
 	ctx context.Context,
-	opts *logbase.ListEventOptions,
+	opts *logtrace.ListEventOptions,
 ) (int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
@@ -169,7 +169,7 @@ func (e eventRepo) Metrics(
 	last24h := time.Now().Add(-24 * time.Hour)
 
 	countQuery := e.inner.NewSelect().
-		Model((*logbase.Event)(nil)).
+		Model((*logtrace.Event)(nil)).
 		Where("deleted_at IS NULL").
 		Where("created_at >= ?", last24h).
 		Where("organization_id = ?", opts.OrganizationID.String())

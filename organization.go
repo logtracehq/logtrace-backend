@@ -1,4 +1,4 @@
-package logbase
+package logtrace
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrOrganizationNotFound = LogbaseError("Organization not found")
-	ErrOrganizationExists   = LogbaseError("Organization already exists")
+	ErrOrganizationNotFound = LogtraceError("Organization not found")
+	ErrOrganizationExists   = LogtraceError("Organization already exists")
 )
 
 type Organization struct {

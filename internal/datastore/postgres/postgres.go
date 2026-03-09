@@ -10,7 +10,7 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bunotel"
-	"gitlab.com/logbase/logbase/config"
+	"gitlab.com/logtrace/logtrace/config"
 	"go.uber.org/zap"
 )
 
@@ -41,7 +41,7 @@ func New(cfg *config.Config, logger *zap.Logger) (*bun.DB, error) {
 
 	db.AddQueryHook(
 		bunotel.NewQueryHook(
-			bunotel.WithDBName("logbase.database")))
+			bunotel.WithDBName("logtrace.database")))
 
 	timeout = cfg.Database.Postgres.QueryTimeout
 	return db, db.Ping()
