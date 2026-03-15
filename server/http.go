@@ -268,6 +268,7 @@ func setUpRoutes(
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Get("/sessions", WrapLogtraceHTTPHandler(logger, session.Metrics, cfg, "Metrics.sessions"))
 			r.Get("/events", WrapLogtraceHTTPHandler(logger, event.Metrics, cfg, "Metrics.events"))
+			r.Get("/events/top-actors", WrapLogtraceHTTPHandler(logger, event.TopActorMetrics, cfg, "Metrics.events.topActors"))
 			r.Get("/auditlogs", WrapLogtraceHTTPHandler(logger, auditLog.Metrics, cfg, "Metrics.auditLogs"))
 		})
 

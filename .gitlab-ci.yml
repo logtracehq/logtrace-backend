@@ -1,12 +1,17 @@
 stages:
-- test
-- secret-detection
+  - test
+  - secret-detection
+go_test:
+  stage: test
+  image: golang:1.25
+  script:
+    - go test ./...
 sast:
   stage: test
 include:
-- template: Security/SAST.gitlab-ci.yml
-- template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
 variables:
-  SECRET_DETECTION_ENABLED: 'true'
+  SECRET_DETECTION_ENABLED: "true"
 secret_detection:
   stage: secret-detection

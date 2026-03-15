@@ -183,3 +183,32 @@ func (e eventRepo) Metrics(
 
 	return count, nil
 }
+
+func (e eventRepo) TopActorMetrics(
+	ctx context.Context,
+	opts *logtrace.ListEventOptions,
+) ([]*logtrace.TopActorMetrics, error) {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	var actors []*logtrace.TopActorMetrics
+
+	last24h := time.Now().Add(-24 * time.Hour)
+
+	query := e.inner.NewSelect().
+		TableExpr("events").
+		ColumnExpr("COALESCE(NULLIF(username, ''), user_id) AS name").
+		ColumnExpr("COUNT(*) AS events").
+		Where("deleted_at IS NULL").
+		Where("created_at >= ?", last24h).
+		Where("organization_id = ?", opts.OrganizationID.String()).
+		GroupExpr("COALESCE(NULLIF(username, ''), user_id)").
+		OrderExpr("events DESC").
+		Limit(5)
+
+	if err := query.Scan(ctx, &actors); err != nil {
+		return nil, err
+	}
+
+	return actors, nil
+}

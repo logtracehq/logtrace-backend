@@ -46,9 +46,15 @@ type ListEventOptions struct {
 	Search         string    `json:"search"`
 }
 
+type TopActorMetrics struct {
+	Name   string `json:"name"`
+	Events int64  `json:"events"`
+}
+
 type EventRepository interface {
 	Create(context.Context, *Event) error
 	List(context.Context, ListEventOptions) (*Event, error)
 	ListAll(context.Context, *ListEventOptions) ([]*Event, int64, error)
 	Metrics(context.Context, *ListEventOptions) (int64, error)
+	TopActorMetrics(context.Context, *ListEventOptions) ([]*TopActorMetrics, error)
 }

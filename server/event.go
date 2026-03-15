@@ -295,3 +295,31 @@ func (e *eventHander) Metrics(ctx context.Context, span trace.Span, logger *zap.
 		APIStatus: newAPIStatus(http.StatusOK, "Events metrics fetched successfully"),
 	}, StatusSuccess
 }
+
+func (e *eventHander) TopActorMetrics(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	// @Description Get top actor metrics for events in the last 24 hours
+	// @Tags Events
+	// @Accept json
+	// @Produce json
+	// @Success 200 {object} eventTopActorMetricsResponse "Top actor metrics fetched successfully"
+	// @Failure 500 {object} APIStatus "Failed to fetch top actor metrics"
+	// @Router /v1/metrics/events/top-actors [get]
+	logger.Debug("fetching top actor metrics for events")
+
+	opts := logtrace.ListEventOptions{
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+	}
+
+	actors, err := e.eventRepo.TopActorMetrics(ctx, &opts)
+	if err != nil {
+		logger.Error("failed to fetch top actor metrics", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to fetch top actor metrics"), StatusFailed
+	}
+
+	return eventTopActorMetricsResponse{
+		Actors:    actors,
+		APIStatus: newAPIStatus(http.StatusOK, "Top actor metrics fetched successfully"),
+	}, StatusSuccess
+}

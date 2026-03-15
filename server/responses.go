@@ -184,6 +184,11 @@ type auditLogMetrics struct {
 	APIStatus
 }
 
+type eventTopActorMetricsResponse struct {
+	Actors []*logtrace.TopActorMetrics `json:"actors"`
+	APIStatus
+}
+
 type fetchInvitationsResponse struct {
 	Invitations []*logtrace.Invitation `json:"invitations"`
 	APIStatus
