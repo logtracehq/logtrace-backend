@@ -166,10 +166,6 @@ func (p *planHandler) Update(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusBadRequest, "failed to validate payload"), StatusFailed
 	}
 
-	if err := req.Validate(); err != nil {
-		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
-	}
-
 	features := make([]logtrace.Feature, len(req.Features))
 	for i, f := range req.Features {
 		features[i] = logtrace.Feature(strings.ToLower(f))

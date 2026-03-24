@@ -45,7 +45,7 @@ func (p *planRepo) ListAll(ctx context.Context) ([]logtrace.Plan, error) {
 	defer cancel()
 
 	plans := make([]logtrace.Plan, 0)
-	err := p.inner.NewSelect().Model(&plans).Scan(ctx)
+	err := p.inner.NewSelect().Model(&plans).Order("created_at DESC").Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,8 @@ func (p *planRepo) Update(ctx context.Context, plan *logtrace.Plan) (*logtrace.P
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := p.inner.NewUpdate().Model(plan).Where("id = ?", plan.ID).Exec(ctx)
+	_, err := p.inner.NewUpdate().Model(plan).Where("id = ?", plan.ID).OmitZero().
+		Returning("*").Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
