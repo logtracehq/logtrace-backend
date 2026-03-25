@@ -60,9 +60,7 @@ func (s *sessionRepo) List(ctx context.Context, opts *logtrace.FindSessionOption
 	return session, nil
 }
 
-func (s *sessionRepo) ListAll(
-	ctx context.Context,
-	opts *logtrace.ListSessionsOptions,
+func (s *sessionRepo) ListAll(ctx context.Context, opts *logtrace.ListSessionsOptions,
 ) ([]*logtrace.Session, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
@@ -71,7 +69,11 @@ func (s *sessionRepo) ListAll(
 	var count int64
 
 	buildQuery := func(q *bun.SelectQuery) *bun.SelectQuery {
-		if util.IsStringEmpty(opts.Status) {
+		if !util.IsStringEmpty(opts.OrganizationID.String()) {
+			q = q.Where("organization_id = ?", opts.OrganizationID.String())
+		}
+
+		if !util.IsStringEmpty(opts.Status) {
 			q = q.Where("status = ?", opts.Status)
 		}
 

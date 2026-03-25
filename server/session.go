@@ -201,11 +201,12 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	search := r.URL.Query().Get("search")
 
 	opts := &logtrace.ListSessionsOptions{
-		Paginator: logtrace.PaginatorFromRequest(r),
-		Status:    status,
-		StartDate: startDate,
-		EndDate:   endDate,
-		Search:    search,
+		Paginator:      logtrace.PaginatorFromRequest(r),
+		OrganizationID: getOrganizationFromContext(ctx).ID,
+		Status:         status,
+		StartDate:      startDate,
+		EndDate:        endDate,
+		Search:         search,
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
@@ -216,7 +217,7 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusInternalServerError, "failed to fetch all sessions"), StatusFailed
 	}
 
-	var sessionResponses []*Session
+	sessionResponses := make([]*Session, 0, len(sessions))
 	for _, session := range sessions {
 		sessionResponses = append(sessionResponses, &Session{
 			ID:             session.ID,

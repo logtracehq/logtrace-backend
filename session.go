@@ -36,11 +36,12 @@ type FindSessionOptions struct {
 }
 
 type ListSessionsOptions struct {
-	Paginator Paginator
-	Status    string `json:"status"`
-	StartDate string `json:"start_date"`
-	EndDate   string `json:"end_date"`
-	Search    string `json:"search"`
+	Paginator      Paginator
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Status         string    `json:"status"`
+	StartDate      string    `json:"start_date"`
+	EndDate        string    `json:"end_date"`
+	Search         string    `json:"search"`
 }
 
 type SessionRepository interface {

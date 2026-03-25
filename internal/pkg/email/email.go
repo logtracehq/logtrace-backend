@@ -10,7 +10,7 @@ import (
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 )
 
-//go:embed templates/*
+//go:embed all:templates
 var templatesFS embed.FS
 
 var (

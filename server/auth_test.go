@@ -53,8 +53,11 @@ func getConfig() config.Config {
 		DBSSLMode:  "disable",
 		Port:       "8000",
 		LogLevel:   "debug",
-		Logging:    config.LogModeDev,
-
+		Logging: struct {
+			Mode config.LogMode `yaml:"mode" mapstructure:"mode" json:"mode"`
+		}{
+			Mode: config.LogModeDev,
+		},
 		GoogleAuth: config.GoogleAuth{
 			Code: "test-code",
 		},

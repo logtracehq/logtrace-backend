@@ -28,7 +28,7 @@ var (
 
 const (
 	defaultConfigFilePath = "config"
-	envPrefix             = "logtrace_"
+	envPrefix             = "LOGTRACE_"
 )
 
 func (googleCfg GoogleAuth) Validate(ctx context.Context, code string) error {

@@ -116,14 +116,16 @@ type Config struct {
 	GoogleAuth GoogleAuth `yaml:"google_auth" mapstructure:"google_auth"`
 	Port       string     `yaml:"port" mapstructure:"port"`
 	LogLevel   string     `yaml:"log_level" mapstructure:"log_level"`
-	Logging    LogMode    `yaml:"log_mode" mapstructure:"log_mode"`
-	Otel       Otel       `yaml:"otel" mapstructure:"otel"`
-	Auth       Auth       `yaml:"auth" mapstructure:"auth"`
-	Database   Database   `yaml:"database" mapstructure:"database"`
-	Frontend   Frontend   `yaml:"frontend" mapstructure:"frontend"`
-	Email      Email      `yaml:"email" mapstructure:"email"`
-	APIKey     APIKey     `yaml:"api_key" mapstructure:"api_key"`
-	Billing    Billing    `yaml:"billing" mapstructure:"billing"`
-	Uploader   Uploader   `yaml:"uploader" mapstructure:"uploader"`
-	CSRFSecret string     `yaml:"csrf_secret" mapstructure:"csrf_secret"`
+	Logging    struct {
+		Mode LogMode `yaml:"mode" mapstructure:"mode" json:"mode"`
+	} `yaml:"logging" mapstructure:"logging" json:"logging"`
+	Otel       Otel     `yaml:"otel" mapstructure:"otel"`
+	Auth       Auth     `yaml:"auth" mapstructure:"auth"`
+	Database   Database `yaml:"database" mapstructure:"database"`
+	Frontend   Frontend `yaml:"frontend" mapstructure:"frontend"`
+	Email      Email    `yaml:"email" mapstructure:"email"`
+	APIKey     APIKey   `yaml:"api_key" mapstructure:"api_key"`
+	Billing    Billing  `yaml:"billing" mapstructure:"billing"`
+	Uploader   Uploader `yaml:"uploader" mapstructure:"uploader"`
+	CSRFSecret string   `yaml:"csrf_secret" mapstructure:"csrf_secret"`
 }
