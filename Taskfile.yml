@@ -24,6 +24,11 @@ tasks:
     cmds:
       - migrate create -ext sql -dir ./internal/datastore/postgres/migrations {{.NAME}}
 
+  env:
+    desc: Export environment variables from Infisical
+    cmds:
+      - infisical export --env=dev > .env
+
   migrate:down:one:
     desc: Rollback the last database migration
     cmds:
@@ -38,12 +43,6 @@ tasks:
     desc: Run the HTTP server
     cmds:
       - air
-
-  env:
-    desc: Export environment variables from Infisical
-    cmds:
-      - infisical export --env=dev > .env
-
   test:
     desc: Run unit tests
     cmds:

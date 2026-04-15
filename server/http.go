@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	"github.com/riandyrn/otelchi"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 
@@ -88,6 +89,12 @@ func setUpRoutes(
 	router.Use(middleware.RequestID)
 	router.Use(writeRequestIDHeader)
 	router.Use(middleware.RealIP)
+	router.Use(httprate.Limit(100, time.Minute, httprate.WithKeyFuncs(HTTPThrottleKeyFunc)))
+	router.Use(
+		middleware.AllowContentType("application/json", "multipart/form-data"))
+	router.Use(
+		otelchi.Middleware("logtrace.server",
+			otelchi.WithChiRoutes(router)))
 
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.Frontend.AppURL, "http://localhost:5173"},
@@ -98,12 +105,6 @@ func setUpRoutes(
 	}))
 
 	// router.Use(CSRFMiddleware([]byte(cfg.CSRFSecret), cfg))
-	router.Use(
-		middleware.AllowContentType("application/json", "multipart/form-data"))
-
-	router.Use(
-		otelchi.Middleware("logtrace.server",
-			otelchi.WithChiRoutes(router)))
 
 	if cfg.Env == config.EnvTypeDevelopment {
 		go func() {
@@ -258,7 +259,7 @@ func setUpRoutes(
 
 		r.Route("/developers/", func(r chi.Router) {
 			r.Use(requireAPIKeyOnly(logger, cfg, apiKeyRepo, orgRepo))
-			requireOrganizationValidSubscription(cfg)
+			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Post("/events", WrapLogtraceHTTPHandler(logger, event.Create, cfg, "Event.create"))
 			r.Post("/sessions", WrapLogtraceHTTPHandler(logger, session.Create, cfg, "Session.create"))
 			r.Post("/audit-logs", WrapLogtraceHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
