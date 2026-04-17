@@ -174,27 +174,27 @@ func getFetchCurrentUserData() []struct {
 		{
 			name: "could not list organizations",
 			mockFn: func(orgRepo *logtrace_mocks.MockOrganizationRepository) {
-				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+				orgRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil, errors.New("could not list organizations"))
+					Return(nil, int64(0), errors.New("could not list organizations"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 		},
 		{
 			name: "listed organizations",
 			mockFn: func(orgRepo *logtrace_mocks.MockOrganizationRepository) {
-				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+				orgRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]logtrace.Organization{}, nil)
+					Return([]logtrace.Organization{}, int64(0), nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name: "listed organizations with current workspace",
 			mockFn: func(orgRepo *logtrace_mocks.MockOrganizationRepository) {
-				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).
+				orgRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return([]logtrace.Organization{}, nil)
+					Return([]logtrace.Organization{}, int64(0), nil)
 			},
 			expectedStatusCode: http.StatusOK,
 		},
@@ -211,8 +211,10 @@ func TestAuthHandler_EmailSignup(t *testing.T) {
 			tokenManager := jwttoken_mocks.NewMockJWTokenManager(controller)
 			emailVerification := logtrace_mocks.NewMockEmailVerificationRepository(controller)
 			queueMock := logtrace_mocks.NewMockQueueHandler(controller)
+			orgRepo := logtrace_mocks.NewMockOrganizationRepository(controller)
+			passwordRepo := logtrace_mocks.NewMockPasswordRepository(controller)
 
-			v.mockFn(userRepo, tokenManager, emailVerification, queueMock)
+			v.mockFn(userRepo, tokenManager, emailVerification, queueMock, orgRepo, passwordRepo)
 
 			a := &authHandler{
 				cfg:               getConfig(),
@@ -220,6 +222,8 @@ func TestAuthHandler_EmailSignup(t *testing.T) {
 				tokenManager:      tokenManager,
 				emailVerification: emailVerification,
 				queue:             queueMock,
+				orgRepo:           orgRepo,
+				passwordRepo:      passwordRepo,
 			}
 
 			b := bytes.NewBuffer(nil)
@@ -283,7 +287,7 @@ func TestAuthHandler_FetchCurrentUser(t *testing.T) {
 
 func generateEmailSignupTestTable() []struct {
 	name               string
-	mockFn             func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler)
+	mockFn             func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository)
 	expectedStatusCode int
 	req                signUpRequest
 } {
@@ -291,115 +295,141 @@ func generateEmailSignupTestTable() []struct {
 
 	return []struct {
 		name               string
-		mockFn             func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler)
+		mockFn             func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository)
 		expectedStatusCode int
 		req                signUpRequest
 	}{
 		{
 			name: "empty full name",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
 				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: signUpRequest{
-				FullName: "",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "StrongPassword123!",
+				FullName:        "",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "empty email",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
 				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email(""),
-				Password: "StrongPassword123!",
+				FullName:        "Test User",
+				Email:           logtrace.Email(""),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "invalid email",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
 				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("invalid-email"),
-				Password: "StrongPassword123!",
+				FullName:        "Test User",
+				Email:           logtrace.Email("invalid-email"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "empty password",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
 				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "",
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "",
+				ConfirmPassword: "",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "weak password",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
 				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(0)
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "weak",
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "weak",
+				ConfirmPassword: "weak",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "user already exists",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
-				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(logtrace.ErrUserExists)
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
+				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{}, nil)
+				orgRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{ID: uuid.MustParse("11111111-1111-1111-1111-111111111111")}, nil)
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil, logtrace.ErrUserExists)
 			},
 			expectedStatusCode: http.StatusConflict,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "StrongPassword123!",
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "could not create user",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
-				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("db error"))
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
+				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{}, nil)
+				orgRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{ID: uuid.MustParse("11111111-1111-1111-1111-111111111111")}, nil)
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil, errors.New("db error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "StrongPassword123!",
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "could not generate token",
-			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler) {
-				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
+				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{}, nil)
+				orgRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{ID: uuid.MustParse("11111111-1111-1111-1111-111111111111")}, nil)
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.User{ID: userID}, nil)
+				passwordRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				tokenManager.EXPECT().GenerateJWToken(gomock.Any()).Times(1).Return(jwttoken.JWTokenData{}, errors.New("token error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "StrongPassword123!",
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 		{
 			name: "user created successfully",
 			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository,
-				queueMock *logtrace_mocks.MockQueueHandler,
+				queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository,
 			) {
-				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{}, nil)
+				orgRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{ID: uuid.MustParse("11111111-1111-1111-1111-111111111111")}, nil)
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.User{ID: userID}, nil)
+				passwordRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				tokenManager.EXPECT().GenerateJWToken(gomock.Any()).Times(1).Return(jwttoken.JWTokenData{
@@ -409,14 +439,15 @@ func generateEmailSignupTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusOK,
 			req: signUpRequest{
-				FullName: "Test User",
-				Email:    logtrace.Email("test@example.com"),
-				Password: "StrongPassword123!",
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
 			},
 		},
 	}
 }
-
 func TestAuthHandler_Login(t *testing.T) {
 	for _, v := range generateLoginTestTable() {
 		t.Run(v.name, func(t *testing.T) {
@@ -571,7 +602,7 @@ func generateLoginTestTable() []struct {
 				userRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(logtrace.ErrUserExists)
+					Return(nil, logtrace.ErrUserExists)
 
 				userRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -608,7 +639,7 @@ func generateLoginTestTable() []struct {
 				userRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(logtrace.ErrUserExists)
+					Return(nil, logtrace.ErrUserExists)
 
 				userRepo.EXPECT().List(gomock.Any(), gomock.Any()).
 					Times(1).
@@ -647,7 +678,7 @@ func generateLoginTestTable() []struct {
 				userRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(errors.New("unknown error"))
+					Return(nil, errors.New("unknown error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: loginRequest{
@@ -680,7 +711,7 @@ func generateLoginTestTable() []struct {
 				userRepo.EXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(nil)
+					Return(nil, nil)
 			},
 			expectedStatusCode: http.StatusOK,
 			req: loginRequest{

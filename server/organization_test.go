@@ -356,9 +356,9 @@ func TestOrganizationRepository(t *testing.T) {
 		}
 
 		orgRepo.EXPECT().
-			List(gomock.Any(), user).
+			ListAll(gomock.Any(), user).
 			Times(1).
-			Return(expectedOrgs, nil)
+			Return(expectedOrgs, int64(2), nil)
 
 		result, _, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)
@@ -378,7 +378,7 @@ func TestOrganizationRepository(t *testing.T) {
 		orgRepo.EXPECT().
 			ListAll(gomock.Any(), user).
 			Times(1).
-			Return([]logtrace.Organization{}, nil)
+			Return([]logtrace.Organization{}, int64(0), nil)
 
 		result, _, err := orgRepo.ListAll(context.Background(), user)
 		require.NoError(t, err)

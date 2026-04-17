@@ -50,7 +50,7 @@ func PaginatorFromRequest(r *http.Request) Paginator {
 		var err error
 
 		dd, err := strconv.Atoi(currentPage)
-		if err != nil || p.Page <= 0 {
+		if err != nil || dd <= 0 {
 			return p
 		}
 
@@ -62,7 +62,7 @@ func PaginatorFromRequest(r *http.Request) Paginator {
 		var err error
 
 		dd, err := strconv.Atoi(perPage)
-		if err != nil || p.PerPage <= 0 {
+		if err != nil || dd <= 0 {
 			return p
 		}
 

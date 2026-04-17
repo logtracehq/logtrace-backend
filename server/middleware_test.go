@@ -447,7 +447,7 @@ func TestRequireAuthentication(t *testing.T) {
 			}, nil)
 
 		orgRepo.EXPECT().
-			List(gomock.Any(), &logtrace.FindOrganizationOptions{ID: orgID}).
+			List(gomock.Any(), logtrace.FindOrganizationOptions{ID: orgID}).
 			Return(&logtrace.Organization{ID: orgID}, nil)
 
 		rr := httptest.NewRecorder()
@@ -495,7 +495,7 @@ func TestRequireAuthentication(t *testing.T) {
 			Return(&logtrace.User{
 				ID: userID,
 				Metadata: &logtrace.UserMetadata{
-					OrganizationID: []uuid.UUID{orgID},
+					OrganizationID: []uuid.UUID{orgID, uuid.New()}, // Two orgs: no header → PreconditionRequired
 				},
 			}, nil)
 
