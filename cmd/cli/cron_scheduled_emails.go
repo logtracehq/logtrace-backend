@@ -10,7 +10,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ayinke-llc/hermes"
 	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
 	"gitlab.com/logtrace/logtrace"
@@ -18,6 +17,7 @@ import (
 	"gitlab.com/logtrace/logtrace/internal/datastore/postgres"
 	pkgemail "gitlab.com/logtrace/logtrace/internal/pkg/email"
 	"gitlab.com/logtrace/logtrace/internal/pkg/email/resend"
+	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"gitlab.com/logtrace/logtrace/server"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
@@ -311,7 +311,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to setup logger: %w", err)
 			}
 
-			cleanupOtel := server.InitOTELCapabilities(hermes.DeRef(cfg), logger)
+			cleanupOtel := server.InitOTELCapabilities(util.DeRef(cfg), logger)
 			defer cleanupOtel()
 
 			emailClient, err := resend.New(cfg)
