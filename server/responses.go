@@ -45,19 +45,20 @@ func newAPIStatus(code int, s string) APIStatus {
 }
 
 type Event struct {
-	ID              uuid.UUID `json:"id"`
-	Type            string    `json:"type"`
-	Username        string    `json:"username"`
-	UserID          string    `json:"user_id"`
-	HTTPMethod      string    `json:"http_method"`
-	HTTPStatus      string    `json:"http_status"`
-	HTTPEndpoint    string    `json:"http_endpoint"`
-	ClientIP        string    `json:"client_ip"`
-	OrganizationID  uuid.UUID `json:"organization_id"`
-	ClientUserAgent string    `json:"client_user_agent"`
-	GeoIPLocation   string    `json:"geo_ip_location"`
-	ActionName      string    `json:"action_name"`
-	CreatedAt       time.Time `json:"created_at"`
+	ID              uuid.UUID         `json:"id"`
+	Type            string            `json:"type"`
+	Username        string            `json:"username"`
+	UserID          string            `json:"user_id"`
+	HTTPMethod      string            `json:"http_method"`
+	HTTPStatus      string            `json:"http_status"`
+	HTTPEndpoint    string            `json:"http_endpoint"`
+	ClientIP        string            `json:"client_ip"`
+	OrganizationID  uuid.UUID         `json:"organization_id"`
+	ClientUserAgent string            `json:"client_user_agent"`
+	GeoIPLocation   string            `json:"geo_ip_location"`
+	ActionName      string            `json:"action_name"`
+	Metadata        logtrace.Metadata `json:"metadata"`
+	CreatedAt       time.Time         `json:"created_at"`
 }
 type fetchEventResponse struct {
 	Event *Event `json:"event"`
@@ -95,10 +96,12 @@ type Session struct {
 	LoginAt        time.Time              `json:"login_at"`
 	OrganizationID uuid.UUID              `json:"organization_id"`
 	LogoutAt       time.Time              `json:"logout_at"`
+	Token          string                 `json:"token"`
 	DeviceInfo     string                 `json:"device_info"`
 	IPAddress      string                 `json:"ip_address"`
 	Location       string                 `json:"location"`
 	Status         logtrace.SessionStatus `json:"status"`
+	Metadata       logtrace.Metadata      `json:"metadata"`
 	CreatedAt      time.Time              `json:"created_at"`
 }
 
@@ -134,16 +137,16 @@ type listAPIKeysResponse struct {
 }
 
 type AuditLog struct {
-	ID             uuid.UUID          `json:"id"`
-	Action         string             `json:"action"`
-	Timestamp      time.Time          `json:"timestamp"`
-	IPAddress      string             `json:"ip_address"`
-	UserID         string             `json:"user_id"`
-	UserName       string             `json:"username"`
-	CreatedAt      time.Time          `json:"created_at"`
-	RequestID      string             `json:"request_id"`
-	OrganizationID uuid.UUID          `json:"organization_id"`
-	Metadata       *logtrace.Metadata `json:"metadata"`
+	ID             uuid.UUID         `json:"id"`
+	Action         string            `json:"action"`
+	Timestamp      time.Time         `json:"timestamp"`
+	IPAddress      string            `json:"ip_address"`
+	UserID         string            `json:"user_id"`
+	UserName       string            `json:"username"`
+	CreatedAt      time.Time         `json:"created_at"`
+	RequestID      string            `json:"request_id"`
+	OrganizationID uuid.UUID         `json:"organization_id"`
+	Metadata       logtrace.Metadata `json:"metadata"`
 }
 
 type listAllAuditLogs struct {

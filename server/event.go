@@ -29,16 +29,17 @@ type eventHander struct {
 type createEventRequest struct {
 	GenericRequest
 
-	ActionName      string `json:"action_name"`
-	UserID          string `json:"user_id"`
-	Username        string `json:"username"`
-	HTTPMethod      string `json:"http_method"`
-	HTTPStatus      string `json:"http_status"`
-	HTTPEndpoint    string `json:"http_endpoint"`
-	ClientIP        string `json:"client_ip"`
-	ClientUserAgent string `json:"client_user_agent"`
-	Type            string `json:"type"`
-	GeoIpLocation   string `json:"geo_ip_location"`
+	ActionName      string            `json:"action_name"`
+	UserID          string            `json:"user_id"`
+	Username        string            `json:"username"`
+	HTTPMethod      string            `json:"http_method"`
+	HTTPStatus      string            `json:"http_status"`
+	HTTPEndpoint    string            `json:"http_endpoint"`
+	ClientIP        string            `json:"client_ip"`
+	ClientUserAgent string            `json:"client_user_agent"`
+	Type            string            `json:"type"`
+	GeoIpLocation   string            `json:"geo_ip_location"`
+	Metadata        logtrace.Metadata `json:"metadata"`
 }
 
 func (e *createEventRequest) Validate() error {
@@ -99,12 +100,13 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		ClientUserAgent: req.ClientUserAgent,
 		GeoIPLocation:   req.GeoIpLocation,
 		Type:            req.Type,
+		Metadata:        req.Metadata,
 	}
 
 	orgUser, err := e.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
 		UserID:         event.UserID,
 		OrganizationID: event.OrganizationID,
-		Name:           event.Username,
+		Username:       event.Username,
 	})
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		logger.Error("failed to find organization user", zap.Error(err))
@@ -113,12 +115,12 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 
 	if orgUser != nil {
 		event.UserID = orgUser.UserID
-		event.Username = orgUser.Name
+		event.Username = orgUser.Username
 	} else {
 		_, err := e.orgUserRepo.Create(ctx, &logtrace.OrganizationUser{
 			UserID:         event.UserID,
 			OrganizationID: event.OrganizationID,
-			Name:           event.Username,
+			Username:       event.Username,
 		})
 		if err != nil {
 			logger.Error("failed to create organization user", zap.Error(err))
@@ -126,6 +128,8 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		}
 	}
 
+	event.UserID = req.UserID
+	event.Username = req.Username
 	err = e.eventRepo.Create(ctx, event)
 	if err != nil {
 		logger.Error("failed to save the event", zap.Error(err))
@@ -182,6 +186,7 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 		ClientUserAgent: event.ClientUserAgent,
 		GeoIPLocation:   event.GeoIPLocation,
 		ActionName:      event.ActionName,
+		Metadata:        event.Metadata,
 		CreatedAt:       event.CreatedAt,
 	}
 
@@ -251,6 +256,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 			ClientUserAgent: event.ClientUserAgent,
 			GeoIPLocation:   event.GeoIPLocation,
 			ActionName:      event.ActionName,
+			Metadata:        event.Metadata,
 			CreatedAt:       event.CreatedAt,
 		})
 	}

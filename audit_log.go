@@ -14,11 +14,7 @@ type (
 	ActionType string
 )
 
-type Metadata struct {
-	Event       string `json:"event"`
-	Type        string `json:"type"`
-	Description string `json:"description"`
-}
+type Metadata map[string]any
 
 type AuditLog struct {
 	ID             uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
@@ -27,7 +23,7 @@ type AuditLog struct {
 	IPAddress      string     `json:"ip_address" bun:"ip_address"`
 	UserID         string     `json:"user_id" bun:"user_id"`
 	UserName       string     `json:"username" bun:"username"`
-	Metadata       *Metadata  `json:"metadata"   bun:"type:jsonb"`
+	Metadata       Metadata   `json:"metadata"   bun:"type:jsonb"`
 	CreatedAt      time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	RequestID      string     `json:"request_id"`
 	OrganizationID uuid.UUID  `json:"organization_id" bun:"type:uuid"`

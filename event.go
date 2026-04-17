@@ -26,6 +26,7 @@ type Event struct {
 	ClientUserAgent string     `json:"client_user_agent"`
 	GeoIPLocation   string     `json:"geo_ip_location"`
 	ActionName      string     `json:"action_name"`
+	Metadata        Metadata   `json:"metadata"    bun:"type:jsonb"`
 	CreatedAt       time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	UpdatedAt       time.Time  `json:"updated_at"  bun:"default:current_timestamp,notnull"`
 	DeletedAt       *time.Time `json:"-,omitempty" bun:",soft_delete,nullzero"`

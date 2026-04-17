@@ -137,19 +137,44 @@ func (s *sessionRepo) Metrics(
 
 	last24h := time.Now().Add(-24 * time.Hour)
 
-	query := s.inner.NewSelect().
+	totalCount, err := s.inner.NewSelect().
 		Model((*logtrace.Session)(nil)).
 		Where("deleted_at IS NULL").
-		Where("organization_id = ?", opts.OrganizationID.String())
+		Where("organization_id = ?", opts.OrganizationID.String()).
+		Where("created_at >= ?", last24h).
+		Count(ctx)
 
-	countQuery := query.Where("created_at >= ?", last24h)
-	suspiciousCountQuery := query.Where("user_id = NULL AND username = NULL").Where("created_at >= ?", last24h)
-
-	totalCount, err := countQuery.Count(ctx)
-	suspiciousCount, _ := suspiciousCountQuery.Count(ctx)
+	suspiciousCount, _ := s.inner.NewSelect().
+		Model((*logtrace.Session)(nil)).
+		Where("deleted_at IS NULL").
+		Where("organization_id = ?", opts.OrganizationID.String()).
+		Where("user_id IS NULL AND username IS NULL AND token IS NULL").
+		Where("created_at >= ?", last24h).
+		Count(ctx)
 	if err != nil {
 		return 0, 0, err
 	}
 
 	return int64(totalCount), int64(suspiciousCount), nil
+}
+
+func (s *sessionRepo) Logout(ctx context.Context, opts *logtrace.FindSessionOptions) error {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	q := s.inner.NewUpdate().
+		Model((*logtrace.Session)(nil)).
+		Set("logout_at = ?", time.Now()).
+		Where("organization_id = ?", opts.OrganizationID.String())
+
+	if !util.IsStringEmpty(opts.Token) {
+		q = q.Where("token = ?", opts.Token)
+	}
+
+	if !util.IsStringEmpty(opts.ID.String()) {
+		q = q.Where("id = ?", opts.ID.String())
+	}
+
+	_, err := q.Exec(ctx)
+	return err
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// ENUM(succesful,failed)
+// ENUM(succesful,failed, expired, active)
 type SessionStatus string
 
 type Session struct {
@@ -22,6 +22,8 @@ type Session struct {
 	IPAddress      string     `json:"ip_address"        bun:"type:text"`
 	Location       string     `json:"location"          bun:"type:text"`
 	Status         string     `json:"status"            bun:",notnull"`
+	Token          string     `json:"token"             bun:"type:text"`
+	Metadata       Metadata   `json:"metadata"          bun:"type:jsonb"`
 	CreatedAt      time.Time  `json:"created_at"        bun:"default:current_timestamp,notnull"`
 	UpdatedAt      time.Time  `json:"updated_at"        bun:"default:current_timestamp,notnull"`
 	DeletedAt      *time.Time `json:"-,omitempty"      bun:",soft_delete,nullzero"`
@@ -33,6 +35,7 @@ type FindSessionOptions struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID
 	OrganizationID uuid.UUID
+	Token          string
 }
 
 type ListSessionsOptions struct {
@@ -48,5 +51,6 @@ type SessionRepository interface {
 	Create(context.Context, *Session) error
 	List(context.Context, *FindSessionOptions) (*Session, error)
 	ListAll(context.Context, *ListSessionsOptions) ([]*Session, int64, error)
+	Logout(context.Context, *FindSessionOptions) error
 	Metrics(context.Context, *FindSessionOptions) (int64, int64, error)
 }

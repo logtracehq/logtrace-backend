@@ -15,6 +15,10 @@ const (
 	SessionStatusSuccesful SessionStatus = "succesful"
 	// SessionStatusFailed is a SessionStatus of type failed.
 	SessionStatusFailed SessionStatus = "failed"
+	// SessionStatusExpired is a SessionStatus of type expired.
+	SessionStatusExpired SessionStatus = "expired"
+	// SessionStatusActive is a SessionStatus of type active.
+	SessionStatusActive SessionStatus = "active"
 )
 
 var ErrInvalidSessionStatus = errors.New("not a valid SessionStatus")
@@ -34,6 +38,8 @@ func (x SessionStatus) IsValid() bool {
 var _SessionStatusValue = map[string]SessionStatus{
 	"succesful": SessionStatusSuccesful,
 	"failed":    SessionStatusFailed,
+	"expired":   SessionStatusExpired,
+	"active":    SessionStatusActive,
 }
 
 // ParseSessionStatus attempts to convert a string to a SessionStatus.

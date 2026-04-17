@@ -46,8 +46,8 @@ func (e *organizationUserRepo) Find(ctx context.Context, opts *logtrace.FindOrga
 		query = query.Where("organization_id = ?", opts.OrganizationID)
 	}
 
-	if opts.Name != "" {
-		query = query.Where("name = ?", opts.Name)
+	if opts.Username != "" {
+		query = query.Where("username = ?", opts.Username)
 	}
 
 	err := query.Scan(ctx)

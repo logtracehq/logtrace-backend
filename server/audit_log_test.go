@@ -127,10 +127,10 @@ func generateCreateAuditLogTestTable() []struct {
 				UserName:  testAuditLogUserName,
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
-				Metadata: &logtrace.Metadata{
-					Event:       "login",
-					Type:        "authentication",
-					Description: "User logged in",
+				Metadata: logtrace.Metadata{
+					"event":       "login",
+					"type":        "authentication",
+					"description": "User logged in",
 				},
 			},
 		},
@@ -149,10 +149,10 @@ func generateCreateAuditLogTestTable() []struct {
 				UserName:  testAuditLogUserName,
 				IPAddress: "192.168.1.1",
 				RequestID: "req_123",
-				Metadata: &logtrace.Metadata{
-					Event:       "login",
-					Type:        "authentication",
-					Description: "User logged in",
+				Metadata: logtrace.Metadata{
+					"event":       "login",
+					"type":        "authentication",
+					"description": "User logged in",
 				},
 			},
 		},

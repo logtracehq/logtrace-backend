@@ -262,6 +262,7 @@ func setUpRoutes(
 			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Post("/events", WrapLogtraceHTTPHandler(logger, event.Create, cfg, "Event.create"))
 			r.Post("/sessions", WrapLogtraceHTTPHandler(logger, session.Create, cfg, "Session.create"))
+			r.Post("/sessions/logout", WrapLogtraceHTTPHandler(logger, session.Logout, cfg, "Session.logout"))
 			r.Post("/audit-logs", WrapLogtraceHTTPHandler(logger, auditLog.Create, cfg, "AuditLog.create"))
 		})
 

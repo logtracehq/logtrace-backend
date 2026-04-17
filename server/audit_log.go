@@ -27,14 +27,14 @@ type auditLogHandler struct {
 type createAuditLogRequest struct {
 	GenericRequest
 
-	Action         string             `json:"action"`
-	Timestamp      string             `json:"timestamp"`
-	IPAddress      string             `json:"ip_address"`
-	UserID         string             `json:"user_id"`
-	UserName       string             `json:"username"`
-	RequestID      string             `json:"request_id"`
-	OrganizationID string             `json:"organization_id"`
-	Metadata       *logtrace.Metadata `json:"metadata" `
+	Action         string            `json:"action"`
+	Timestamp      string            `json:"timestamp"`
+	IPAddress      string            `json:"ip_address"`
+	UserID         string            `json:"user_id"`
+	UserName       string            `json:"username"`
+	RequestID      string            `json:"request_id"`
+	OrganizationID string            `json:"organization_id"`
+	Metadata       logtrace.Metadata `json:"metadata" `
 }
 
 func (a *createAuditLogRequest) Validate() error {
@@ -86,7 +86,6 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 	orgUser, err := a.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
 		UserID:         auditLog.UserID,
 		OrganizationID: auditLog.OrganizationID,
-		Name:           auditLog.UserName,
 	})
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		logger.Error("failed to find organization user", zap.Error(err))
@@ -94,19 +93,22 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 	}
 
 	if orgUser != nil {
-		auditLog.UserID = orgUser.UserID
-		auditLog.UserName = orgUser.Name
+		req.UserID = orgUser.UserID
+		req.UserName = orgUser.Username
 	} else {
 		_, err := a.orgUserRepo.Create(ctx, &logtrace.OrganizationUser{
-			UserID:         auditLog.UserID,
+			UserID:         req.UserID,
 			OrganizationID: auditLog.OrganizationID,
-			Name:           auditLog.UserName,
+			Username:       req.UserName,
 		})
 		if err != nil {
 			logger.Error("failed to create organization user", zap.Error(err))
 			return newAPIStatus(http.StatusInternalServerError, "failed to create organization user"), StatusFailed
 		}
 	}
+
+	auditLog.UserID = req.UserID
+	auditLog.UserName = req.UserName
 
 	err = a.auditLogRepo.Create(ctx, auditLog)
 	if err != nil {
@@ -156,6 +158,7 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 	auditLogResponse := &AuditLog{
 		ID:             auditLog.ID,
 		Action:         auditLog.Action,
+		UserName:       auditLog.UserName,
 		Timestamp:      auditLog.Timestamp,
 		IPAddress:      auditLog.IPAddress,
 		UserID:         auditLog.UserID,
@@ -215,6 +218,7 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 		dto := &AuditLog{
 			ID:             a.ID,
 			Action:         a.Action,
+			UserName:       a.UserName,
 			Timestamp:      a.Timestamp,
 			IPAddress:      a.IPAddress,
 			UserID:         a.UserID,

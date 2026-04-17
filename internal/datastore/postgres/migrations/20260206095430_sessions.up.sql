@@ -3,7 +3,9 @@ CREATE TABLE
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
         user_id VARCHAR,
         username VARCHAR,
-        login_at TIMESTAMP
+        login_at TIMESTAMP token VARCHAR,
+        logout_at TIMESTAMP,
+        metadata JSONB,
         WITH
             TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
             organization_id UUID REFERENCES organizations (id),

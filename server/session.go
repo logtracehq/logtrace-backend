@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -24,25 +25,22 @@ type sessionHandler struct {
 	orgUserRepo logtrace.OrganizationUserRepository
 }
 
-const (
-	SessionStatusActive   = "ACTIVE"
-	SessionStatusInactive = "INACTIVE"
-)
-
 type sessionRequest struct {
 	GenericRequest
 
-	LoginAt    string `json:"login_at"`
-	DeviceInfo string `json:"device_info"`
-	IPAddress  string `json:"ip_address"`
-	Location   string `json:"location"`
-	Status     string `json:"status"`
-	UserID     string `json:"user_id"`
-	UserName   string `json:"username"`
+	LoginAt    string                 `json:"login_at"`
+	DeviceInfo string                 `json:"device_info"`
+	IPAddress  string                 `json:"ip_address"`
+	Location   string                 `json:"location"`
+	Status     logtrace.SessionStatus `json:"status"`
+	UserID     string                 `json:"user_id"`
+	UserName   string                 `json:"username"`
+	Token      string                 `json:"token"`
+	Metadata   logtrace.Metadata      `json:"metadata"`
 }
 
 func (sr *sessionRequest) Validate() error {
-	if sr.Status != SessionStatusActive && sr.Status != SessionStatusInactive {
+	if !sr.Status.IsValid() {
 		return errors.New("invalid status")
 	}
 	return nil
@@ -86,14 +84,15 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		IPAddress:      req.IPAddress,
 		Location:       req.Location,
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
-		Status:         req.Status,
+		Status:         strings.ToLower(string(req.Status)),
+		Token:          req.Token,
+		Metadata:       req.Metadata,
 		LoginAt:        loginAt,
 	}
 
 	orgUser, err := sh.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
 		UserID:         session.UserID,
 		OrganizationID: session.OrganizationID,
-		Name:           session.UserName,
 	})
 
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -103,18 +102,21 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 
 	if orgUser != nil {
 		session.UserID = orgUser.UserID
-		session.UserName = orgUser.Name
+		session.UserName = orgUser.Username
 	} else {
 		_, err := sh.orgUserRepo.Create(ctx, &logtrace.OrganizationUser{
 			UserID:         session.UserID,
 			OrganizationID: session.OrganizationID,
-			Name:           session.UserName,
+			Username:       session.UserName,
 		})
 		if err != nil {
 			logger.Error("failed to create organization user", zap.Error(err))
 			return newAPIStatus(http.StatusInternalServerError, "failed to create organization user"), StatusFailed
 		}
 	}
+
+	session.UserID = req.UserID
+	session.UserName = req.UserName
 	err = sh.sessionRepo.Create(ctx, session)
 	if err != nil {
 		logger.Error("an error occurred while creating session", zap.Error(err))
@@ -165,12 +167,14 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 		UserID:         session.UserID,
 		UserName:       session.UserName,
 		LoginAt:        session.LoginAt,
+		Token:          session.Token,
 		OrganizationID: session.OrganizationID,
 		LogoutAt:       session.LogoutAt,
 		DeviceInfo:     session.DeviceInfo,
 		IPAddress:      session.IPAddress,
 		Location:       session.Location,
 		Status:         logtrace.SessionStatus(session.Status),
+		Metadata:       session.Metadata,
 		CreatedAt:      session.CreatedAt,
 	}
 
@@ -224,12 +228,14 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			UserID:         session.UserID,
 			UserName:       session.UserName,
 			LoginAt:        session.LoginAt,
+			Token:          session.Token,
 			OrganizationID: session.OrganizationID,
 			LogoutAt:       session.LogoutAt,
 			DeviceInfo:     session.DeviceInfo,
 			IPAddress:      session.IPAddress,
 			Location:       session.Location,
 			Status:         logtrace.SessionStatus(session.Status),
+			Metadata:       session.Metadata,
 			CreatedAt:      session.CreatedAt,
 		})
 	}
@@ -274,4 +280,55 @@ func (sh *sessionHandler) Metrics(ctx context.Context, span trace.Span, logger *
 		SuspiciousCount: suspiciousCount,
 		APIStatus:       newAPIStatus(http.StatusOK, "Sessions metrics have been fetched successfully"),
 	}, StatusSuccess
+}
+
+type logoutSessionRequest struct {
+	GenericRequest
+
+	Token string `json:"token"`
+}
+
+func (lr *logoutSessionRequest) Validate() error {
+	if lr.Token == "" {
+		return errors.New("token is required")
+	}
+	return nil
+}
+
+// @Description Register a logout from a session
+// @Tags Sessions
+// @Accept json
+// @Produce json
+// @Param session body logoutSessionRequest true "Session logout request"
+// @Success 200 {object} APIStatus "Session logout registered successfully"
+// @Failure 400 {object} APIStatus "Invalid request body"
+// @Failure 500 {object} APIStatus "Could not register session logout at this time"
+// @Router /v1/sessions/logout [post]
+func (sh *sessionHandler) Logout(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("registering session logout")
+
+	req := new(logoutSessionRequest)
+	if err := render.Bind(r, req); err != nil {
+		logger.Error("failed to bind logout session request", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid request payload"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		logger.Error("logout session request validation failed", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	opts := &logtrace.FindSessionOptions{
+		Token:          req.Token,
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+	}
+
+	if err := sh.sessionRepo.Logout(ctx, opts); err != nil {
+		logger.Error("failed to register session logout", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not register session logout at this time"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "Session logout registered successfully"), StatusSuccess
 }

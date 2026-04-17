@@ -421,7 +421,7 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 	user := &logtrace.User{
 		Email:    req.Email,
 		FullName: req.FullName,
-		Status:   logtrace.UserStatusActive.String(),
+		Status:   logtrace.UserStatusActive,
 		Phone:    req.Phone,
 		Roles:    []logtrace.UserRole{},
 		Metadata: &logtrace.UserMetadata{
@@ -553,7 +553,7 @@ func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, lo
 	user := &logtrace.User{
 		Email:    req.Email,
 		FullName: req.FullName,
-		Status:   logtrace.UserStatusPending.String(),
+		Status:   logtrace.UserStatusPending,
 		Metadata: &logtrace.UserMetadata{
 			OrganizationID: []uuid.UUID{getOrganizationFromContext(ctx).ID},
 			UserRole:       logtrace.RoleName(req.Role),
