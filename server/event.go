@@ -130,13 +130,13 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 
 	event.UserID = req.UserID
 	event.Username = req.Username
-	err = e.eventRepo.Create(ctx, event)
-	if err != nil {
-		logger.Error("failed to save the event", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to save the event"), StatusFailed
+
+	if err := e.queue.Add(ctx, queue.QueueTopicSaveEvent, queue.SaveEventOptions{Event: event}); err != nil {
+		logger.Error("failed to enqueue event", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to enqueue event"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "Event has been created successfully"), StatusSuccess
+	return newAPIStatus(http.StatusAccepted, "Event accepted for processing"), StatusSuccess
 }
 
 // @Description Get a specific event by ID

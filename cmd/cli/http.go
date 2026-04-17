@@ -94,7 +94,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			queueHandler, err := watermillqueue.New(
 				redisClient, util.DeRef(cfg),
-				logger, emailClient, userRepo, orgRepo)
+				logger, emailClient, userRepo, orgRepo, eventRepo, auditLogRepo, sessionRepo)
 			if err != nil {
 				logger.Fatal("could not set up watermill queue", zap.Error(err))
 			}

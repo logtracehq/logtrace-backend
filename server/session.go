@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/logtrace/logtrace"
 	"gitlab.com/logtrace/logtrace/config"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,7 @@ type sessionHandler struct {
 	sessionRepo logtrace.SessionRepository
 	orgRepo     logtrace.OrganizationRepository
 	orgUserRepo logtrace.OrganizationUserRepository
+	queue       queue.QueueHandler
 }
 
 type sessionRequest struct {
@@ -117,16 +119,13 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 
 	session.UserID = req.UserID
 	session.UserName = req.UserName
-	err = sh.sessionRepo.Create(ctx, session)
-	if err != nil {
-		logger.Error("an error occurred while creating session", zap.Error(err))
-		return newAPIStatus(
-			http.StatusInternalServerError,
-			"could not create session at this time. an error occurred",
-		), StatusFailed
+
+	if err := sh.queue.Add(ctx, queue.QueueTopicSaveSession, queue.SaveSessionOptions{Session: session}); err != nil {
+		logger.Error("failed to enqueue session", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to enqueue session"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "Session created successfully"), StatusSuccess
+	return newAPIStatus(http.StatusAccepted, "Session accepted for processing"), StatusSuccess
 }
 
 // @Description Get a session by ID

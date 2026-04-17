@@ -39,12 +39,14 @@ func TestAuditLogHandler_Create(t *testing.T) {
 
 			auditLogRepo := logtrace_mocks.NewMockAuditLogRepository(controller)
 			orgUserRepo := logtrace_mocks.NewMockOrganizationUserRepository(controller)
+			queueHandler := logtrace_mocks.NewMockQueueHandler(controller)
 
-			v.mockFn(auditLogRepo, orgUserRepo)
+			v.mockFn(auditLogRepo, orgUserRepo, queueHandler)
 
 			a := &auditLogHandler{
 				auditLogRepo: auditLogRepo,
 				orgUserRepo:  orgUserRepo,
+				queue:        queueHandler,
 			}
 
 			b := bytes.NewBuffer(nil)
@@ -71,19 +73,19 @@ func TestAuditLogHandler_Create(t *testing.T) {
 
 func generateCreateAuditLogTestTable() []struct {
 	name               string
-	mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository)
+	mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler)
 	expectedStatusCode int
 	req                createAuditLogRequest
 } {
 	return []struct {
 		name               string
-		mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository)
+		mockFn             func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler)
 		expectedStatusCode int
 		req                createAuditLogRequest
 	}{
 		{
 			name: "missing action",
-			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
@@ -94,7 +96,7 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "missing timestamp",
-			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
@@ -105,7 +107,7 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "missing user id",
-			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler) {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
@@ -116,16 +118,16 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "failed to create audit log",
-			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler) {
 				orgUserRepo.EXPECT().Find(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&logtrace.OrganizationUser{
 						UserID:   testUserID.String(),
 						Username: testAuditLogUserName,
 					}, nil)
-				auditLogRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+				queueHandler.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(errors.New("database error"))
+					Return(errors.New("queue error"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: createAuditLogRequest{
@@ -144,18 +146,18 @@ func generateCreateAuditLogTestTable() []struct {
 		},
 		{
 			name: "successfully created audit log",
-			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository) {
+			mockFn: func(auditLogRepo *logtrace_mocks.MockAuditLogRepository, orgUserRepo *logtrace_mocks.MockOrganizationUserRepository, queueHandler *logtrace_mocks.MockQueueHandler) {
 				orgUserRepo.EXPECT().Find(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(&logtrace.OrganizationUser{
 						UserID:   testUserID.String(),
 						Username: testAuditLogUserName,
 					}, nil)
-				auditLogRepo.EXPECT().Create(gomock.Any(), gomock.Any()).
+				queueHandler.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(nil)
 			},
-			expectedStatusCode: http.StatusCreated,
+			expectedStatusCode: http.StatusAccepted,
 			req: createAuditLogRequest{
 				Action:    "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),

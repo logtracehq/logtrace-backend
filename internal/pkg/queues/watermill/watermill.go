@@ -30,10 +30,13 @@ type WatermillClient struct {
 	messager   message.Publisher
 	logger     *zap.Logger
 
-	userRepo    logtrace.UserRepository
-	orgRepo     logtrace.OrganizationRepository
-	cfg         config.Config
-	emailClient email.Client
+	userRepo     logtrace.UserRepository
+	orgRepo      logtrace.OrganizationRepository
+	eventRepo    logtrace.EventRepository
+	auditLogRepo logtrace.AuditLogRepository
+	sessionRepo  logtrace.SessionRepository
+	cfg          config.Config
+	emailClient  email.Client
 }
 
 func New(redisClient *redis.Client,
@@ -42,6 +45,9 @@ func New(redisClient *redis.Client,
 	emailClient email.Client,
 	userRepo logtrace.UserRepository,
 	orgRepo logtrace.OrganizationRepository,
+	eventRepo logtrace.EventRepository,
+	auditLogRepo logtrace.AuditLogRepository,
+	sessionRepo logtrace.SessionRepository,
 ) (queue.QueueHandler, error) {
 	p, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
@@ -97,14 +103,17 @@ func New(redisClient *redis.Client,
 	)
 
 	t := &WatermillClient{
-		cfg:         cfg,
-		publisher:   router,
-		logger:      logger,
-		messager:    publisher,
-		susbcriber:  subscriber,
-		userRepo:    userRepo,
-		orgRepo:     orgRepo,
-		emailClient: emailClient,
+		cfg:          cfg,
+		publisher:    router,
+		logger:       logger,
+		messager:     publisher,
+		susbcriber:   subscriber,
+		userRepo:     userRepo,
+		orgRepo:      orgRepo,
+		eventRepo:    eventRepo,
+		auditLogRepo: auditLogRepo,
+		sessionRepo:  sessionRepo,
+		emailClient:  emailClient,
 	}
 
 	t.setUpRoutes(router, subscriber)
@@ -138,6 +147,27 @@ func (t *WatermillClient) setUpRoutes(router *message.Router,
 		queue.QueueTopicVerifyEmail.String(),
 		subscriber,
 		t.sendEmailVerification,
+	)
+
+	router.AddNoPublisherHandler(
+		queue.QueueTopicSaveEvent.String(),
+		queue.QueueTopicSaveEvent.String(),
+		subscriber,
+		t.saveEvent,
+	)
+
+	router.AddNoPublisherHandler(
+		queue.QueueTopicSaveAuditLog.String(),
+		queue.QueueTopicSaveAuditLog.String(),
+		subscriber,
+		t.saveAuditLog,
+	)
+
+	router.AddNoPublisherHandler(
+		queue.QueueTopicSaveSession.String(),
+		queue.QueueTopicSaveSession.String(),
+		subscriber,
+		t.saveSession,
 	)
 }
 

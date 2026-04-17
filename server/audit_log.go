@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"gitlab.com/logtrace/logtrace"
+	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -22,6 +23,7 @@ type auditLogHandler struct {
 	userRepo     logtrace.UserRepository
 	orgRepo      logtrace.OrganizationRepository
 	orgUserRepo  logtrace.OrganizationUserRepository
+	queue        queue.QueueHandler
 }
 
 type createAuditLogRequest struct {
@@ -113,13 +115,12 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 	auditLog.UserID = req.UserID
 	auditLog.UserName = req.UserName
 
-	err = a.auditLogRepo.Create(ctx, auditLog)
-	if err != nil {
-		logger.Error("failed to create audit log", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to create audit log"), StatusFailed
+	if err := a.queue.Add(ctx, queue.QueueTopicSaveAuditLog, queue.SaveAuditLogOptions{AuditLog: auditLog}); err != nil {
+		logger.Error("failed to enqueue audit log", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to enqueue audit log"), StatusFailed
 	}
 
-	return newAPIStatus(http.StatusCreated, "Audit log created successfully"), StatusSuccess
+	return newAPIStatus(http.StatusAccepted, "Audit log accepted for processing"), StatusSuccess
 }
 
 // @Description Get a specific audit log entry by ID

@@ -11,7 +11,8 @@ import (
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,
-// invite_team_member, share_dashboard,subscription_expired, verify_email)
+// invite_team_member, share_dashboard,subscription_expired, verify_email,
+// save_event, save_audit_log, save_session)
 type QueueTopic string
 
 type Message struct {
@@ -65,4 +66,16 @@ type InviteUserOptions struct {
 	Email        logtrace.Email
 	Organization uuid.UUID
 	Token        string
+}
+
+type SaveEventOptions struct {
+	Event *logtrace.Event
+}
+
+type SaveAuditLogOptions struct {
+	AuditLog *logtrace.AuditLog
+}
+
+type SaveSessionOptions struct {
+	Session *logtrace.Session
 }

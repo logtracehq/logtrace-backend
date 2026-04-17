@@ -138,6 +138,7 @@ func setUpRoutes(
 		orgRepo:      orgRepo,
 		auditLogRepo: auditLogRepo,
 		orgUserRepo:  organizationUserRepo,
+		queue:        queueHandler,
 	}
 
 	event := &eventHander{
@@ -155,6 +156,7 @@ func setUpRoutes(
 		sessionRepo: sessionRepo,
 		orgRepo:     orgRepo,
 		orgUserRepo: organizationUserRepo,
+		queue:       queueHandler,
 	}
 
 	apiKey := &apiKeyHandler{

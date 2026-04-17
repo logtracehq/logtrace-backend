@@ -23,6 +23,12 @@ const (
 	QueueTopicSubscriptionExpired QueueTopic = "subscription_expired"
 	// QueueTopicVerifyEmail is a QueueTopic of type verify_email.
 	QueueTopicVerifyEmail QueueTopic = "verify_email"
+	// QueueTopicSaveEvent is a QueueTopic of type save_event.
+	QueueTopicSaveEvent QueueTopic = "save_event"
+	// QueueTopicSaveAuditLog is a QueueTopic of type save_audit_log.
+	QueueTopicSaveAuditLog QueueTopic = "save_audit_log"
+	// QueueTopicSaveSession is a QueueTopic of type save_session.
+	QueueTopicSaveSession QueueTopic = "save_session"
 )
 
 var ErrInvalidQueueTopic = errors.New("not a valid QueueTopic")
@@ -46,6 +52,9 @@ var _QueueTopicValue = map[string]QueueTopic{
 	"share_dashboard":         QueueTopicShareDashboard,
 	"subscription_expired":    QueueTopicSubscriptionExpired,
 	"verify_email":            QueueTopicVerifyEmail,
+	"save_event":              QueueTopicSaveEvent,
+	"save_audit_log":          QueueTopicSaveAuditLog,
+	"save_session":            QueueTopicSaveSession,
 }
 
 // ParseQueueTopic attempts to convert a string to a QueueTopic.
