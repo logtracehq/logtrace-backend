@@ -1,5 +1,5 @@
-FROM golang:1.23 AS build-env
-WORKDIR /go/malak
+FROM golang:1.25 AS build-env
+WORKDIR /go/logtrace
 
 LABEL org.opencontainers.image.description="Logtrace helps businesses stay compliant"
 

@@ -40,7 +40,7 @@ func revokeAPIKeys(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			h, _ := os.Hostname()
 
 			logger = logger.With(zap.String("host", h),
-				zap.String("app", "malak"),
+				zap.String("app", "logtrace"),
 				zap.String("component", "delete-keys"))
 
 			cleanupOtelResources := server.InitOTELCapabilities(util.DeRef(cfg), logger)
