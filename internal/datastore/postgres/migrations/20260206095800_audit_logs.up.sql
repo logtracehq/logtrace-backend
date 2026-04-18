@@ -7,6 +7,8 @@ CREATE TABLE
         user_id VARCHAR,
         username VARCHAR,
         metadata JSONB,
+        client VARCHAR,
+        operating_system VARCHAR(64),
         timestamp TIMESTAMP
         WITH
             TIME ZONE NOT NULL,

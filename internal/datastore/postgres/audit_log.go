@@ -47,6 +47,13 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logtrace.FindAuditLogOp
 			q = q.Where("user_id = ?", opts.UserID)
 		}
 
+		if !util.IsStringEmpty(opts.Client) {
+			q = q.Where("client = ?", opts.Client)
+		}
+		if !util.IsStringEmpty(opts.OperatingSystem) {
+			q = q.Where("operating_system = ?", opts.OperatingSystem)
+		}
+
 		if !util.IsStringEmpty(opts.UserName) {
 			q = q.Where("username = ?", opts.UserName)
 		}

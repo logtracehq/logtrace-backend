@@ -137,16 +137,18 @@ type listAPIKeysResponse struct {
 }
 
 type AuditLog struct {
-	ID             uuid.UUID         `json:"id"`
-	Action         string            `json:"action"`
-	Timestamp      time.Time         `json:"timestamp"`
-	IPAddress      string            `json:"ip_address"`
-	UserID         string            `json:"user_id"`
-	UserName       string            `json:"username"`
-	CreatedAt      time.Time         `json:"created_at"`
-	RequestID      string            `json:"request_id"`
-	OrganizationID uuid.UUID         `json:"organization_id"`
-	Metadata       logtrace.Metadata `json:"metadata"`
+	ID              uuid.UUID         `json:"id"`
+	Action          string            `json:"action"`
+	Timestamp       time.Time         `json:"timestamp"`
+	IPAddress       string            `json:"ip_address"`
+	UserID          string            `json:"user_id"`
+	UserName        string            `json:"username"`
+	CreatedAt       time.Time         `json:"created_at"`
+	RequestID       string            `json:"request_id"`
+	OrganizationID  uuid.UUID         `json:"organization_id"`
+	Metadata        logtrace.Metadata `json:"metadata"`
+	Client          string            `json:"client"`
+	OperatingSystem string            `json:"operating_system"`
 }
 
 type listAllAuditLogs struct {

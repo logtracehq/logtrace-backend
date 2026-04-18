@@ -29,14 +29,16 @@ type auditLogHandler struct {
 type createAuditLogRequest struct {
 	GenericRequest
 
-	Action         string            `json:"action"`
-	Timestamp      string            `json:"timestamp"`
-	IPAddress      string            `json:"ip_address"`
-	UserID         string            `json:"user_id"`
-	UserName       string            `json:"username"`
-	RequestID      string            `json:"request_id"`
-	OrganizationID string            `json:"organization_id"`
-	Metadata       logtrace.Metadata `json:"metadata" `
+	Action          string            `json:"action"`
+	Timestamp       string            `json:"timestamp"`
+	IPAddress       string            `json:"ip_address"`
+	UserID          string            `json:"user_id"`
+	UserName        string            `json:"username"`
+	RequestID       string            `json:"request_id"`
+	Client          string            `json:"client"`
+	OperatingSystem string            `json:"operating_system"`
+	OrganizationID  string            `json:"organization_id"`
+	Metadata        logtrace.Metadata `json:"metadata" `
 }
 
 func (a *createAuditLogRequest) Validate() error {
@@ -79,13 +81,15 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 	}
 
 	auditLog := &logtrace.AuditLog{
-		Action:         req.Action,
-		IPAddress:      req.IPAddress,
-		Timestamp:      time.Now().UTC(),
-		OrganizationID: getOrganizationFromContext(r.Context()).ID,
-		UserID:         req.UserID,
-		Metadata:       req.Metadata,
-		RequestID:      req.RequestID,
+		Action:          req.Action,
+		IPAddress:       req.IPAddress,
+		Timestamp:       time.Now().UTC(),
+		OrganizationID:  getOrganizationFromContext(r.Context()).ID,
+		UserID:          req.UserID,
+		Metadata:        req.Metadata,
+		RequestID:       req.RequestID,
+		Client:          req.Client,
+		OperatingSystem: req.OperatingSystem,
 	}
 
 	orgUser, err := a.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
@@ -200,13 +204,17 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	search := query.Get("search")
 	startDate := query.Get("start_date")
 	endDate := query.Get("end_date")
+	client := query.Get("client")
+	operatingSystem := query.Get("operating_system")
 
 	opts := logtrace.FindAuditLogOptions{
-		OrganizationID: getOrganizationFromContext(r.Context()).ID,
-		Paginator:      logtrace.PaginatorFromRequest(r),
-		Search:         search,
-		EndDate:        endDate,
-		StartDate:      startDate,
+		OrganizationID:  getOrganizationFromContext(r.Context()).ID,
+		Paginator:       logtrace.PaginatorFromRequest(r),
+		Search:          search,
+		EndDate:         endDate,
+		StartDate:       startDate,
+		Client:          client,
+		OperatingSystem: operatingSystem,
 	}
 
 	span.SetAttributes(opts.Paginator.OTELAttributes()...)
@@ -220,16 +228,18 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	auditLogResponse := make([]*AuditLog, 0, len(auditLogs))
 	for _, a := range auditLogs {
 		dto := &AuditLog{
-			ID:             a.ID,
-			Action:         a.Action,
-			UserName:       a.UserName,
-			Timestamp:      a.Timestamp,
-			IPAddress:      a.IPAddress,
-			UserID:         a.UserID,
-			Metadata:       a.Metadata,
-			RequestID:      a.RequestID,
-			OrganizationID: a.OrganizationID,
-			CreatedAt:      a.CreatedAt,
+			ID:              a.ID,
+			Action:          a.Action,
+			UserName:        a.UserName,
+			Timestamp:       a.Timestamp,
+			IPAddress:       a.IPAddress,
+			UserID:          a.UserID,
+			Metadata:        a.Metadata,
+			RequestID:       a.RequestID,
+			OrganizationID:  a.OrganizationID,
+			CreatedAt:       a.CreatedAt,
+			Client:          a.Client,
+			OperatingSystem: a.OperatingSystem,
 		}
 
 		auditLogResponse = append(auditLogResponse, dto)

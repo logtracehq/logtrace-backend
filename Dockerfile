@@ -1,10 +1,10 @@
 FROM golang:1.23 AS build-env
 WORKDIR /go/malak
 
-LABEL org.opencontainers.image.description=""
+LABEL org.opencontainers.image.description="Logtrace helps businesses stay compliant"
 
-COPY ./go.mod /go/malak
-COPY ./go.sum /go/malak
+COPY ./go.mod /go/logtrace
+COPY ./go.sum /go/logtrace
 
 RUN go mod download
 RUN go mod verify

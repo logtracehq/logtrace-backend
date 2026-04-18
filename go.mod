@@ -11,7 +11,6 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.25.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.3
-	github.com/ayinke-llc/hermes v0.0.0-20241111220852-f19376e25099
 	github.com/badoux/checkmail v1.2.4
 	github.com/dentech-floss/watermill-opentelemetry-go-extra v0.1.1
 	github.com/garsue/watermillzap v1.2.0
@@ -83,6 +82,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.0 // indirect
 	github.com/aws/smithy-go v1.20.1 // indirect
+	github.com/ayinke-llc/hermes v0.0.0-20241111220852-f19376e25099 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
