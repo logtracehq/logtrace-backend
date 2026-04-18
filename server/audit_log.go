@@ -164,16 +164,15 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 	}
 
 	auditLogResponse := &AuditLog{
-		ID:             auditLog.ID,
-		Action:         auditLog.Action,
-		UserName:       auditLog.UserName,
-		Timestamp:      auditLog.Timestamp,
-		IPAddress:      auditLog.IPAddress,
-		UserID:         auditLog.UserID,
-		Metadata:       auditLog.Metadata,
-		CreatedAt:      auditLog.CreatedAt,
-		RequestID:      auditLog.RequestID,
-		OrganizationID: auditLog.OrganizationID,
+		ID:        auditLog.ID,
+		Action:    auditLog.Action,
+		UserName:  auditLog.UserName,
+		Timestamp: auditLog.Timestamp,
+		IPAddress: auditLog.IPAddress,
+		UserID:    auditLog.UserID,
+		Metadata:  auditLog.Metadata,
+		CreatedAt: auditLog.CreatedAt,
+		RequestID: auditLog.RequestID,
 	}
 
 	return listAuditLog{
@@ -236,7 +235,6 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			UserID:          a.UserID,
 			Metadata:        a.Metadata,
 			RequestID:       a.RequestID,
-			OrganizationID:  a.OrganizationID,
 			CreatedAt:       a.CreatedAt,
 			Client:          a.Client,
 			OperatingSystem: a.OperatingSystem,

@@ -162,19 +162,18 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 	}
 
 	sessionResponse := &Session{
-		ID:             session.ID,
-		UserID:         session.UserID,
-		UserName:       session.UserName,
-		LoginAt:        session.LoginAt,
-		Token:          session.Token,
-		OrganizationID: session.OrganizationID,
-		LogoutAt:       session.LogoutAt,
-		DeviceInfo:     session.DeviceInfo,
-		IPAddress:      session.IPAddress,
-		Location:       session.Location,
-		Status:         logtrace.SessionStatus(session.Status),
-		Metadata:       session.Metadata,
-		CreatedAt:      session.CreatedAt,
+		ID:         session.ID,
+		UserID:     session.UserID,
+		UserName:   session.UserName,
+		LoginAt:    session.LoginAt,
+		Token:      session.Token,
+		LogoutAt:   session.LogoutAt,
+		DeviceInfo: session.DeviceInfo,
+		IPAddress:  session.IPAddress,
+		Location:   session.Location,
+		Status:     logtrace.SessionStatus(session.Status),
+		Metadata:   session.Metadata,
+		CreatedAt:  session.CreatedAt,
 	}
 
 	return fetchSessionResponse{
@@ -223,19 +222,18 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	sessionResponses := make([]*Session, 0, len(sessions))
 	for _, session := range sessions {
 		sessionResponses = append(sessionResponses, &Session{
-			ID:             session.ID,
-			UserID:         session.UserID,
-			UserName:       session.UserName,
-			LoginAt:        session.LoginAt,
-			Token:          session.Token,
-			OrganizationID: session.OrganizationID,
-			LogoutAt:       session.LogoutAt,
-			DeviceInfo:     session.DeviceInfo,
-			IPAddress:      session.IPAddress,
-			Location:       session.Location,
-			Status:         logtrace.SessionStatus(session.Status),
-			Metadata:       session.Metadata,
-			CreatedAt:      session.CreatedAt,
+			ID:         session.ID,
+			UserID:     session.UserID,
+			UserName:   session.UserName,
+			LoginAt:    session.LoginAt,
+			Token:      session.Token,
+			LogoutAt:   session.LogoutAt,
+			DeviceInfo: session.DeviceInfo,
+			IPAddress:  session.IPAddress,
+			Location:   session.Location,
+			Status:     logtrace.SessionStatus(session.Status),
+			Metadata:   session.Metadata,
+			CreatedAt:  session.CreatedAt,
 		})
 	}
 

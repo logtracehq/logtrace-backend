@@ -53,7 +53,6 @@ type Event struct {
 	HTTPStatus      string            `json:"http_status"`
 	HTTPEndpoint    string            `json:"http_endpoint"`
 	ClientIP        string            `json:"client_ip"`
-	OrganizationID  uuid.UUID         `json:"organization_id"`
 	ClientUserAgent string            `json:"client_user_agent"`
 	GeoIPLocation   string            `json:"geo_ip_location"`
 	ActionName      string            `json:"action_name"`
@@ -90,19 +89,18 @@ type fetchUserResponse struct {
 }
 
 type Session struct {
-	ID             uuid.UUID              `json:"id"`
-	UserID         string                 `json:"user_id"`
-	UserName       string                 `json:"username"`
-	LoginAt        time.Time              `json:"login_at"`
-	OrganizationID uuid.UUID              `json:"organization_id"`
-	LogoutAt       time.Time              `json:"logout_at"`
-	Token          string                 `json:"token"`
-	DeviceInfo     string                 `json:"device_info"`
-	IPAddress      string                 `json:"ip_address"`
-	Location       string                 `json:"location"`
-	Status         logtrace.SessionStatus `json:"status"`
-	Metadata       logtrace.Metadata      `json:"metadata"`
-	CreatedAt      time.Time              `json:"created_at"`
+	ID         uuid.UUID              `json:"id"`
+	UserID     string                 `json:"user_id"`
+	UserName   string                 `json:"username"`
+	LoginAt    time.Time              `json:"login_at"`
+	LogoutAt   time.Time              `json:"logout_at"`
+	Token      string                 `json:"token"`
+	DeviceInfo string                 `json:"device_info"`
+	IPAddress  string                 `json:"ip_address"`
+	Location   string                 `json:"location"`
+	Status     logtrace.SessionStatus `json:"status"`
+	Metadata   logtrace.Metadata      `json:"metadata"`
+	CreatedAt  time.Time              `json:"created_at"`
 }
 
 type fetchSessionResponse struct {
@@ -145,7 +143,6 @@ type AuditLog struct {
 	UserName        string            `json:"username"`
 	CreatedAt       time.Time         `json:"created_at"`
 	RequestID       string            `json:"request_id"`
-	OrganizationID  uuid.UUID         `json:"organization_id"`
 	Metadata        logtrace.Metadata `json:"metadata"`
 	Client          string            `json:"client"`
 	OperatingSystem string            `json:"operating_system"`
