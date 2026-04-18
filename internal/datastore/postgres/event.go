@@ -39,9 +39,9 @@ func (e *eventRepo) List(ctx context.Context, opts logtrace.ListEventOptions) (*
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	event := &logtrace.Event{}
+	var event logtrace.Event
 
-	sel := e.inner.NewSelect().Model(event).Where("organization_id = ?", opts.OrganizationID)
+	sel := e.inner.NewSelect().Model(&event).Where("organization_id = ?", opts.OrganizationID)
 
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("id = ?", opts.ID.String())
@@ -53,9 +53,9 @@ func (e *eventRepo) List(ctx context.Context, opts logtrace.ListEventOptions) (*
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return event, logtrace.ErrEventNotFound
+		return &event, logtrace.ErrEventNotFound
 	}
-	return event, err
+	return &event, err
 }
 
 func (e *eventRepo) ListAll(ctx context.Context, opts *logtrace.ListEventOptions) ([]*logtrace.Event, int64, error) {
@@ -133,8 +133,9 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logtrace.ListEventOptions
 		return q
 	}
 
+	var event logtrace.Event
 	countQuery := buildQuery(
-		e.inner.NewSelect().Model((*logtrace.Event)(nil)),
+		e.inner.NewSelect().Model(&event),
 	)
 
 	total, err := countQuery.Count(ctx)
@@ -168,8 +169,9 @@ func (e eventRepo) Metrics(
 
 	last24h := time.Now().Add(-24 * time.Hour)
 
+	var event logtrace.Event
 	countQuery := e.inner.NewSelect().
-		Model((*logtrace.Event)(nil)).
+		Model(&event).
 		Where("deleted_at IS NULL").
 		Where("created_at >= ?", last24h).
 		Where("organization_id = ?", opts.OrganizationID.String())

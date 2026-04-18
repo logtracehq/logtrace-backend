@@ -34,9 +34,9 @@ func (e *organizationUserRepo) Find(ctx context.Context, opts *logtrace.FindOrga
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	organizationUser := &logtrace.OrganizationUser{}
+	var organizationUser logtrace.OrganizationUser
 
-	query := e.inner.NewSelect().Model(organizationUser).Where("deleted_at IS NULL")
+	query := e.inner.NewSelect().Model(&organizationUser).Where("deleted_at IS NULL")
 
 	if opts.UserID != "" {
 		query = query.Where("user_id = ?", opts.UserID)
@@ -55,14 +55,14 @@ func (e *organizationUserRepo) Find(ctx context.Context, opts *logtrace.FindOrga
 		return nil, err
 	}
 
-	return organizationUser, nil
+	return &organizationUser, nil
 }
 
 func (e *organizationUserRepo) List(ctx context.Context, opts *logtrace.ListOrganizationUserOptions) ([]*logtrace.OrganizationUser, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	organizationUsers := []*logtrace.OrganizationUser{}
+	var organizationUsers []*logtrace.OrganizationUser
 	count := int64(0)
 
 	query := e.inner.NewSelect().Model(organizationUsers).Where("deleted_at IS NULL")

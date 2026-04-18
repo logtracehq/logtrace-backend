@@ -5,7 +5,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/google/uuid"
 	"gitlab.com/logtrace/logtrace"
 	"gitlab.com/logtrace/logtrace/config"
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
@@ -114,4 +116,39 @@ func (i *invitationHandler) List(ctx context.Context, span trace.Span, logger *z
 		Invitations: invitations,
 		APIStatus:   newAPIStatus(http.StatusOK, "Invitations fetched successfully"),
 	}, StatusSuccess
+}
+
+// @Description Delete an invitation by ID
+// @Tags Invitations
+// @Produce json
+// @Param reference path string true "Invitation reference"
+// @Success 200 {object} APIStatus "Invitation deleted successfully"
+// @Failure 400 {object} APIStatus "Invalid invitation reference"
+// @Failure 404 {object} APIStatus "Invitation not found"
+// @Failure 500 {object} APIStatus "Failed to delete invitation"
+// @Router /v1/invitations/{reference} [delete]
+func (i *invitationHandler) Delete(ctx context.Context, span trace.Span, logger *zap.Logger,
+	w http.ResponseWriter, r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("deleting invitation")
+
+	ref := chi.URLParam(r, "reference")
+	invitationID, err := uuid.Parse(ref)
+	if err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid invitation reference"), StatusFailed
+	}
+
+	orgID := getOrganizationFromContext(ctx).ID
+
+	opts := logtrace.FindInvitationOptions{
+		ID:             invitationID,
+		OrganizationID: orgID,
+	}
+
+	if err := i.invitationRepo.Delete(ctx, opts); err != nil {
+		logger.Error("failed to delete invitation", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to delete invitation"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "Invitation deleted successfully"), StatusSuccess
 }

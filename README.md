@@ -1,20 +1,35 @@
-## Logtrace
+# LogTrace — Backend
 
-Logtrace is a secure audit trail and logging system designed to provide tamper-evident logging capabilities
-for applications and systems.
+LogTrace is a secure audit trail and logging platform built for compliance and security. It gives developers and organizations a simple API to capture, store, and query records of everything that happens in their systems — who did what, when, from where, and how.
 
-### Features
+This directory contains the Go backend service that powers the LogTrace API.
 
-- **Tamper-Evident Audit Logs**: Cryptographic hashing ensures log integrity and prevents unauthorized modifications
+## Logging Primitives
+
+### Event Tracking
+
+Captures HTTP activity across your application — action names, HTTP methods, status codes, endpoints, client IPs, user agents, and geolocation. Useful for tracking every meaningful interaction a user or service has with your system.
+
+### Session Logging
+
+Records user login and logout events enriched with device information, IP address, and location. Sessions carry a status (`ACTIVE` / `INACTIVE`), making it easy to audit access history and detect anomalies.
+
+### Audit Logs
+
+Explicit, structured audit trail entries with an action name, timestamp, user identity, IP address, and arbitrary JSON metadata. Suitable for representing anything from a database query to a configuration change to a billing action.
+
+All three are tied to an organization in a multi-tenant model, so each customer or team gets a fully isolated, searchable audit trail.
+
+## Features
+
 - **Multi-Tenant Architecture**: Organization-based access control with role-based permissions
-- **RESTful API**: Comprehensive API for log management, user administration, and system monitoring
+- **RESTful API**: Comprehensive API for log ingestion, user administration, and system monitoring
 - **JWT Authentication**: Secure token-based authentication with optional OAuth integration
-- **Real-Time Monitoring**: Live event streaming and alerting capabilities
-- **Compliance Ready**: Built-in features for GDPR, SOC 2, and other regulatory requirements
-- **PostgreSQL Backend**: Robust database storage with migration support
-- **Web Dashboard**: Intuitive React-based interface for log visualization and management
+- **Compliance Ready**: Built for SOC 2, GDPR, HIPAA, and similar regulatory frameworks
+- **PostgreSQL Backend**: Robust database storage with migration support via `golang-migrate`
+- **SDK Support**: Official SDKs for Go, Python, TypeScript, and PHP
 
-### Database Migrations
+## Database Migrations
 
 Logtrace uses the `golang-migrate` tool for schema migrations.
 
@@ -71,7 +86,7 @@ task migrate-force VERSION=1
 - Keep application models and migrations in sync to avoid runtime issues.
 - Foreign keys added in migration `000002_add_foreign_keys` for organizations (plan), sessions (organization), and audit logs (user).
 
-### Go Migration Runner
+## Go Migration Runner
 
 You can also run migrations programmatically:
 

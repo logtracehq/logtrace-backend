@@ -250,7 +250,7 @@ func setUpRoutes(
 		r.Route("/plans/admin", func(r chi.Router) {
 			r.Use(requireAuthentication(logger, jwtTokenManager, cfg, userRepo, orgRepo))
 			r.Post("/", WrapLogtraceHTTPHandler(logger, plan.Create, cfg, "Plan.create"))
-			r.Get("/{reference}", WrapLogtraceHTTPHandler(logger, plan.Get, cfg, "Plan.listAll"))
+			r.Get("/{reference}", WrapLogtraceHTTPHandler(logger, plan.List, cfg, "Plan.list"))
 			r.Patch("/{reference}", WrapLogtraceHTTPHandler(logger, plan.Update, cfg, "Plan.update"))
 			r.Delete("/{reference}", WrapLogtraceHTTPHandler(logger, plan.Delete, cfg, "Plan.delete"))
 		})
@@ -281,6 +281,7 @@ func setUpRoutes(
 			r.Use(requireOrganizationValidSubscription(cfg))
 			r.Post("/", WrapLogtraceHTTPHandler(logger, invitation.Create, cfg, "Invitation.create"))
 			r.Get("/", WrapLogtraceHTTPHandler(logger, invitation.List, cfg, "Invitation.list"))
+			r.Delete("/{reference}", WrapLogtraceHTTPHandler(logger, invitation.Delete, cfg, "Invitation.delete"))
 		})
 	})
 	return cors.AllowAll().Handler(router)

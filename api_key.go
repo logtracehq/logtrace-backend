@@ -42,12 +42,14 @@ func HashKey(secret, val string) string {
 // ENUM(immediate,day,week)
 type RevocationType string
 
-func (a *APIKey) IsRevoked() bool { return a.ExpiresAt != nil }
+func (a *APIKey) IsRevoked() bool {
+	return a.ExpiresAt != nil && !a.ExpiresAt.After(time.Now())
+}
 
 type APIKeyOptions struct {
-	ID             uuid.UUID
-	UserID         uuid.UUID
-	OrganizationID uuid.UUID
+	ID             uuid.UUID `json:"id"`
+	UserID         uuid.UUID `json:"user_id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
 	APIKey         *APIKey
 	RevocationType RevocationType
 	Paginator      Paginator `json:"paginator"`

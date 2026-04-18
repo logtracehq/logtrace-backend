@@ -23,10 +23,18 @@ type Invitation struct {
 }
 
 type ListInvitationOptions struct {
-	OrganizationID uuid.UUID
+	OrganizationID uuid.UUID `json:"organization_id"`
+}
+
+type FindInvitationOptions struct {
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Email          string    `json:"email"`
+	ID             uuid.UUID `json:"id"`
+	Token          string    `json:"token"`
 }
 
 type InvitationRepository interface {
 	Create(context.Context, *Invitation) error
 	List(context.Context, ListInvitationOptions) ([]*Invitation, error)
+	Delete(context.Context, FindInvitationOptions) error
 }

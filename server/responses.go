@@ -128,7 +128,7 @@ type Key struct {
 	OrganizationID uuid.UUID  `json:"organization_id"`
 	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
 	CreatedAt      time.Time  `json:"created_at"`
-	ExpiredAt      *time.Time `json:"expired_at,omitempty"`
+	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
 }
 
 type listAPIKeysResponse struct {

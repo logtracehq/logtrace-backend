@@ -96,7 +96,7 @@ func (p *planHandler) Create(ctx context.Context, span trace.Span, logger *zap.L
 // @Failure 404 {object} APIStatus "Plan not found"
 // @Failure 500 {object} APIStatus "Failed to fetch plan"
 // @Router /v1/plans/{reference} [get]
-func (p *planHandler) Get(ctx context.Context, span trace.Span, logger *zap.Logger,
+func (p *planHandler) List(ctx context.Context, span trace.Span, logger *zap.Logger,
 	w http.ResponseWriter, r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("fetch a plan by id")

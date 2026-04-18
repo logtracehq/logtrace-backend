@@ -34,17 +34,17 @@ func (p *planRepo) List(ctx context.Context, id uuid.UUID) (*logtrace.Plan, erro
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	plan := &logtrace.Plan{}
-	err := p.inner.NewSelect().Model(plan).Where("id = ?", id).Scan(ctx)
+	var plan logtrace.Plan
+	err := p.inner.NewSelect().Model(&plan).Where("id = ?", id).Scan(ctx)
 
-	return plan, err
+	return &plan, err
 }
 
 func (p *planRepo) ListAll(ctx context.Context) ([]logtrace.Plan, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	plans := make([]logtrace.Plan, 0)
+	var plans []logtrace.Plan
 	err := p.inner.NewSelect().Model(&plans).Order("created_at DESC").Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -70,6 +70,7 @@ func (p *planRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	_, err := p.inner.NewDelete().Model((*logtrace.Plan)(nil)).Where("id = ?", id).Exec(ctx)
+	var plan logtrace.Plan
+	_, err := p.inner.NewDelete().Model(&plan).Where("id = ?", id).Exec(ctx)
 	return err
 }

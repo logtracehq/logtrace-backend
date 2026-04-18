@@ -36,9 +36,9 @@ func (org *orgRepo) List(ctx context.Context, opts logtrace.FindOrganizationOpti
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	organization := &logtrace.Organization{}
+	var organization logtrace.Organization
 
-	sel := org.inner.NewSelect().Model(organization)
+	sel := org.inner.NewSelect().Model(&organization)
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("id = ?", opts.ID.String())
 	}
@@ -49,10 +49,10 @@ func (org *orgRepo) List(ctx context.Context, opts logtrace.FindOrganizationOpti
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return organization, logtrace.ErrOrganizationNotFound
+		return &organization, logtrace.ErrOrganizationNotFound
 	}
 
-	return organization, err
+	return &organization, err
 }
 
 func (org *orgRepo) Update(ctx context.Context, o *logtrace.Organization) (*logtrace.Organization, error) {
@@ -74,9 +74,9 @@ func (org *orgRepo) Delete(ctx context.Context, opts *logtrace.FindOrganizationO
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	organization := &logtrace.Organization{}
+	var organization logtrace.Organization
 
-	sel := org.inner.NewDelete().Model(organization)
+	sel := org.inner.NewDelete().Model(&organization)
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("id = ?", opts.ID.String())
 	}
@@ -98,7 +98,7 @@ func (org *orgRepo) ListAll(ctx context.Context, opts *logtrace.FindOrganization
 	defer cancel()
 
 	count := int64(0)
-	organizations := []logtrace.Organization{}
+	var organizations []logtrace.Organization
 
 	countSelect := org.inner.NewSelect().Model(&organizations).Where("deleted_at IS NULL")
 	if !util.IsStringEmpty(opts.UserID.String()) {

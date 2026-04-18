@@ -86,8 +86,9 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logtrace.FindAuditLogOp
 		return q
 	}
 
+	var auditLog logtrace.AuditLog
 	countQuery := buildQuery(
-		a.inner.NewSelect().Model((*logtrace.AuditLog)(nil)),
+		a.inner.NewSelect().Model(&auditLog),
 	)
 
 	total, err := countQuery.Count(ctx)
@@ -116,9 +117,9 @@ func (a *auditLogRepo) List(ctx context.Context, opts *logtrace.FindAuditLogOpti
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	auditLog := &logtrace.AuditLog{}
+	var auditLog logtrace.AuditLog
 
-	sel := a.inner.NewSelect().Model(auditLog)
+	sel := a.inner.NewSelect().Model(&auditLog)
 
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("?TableAlias.id = ?", opts.ID.String())
@@ -126,16 +127,16 @@ func (a *auditLogRepo) List(ctx context.Context, opts *logtrace.FindAuditLogOpti
 
 	err := sel.Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return auditLog, logtrace.ErrAuditLogNotFound
+		return &auditLog, logtrace.ErrAuditLogNotFound
 	}
-	return auditLog, err
+	return &auditLog, err
 }
 
 func (a *auditLogRepo) Delete(ctx context.Context, opts logtrace.FindAuditLogOptions) error {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	auditLog := &logtrace.AuditLog{}
+	var auditLog logtrace.AuditLog
 
 	sel := a.inner.NewSelect().Model(&auditLog)
 
@@ -165,8 +166,9 @@ func (a *auditLogRepo) Metrics(
 
 	last24h := time.Now().Add(-24 * time.Hour)
 
+	var auditLog logtrace.AuditLog
 	countQuery := a.inner.NewSelect().
-		Model((*logtrace.AuditLog)(nil)).
+		Model(&auditLog).
 		Where("deleted_at IS NULL").
 		Where("created_at >= ?", last24h).
 		Where("organization_id = ?", opts.OrganizationID.String())

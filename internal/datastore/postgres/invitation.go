@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 	"gitlab.com/logtrace/logtrace"
 )
@@ -41,4 +42,28 @@ func (i *invitationRepo) List(ctx context.Context, opts logtrace.ListInvitationO
 	}
 
 	return invitations, nil
+}
+
+func (i *invitationRepo) Delete(ctx context.Context, opts logtrace.FindInvitationOptions) error {
+	ctx, cancel := withContext(ctx)
+	defer cancel()
+
+	var invitation logtrace.Invitation
+	q := i.inner.NewDelete().Model(&invitation)
+
+	if opts.ID != uuid.Nil {
+		q = q.Where("id = ?", opts.ID)
+	}
+	if opts.OrganizationID != uuid.Nil {
+		q = q.Where("organization_id = ?", opts.OrganizationID)
+	}
+	if opts.Email != "" {
+		q = q.Where("email = ?", opts.Email)
+	}
+	if opts.Token != "" {
+		q = q.Where("token = ?", opts.Token)
+	}
+
+	_, err := q.Exec(ctx)
+	return err
 }

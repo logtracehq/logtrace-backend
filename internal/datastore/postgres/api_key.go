@@ -24,24 +24,22 @@ func NewAPIKeyRepository(db *bun.DB) logtrace.APIKeyRepository {
 func (a *apiKeyRepo) FetchByValue(ctx context.Context, val string) (
 	*logtrace.APIKey, error,
 ) {
-	apiKey := new(logtrace.APIKey)
+	var apiKey logtrace.APIKey
 
 	err := a.inner.NewSelect().
-		Model(apiKey).
+		Model(&apiKey).
 		Where("value = ?", val).
 		Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = logtrace.ErrAPIKeyNotFound
 	}
 
-	return apiKey, err
+	return &apiKey, err
 }
 
-func (a *apiKeyRepo) Fetch(ctx context.Context, opts logtrace.APIKeyOptions) (
-	*logtrace.APIKey, error,
-) {
-	apiKey := new(logtrace.APIKey)
-	query := a.inner.NewSelect().Model(apiKey)
+func (a *apiKeyRepo) Fetch(ctx context.Context, opts logtrace.APIKeyOptions) (*logtrace.APIKey, error) {
+	var apiKey logtrace.APIKey
+	query := a.inner.NewSelect().Model(&apiKey)
 
 	if opts.ID != uuid.Nil {
 		query = query.Where("id = ?", opts.ID)
@@ -57,14 +55,14 @@ func (a *apiKeyRepo) Fetch(ctx context.Context, opts logtrace.APIKeyOptions) (
 	if errors.Is(err, sql.ErrNoRows) {
 		err = logtrace.ErrAPIKeyNotFound
 	}
-	return apiKey, err
+	return &apiKey, err
 }
 
 func (r *apiKeyRepo) List(ctx context.Context, opts logtrace.APIKeyOptions) ([]*logtrace.APIKey, error) {
 	var apiKeys []*logtrace.APIKey
 
 	return apiKeys, r.inner.NewSelect().Model(&apiKeys).
-		Where("?TableAlias.organization_id = ?", opts.OrganizationID).
+		Where("?TableAlias.organization_id = ?", opts.OrganizationID).Where("expires_at IS NULL OR expires_at > NOW()").
 		Scan(ctx)
 }
 
@@ -137,8 +135,10 @@ func (a *apiKeyRepo) Update(ctx context.Context, opts *logtrace.APIKeyOptions) e
 
 func (a *apiKeyRepo) UpdateLastUsedAt(ctx context.Context, apiKeyID uuid.UUID) error {
 	now := time.Now()
+
+	var apiKey logtrace.APIKey
 	_, err := a.inner.NewUpdate().
-		Model((*logtrace.APIKey)(nil)).
+		Model(&apiKey).
 		Set("last_used_at = ?", now).
 		Where("id = ?", apiKeyID).
 		Exec(ctx)

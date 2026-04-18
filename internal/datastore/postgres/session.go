@@ -37,9 +37,9 @@ func (s *sessionRepo) List(ctx context.Context, opts *logtrace.FindSessionOption
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	session := &logtrace.Session{}
+	var session logtrace.Session
 
-	sel := s.inner.NewSelect().Model(session)
+	sel := s.inner.NewSelect().Model(&session)
 
 	if !util.IsStringEmpty(opts.ID.String()) {
 		sel = sel.Where("id = ?", opts.ID.String())
@@ -55,9 +55,9 @@ func (s *sessionRepo) List(ctx context.Context, opts *logtrace.FindSessionOption
 
 	err := sel.Scan(ctx)
 	if err != nil {
-		return session, err
+		return &session, err
 	}
-	return session, nil
+	return &session, nil
 }
 
 func (s *sessionRepo) ListAll(ctx context.Context, opts *logtrace.ListSessionsOptions,
@@ -102,8 +102,9 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logtrace.ListSessionsOp
 		return q
 	}
 
+	var session logtrace.Session
 	countQuery := buildQuery(
-		s.inner.NewSelect().Model((*logtrace.Session)(nil)),
+		s.inner.NewSelect().Model(&session),
 	)
 
 	total, err := countQuery.Count(ctx)
@@ -128,24 +129,22 @@ func (s *sessionRepo) ListAll(ctx context.Context, opts *logtrace.ListSessionsOp
 	return sessions, count, nil
 }
 
-func (s *sessionRepo) Metrics(
-	ctx context.Context,
-	opts *logtrace.FindSessionOptions,
-) (int64, int64, error) {
+func (s *sessionRepo) Metrics(ctx context.Context, opts *logtrace.FindSessionOptions) (int64, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
 	last24h := time.Now().Add(-24 * time.Hour)
 
+	var session logtrace.Session
 	totalCount, err := s.inner.NewSelect().
-		Model((*logtrace.Session)(nil)).
+		Model(&session).
 		Where("deleted_at IS NULL").
 		Where("organization_id = ?", opts.OrganizationID.String()).
 		Where("created_at >= ?", last24h).
 		Count(ctx)
 
 	suspiciousCount, _ := s.inner.NewSelect().
-		Model((*logtrace.Session)(nil)).
+		Model(&session).
 		Where("deleted_at IS NULL").
 		Where("organization_id = ?", opts.OrganizationID.String()).
 		Where("user_id IS NULL AND username IS NULL AND token IS NULL").
@@ -162,8 +161,9 @@ func (s *sessionRepo) Logout(ctx context.Context, opts *logtrace.FindSessionOpti
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
+	var session logtrace.Session
 	q := s.inner.NewUpdate().
-		Model((*logtrace.Session)(nil)).
+		Model(&session).
 		Set("logout_at = ?", time.Now()).
 		Where("organization_id = ?", opts.OrganizationID.String())
 

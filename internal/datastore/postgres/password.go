@@ -36,14 +36,14 @@ func (p *passwordRepo) List(ctx context.Context, userID uuid.UUID) (*logtrace.Pa
 	ctx, cancel := withContext(ctx)
 	defer cancel()
 
-	password := &logtrace.Password{}
+	var password logtrace.Password
 
-	err := p.inner.NewSelect().Model(password).Where("user_id = ?", userID).Scan(ctx)
+	err := p.inner.NewSelect().Model(&password).Where("user_id = ?", userID).Scan(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, logtrace.ErrPasswordNotFound
 	}
 
-	return password, err
+	return &password, err
 }
 
 func (p *passwordRepo) Update(ctx context.Context, password *logtrace.Password) error {
@@ -52,7 +52,7 @@ func (p *passwordRepo) Update(ctx context.Context, password *logtrace.Password) 
 
 	_, err := p.inner.NewUpdate().Model(password).Where("user_id = ?", password.UserID).Exec(ctx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return nil

@@ -145,7 +145,7 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 			OrganizationID: k.OrganizationID,
 			CreatedAt:      k.CreatedAt,
 			LastUsedAt:     k.LastUsedAt,
-			ExpiredAt:      k.ExpiresAt,
+			ExpiresAt:      k.ExpiresAt,
 		}
 
 		keys = append(keys, dto)
