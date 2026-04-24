@@ -15,7 +15,7 @@ import (
 	"gitlab.com/logtrace/logtrace/internal/datastore/postgres"
 	"gitlab.com/logtrace/logtrace/internal/pkg/cache/rediscache"
 	"gitlab.com/logtrace/logtrace/internal/pkg/email"
-	"gitlab.com/logtrace/logtrace/internal/pkg/email/resend"
+	awsses "gitlab.com/logtrace/logtrace/internal/pkg/email/aws-ses"
 	"gitlab.com/logtrace/logtrace/internal/pkg/googleauth"
 	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
 	watermillqueue "gitlab.com/logtrace/logtrace/internal/pkg/queues/watermill"
@@ -87,7 +87,7 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 
 			var emailClient email.Client
 
-			emailClient, err = resend.New(cfg)
+			emailClient, err = awsses.New(cfg)
 			if err != nil {
 				logger.Fatal("could not set up email client", zap.Error(err))
 			}

@@ -17,8 +17,6 @@ const (
 	QueueTopicBillingCreateCustomer QueueTopic = "billing_create_customer"
 	// QueueTopicInviteTeamMember is a QueueTopic of type invite_team_member.
 	QueueTopicInviteTeamMember QueueTopic = "invite_team_member"
-	// QueueTopicShareDashboard is a QueueTopic of type share_dashboard.
-	QueueTopicShareDashboard QueueTopic = "share_dashboard"
 	// QueueTopicSubscriptionExpired is a QueueTopic of type subscription_expired.
 	QueueTopicSubscriptionExpired QueueTopic = "subscription_expired"
 	// QueueTopicVerifyEmail is a QueueTopic of type verify_email.
@@ -49,7 +47,6 @@ var _QueueTopicValue = map[string]QueueTopic{
 	"billing_trial_ending":    QueueTopicBillingTrialEnding,
 	"billing_create_customer": QueueTopicBillingCreateCustomer,
 	"invite_team_member":      QueueTopicInviteTeamMember,
-	"share_dashboard":         QueueTopicShareDashboard,
 	"subscription_expired":    QueueTopicSubscriptionExpired,
 	"verify_email":            QueueTopicVerifyEmail,
 	"save_event":              QueueTopicSaveEvent,

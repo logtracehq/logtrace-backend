@@ -22,6 +22,7 @@ var (
 
 const (
 	defaultConfigFilePath = "config"
+	envPrefix             = "LOGTRACE_"
 )
 
 func Execute() error {
@@ -62,6 +63,7 @@ func Execute() error {
 
 	addHTTPCommand(rootCmd, cfg)
 	addCronCommand(rootCmd, cfg)
+	addConfigGenerateCommand(rootCmd)
 
 	return rootCmd.Execute()
 }

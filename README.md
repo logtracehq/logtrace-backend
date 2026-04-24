@@ -1,8 +1,8 @@
-# LogTrace — Backend
+# Logtrace — Backend
 
-LogTrace is a secure audit trail and logging platform built for compliance and security. It gives developers and organizations a simple API to capture, store, and query records of everything that happens in their systems — who did what, when, from where, and how.
+Logtrace is a secure audit trail and logging platform built for compliance and security. It gives developers and organizations a simple API to capture, store, and query records of everything that happens in their systems — who did what, when, from where, and how.
 
-This directory contains the Go backend service that powers the LogTrace API.
+This directory contains the Go backend service that powers the Logtrace API.
 
 ## Logging Primitives
 

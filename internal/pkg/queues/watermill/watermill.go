@@ -124,46 +124,40 @@ func New(redisClient *redis.Client,
 func (t *WatermillClient) setUpRoutes(router *message.Router,
 	subscriber *redisstream.Subscriber,
 ) {
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		queue.QueueTopicBillingTrialEnding.String(),
 		queue.QueueTopicBillingTrialEnding.String(),
 		subscriber,
 		t.sendBillingTrialEmail)
 
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		queue.QueueTopicSubscriptionExpired.String(),
 		queue.QueueTopicSubscriptionExpired.String(),
 		subscriber,
 		t.sendSubExpiredEmail)
 
-	router.AddNoPublisherHandler(
-		queue.QueueTopicShareDashboard.String(),
-		queue.QueueTopicShareDashboard.String(),
-		subscriber,
-		t.sendDashboardSharingEmail)
-
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		queue.QueueTopicVerifyEmail.String(),
 		queue.QueueTopicVerifyEmail.String(),
 		subscriber,
 		t.sendEmailVerification,
 	)
 
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		queue.QueueTopicSaveEvent.String(),
 		queue.QueueTopicSaveEvent.String(),
 		subscriber,
 		t.saveEvent,
 	)
 
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		queue.QueueTopicSaveAuditLog.String(),
 		queue.QueueTopicSaveAuditLog.String(),
 		subscriber,
 		t.saveAuditLog,
 	)
 
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		queue.QueueTopicSaveSession.String(),
 		queue.QueueTopicSaveSession.String(),
 		subscriber,

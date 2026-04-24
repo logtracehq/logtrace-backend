@@ -11,7 +11,7 @@ import (
 )
 
 // ENUM(billing_trial_ending,billing_create_customer,
-// invite_team_member, share_dashboard,subscription_expired, verify_email,
+// invite_team_member,subscription_expired, verify_email,
 // save_event, save_audit_log, save_session)
 type QueueTopic string
 

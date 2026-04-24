@@ -131,64 +131,6 @@ func (t *WatermillClient) sendBillingTrialEmail(msg *message.Message) error {
 	return nil
 }
 
-func (t *WatermillClient) sendDashboardSharingEmail(msg *message.Message) error {
-	ctx, span := tracer.Start(context.Background(),
-		"sendDashboardSharingEmail")
-
-	defer span.End()
-
-	var opts queue.SendEmailOptions
-
-	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).
-		Decode(&opts); err != nil {
-		return err
-	}
-
-	logger := t.logger.With(zap.String("method", "sendDashboardSharingEmail"),
-		zap.String("workspace_id", opts.Organization.ID.String()))
-
-	logger.Debug("sending email to user")
-
-	tmpl, err := template.New("template").Parse(email.DashboardSharingTemplate)
-	if err != nil {
-		logger.Error("could not parse email template", zap.Error(err))
-		return err
-	}
-
-	link := t.cfg.Frontend.AppURL + "/shared/dashboards/" + opts.Token
-
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, map[string]string{
-		"WorkspaceName": opts.Organization.Name,
-		"Link":          link,
-	}); err != nil {
-		logger.Error("could not embed content in template", zap.Error(err))
-		return err
-	}
-
-	emailOpts := email.SendOptions{
-		HTML:      buf.String(),
-		Sender:    t.cfg.Email.Sender,
-		Recipient: opts.Recipient,
-		Subject:   "Metrics dashboard shared with you by " + opts.Organization.Name,
-		DKIM: struct {
-			Sign       bool
-			PrivateKey []byte
-		}{
-			Sign:       false,
-			PrivateKey: []byte(""),
-		},
-	}
-
-	_, err = t.emailClient.Send(ctx, emailOpts)
-	if err != nil {
-		logger.Error("could not send email", zap.Error(err))
-		return err
-	}
-
-	return nil
-}
-
 func (t *WatermillClient) sendEmailVerification(msg *message.Message) error {
 	ctx, span := tracer.Start(context.Background(),
 		"sendEmailVerification")

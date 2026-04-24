@@ -80,10 +80,12 @@ type Email struct {
 	Provider   string         `yaml:"provider" mapstructure:"provider"`
 	Sender     logtrace.Email `yaml:"sender" mapstructure:"sender"`
 	SenderName string         `yaml:"sender_name" mapstructure:"sender_name"`
-	Resend     struct {
-		APIKey        string `yaml:"api_key" mapstructure:"api_key"`
-		WebhookSecret string `yaml:"webhook_secret" mapstructure:"webhook_secret"`
-	} `yaml:"resend" mapstructure:"resend"`
+
+	SES struct {
+		Region    string `yaml:"region" mapstructure:"region"`
+		AccessKey string `yaml:"access_key" mapstructure:"access_key"`
+		SecretKey string `yaml:"secret_key" mapstructure:"secret_key"`
+	} `yaml:"ses" mapstructure:"ses"`
 }
 
 type Billing struct {

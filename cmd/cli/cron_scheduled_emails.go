@@ -16,7 +16,7 @@ import (
 	"gitlab.com/logtrace/logtrace/config"
 	"gitlab.com/logtrace/logtrace/internal/datastore/postgres"
 	pkgemail "gitlab.com/logtrace/logtrace/internal/pkg/email"
-	"gitlab.com/logtrace/logtrace/internal/pkg/email/resend"
+	awsses "gitlab.com/logtrace/logtrace/internal/pkg/email/aws-ses"
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"gitlab.com/logtrace/logtrace/server"
 	"go.opentelemetry.io/otel"
@@ -314,7 +314,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 			cleanupOtel := server.InitOTELCapabilities(util.DeRef(cfg), logger)
 			defer cleanupOtel()
 
-			emailClient, err := resend.New(cfg)
+			emailClient, err := awsses.New(cfg)
 			if err != nil {
 				return fmt.Errorf("failed to setup email client: %w", err)
 			}

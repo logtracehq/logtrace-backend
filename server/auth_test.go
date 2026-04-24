@@ -137,15 +137,17 @@ func getConfig() config.Config {
 		},
 
 		Email: config.Email{
-			Provider:   "resend",
+			Provider:   "ses",
 			Sender:     logtrace.Email("test@example.com"),
 			SenderName: "Test Sender",
-			Resend: struct {
-				APIKey        string `yaml:"api_key" mapstructure:"api_key"`
-				WebhookSecret string `yaml:"webhook_secret" mapstructure:"webhook_secret"`
+			SES: struct {
+				Region    string `yaml:"region" mapstructure:"region"`
+				AccessKey string `yaml:"access_key" mapstructure:"access_key"`
+				SecretKey string `yaml:"secret_key" mapstructure:"secret_key"`
 			}{
-				APIKey:        "resend-key",
-				WebhookSecret: "webhook-secret",
+				Region:    "us-east-1",
+				AccessKey: "test-access-key",
+				SecretKey: "test-secret-key",
 			},
 		},
 
@@ -448,6 +450,7 @@ func generateEmailSignupTestTable() []struct {
 		},
 	}
 }
+
 func TestAuthHandler_Login(t *testing.T) {
 	for _, v := range generateLoginTestTable() {
 		t.Run(v.name, func(t *testing.T) {

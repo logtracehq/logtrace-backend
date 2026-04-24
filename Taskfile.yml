@@ -22,7 +22,8 @@ tasks:
     vars:
       NAME: "{{.CLI_ARGS}}"
     cmds:
-      - migrate create -ext sql -dir ./internal/datastore/postgres/migrations {{.NAME}}
+      - migrate create -ext sql -dir ./internal/datastore/postgres/migrations
+        {{.NAME}}
 
   env:
     desc: Export environment variables from Infisical
@@ -32,12 +33,16 @@ tasks:
   migrate:down:one:
     desc: Rollback the last database migration
     cmds:
-      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable" down 1
+      - migrate -path ./internal/datastore/postgres/migrations/ -database
+        "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable"
+        down 1
 
   migrate:
     desc: Apply all up database migrations
     cmds:
-      - migrate -path ./internal/datastore/postgres/migrations/ -database "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable" up
+      - migrate -path ./internal/datastore/postgres/migrations/ -database
+        "postgres://postgres:password@localhost:5432/logtrace?sslmode=disable"
+        up
 
   run:http:
     desc: Run the HTTP server
@@ -47,6 +52,10 @@ tasks:
     desc: Run unit tests
     cmds:
       - go test -v ./...
+  config:generate:
+    desc: generate the config in .env, json and yml formats
+    cmds:
+      - go run cmd/main.go export-config
 
   test-all:
     desc: Run all tests including integration tests
