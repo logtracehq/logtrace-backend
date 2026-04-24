@@ -120,13 +120,12 @@ type createdAPIKeyResponse struct {
 }
 
 type Key struct {
-	ID             uuid.UUID  `json:"id"`
-	Scope          string     `json:"scope"`
-	Name           string     `json:"name"`
-	OrganizationID uuid.UUID  `json:"organization_id"`
-	LastUsedAt     *time.Time `json:"last_used_at,omitempty"`
-	CreatedAt      time.Time  `json:"created_at"`
-	ExpiresAt      *time.Time `json:"expires_at,omitempty"`
+	ID         uuid.UUID  `json:"id"`
+	Scope      string     `json:"scope"`
+	Name       string     `json:"name"`
+	LastUsedAt *time.Time `json:"last_used_at,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	ExpiresAt  *time.Time `json:"expires_at,omitempty"`
 }
 
 type listAPIKeysResponse struct {

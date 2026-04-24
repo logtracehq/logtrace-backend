@@ -140,12 +140,11 @@ func (d *apiKeyHandler) list(ctx context.Context, span trace.Span, logger *zap.L
 	keys := make([]*Key, 0, len(apiKeys))
 	for _, k := range apiKeys {
 		dto := &Key{
-			ID:             k.ID,
-			Name:           k.Name,
-			OrganizationID: k.OrganizationID,
-			CreatedAt:      k.CreatedAt,
-			LastUsedAt:     k.LastUsedAt,
-			ExpiresAt:      k.ExpiresAt,
+			ID:         k.ID,
+			Name:       k.Name,
+			CreatedAt:  k.CreatedAt,
+			LastUsedAt: k.LastUsedAt,
+			ExpiresAt:  k.ExpiresAt,
 		}
 
 		keys = append(keys, dto)
