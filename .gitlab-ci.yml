@@ -1,7 +1,6 @@
 stages:
   - test
   - secret-detection
-  - build
   - deploy
 go_test:
   stage: test
@@ -14,6 +13,7 @@ go_test:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   script:
+    - cd backend
     - go test ./...
 sast:
   stage: test
@@ -25,25 +25,6 @@ variables:
 secret_detection:
   stage: test
 
-build_backend:
-  stage: build
-  image: docker:latest
-  services:
-    - name: docker:dind
-      command: [ "--tls=false" ]
-  variables:
-    DOCKER_HOST: "tcp://docker:2375"
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
-  before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
-      "$CI_REGISTRY"
-  script:
-    - docker build -t "$CI_REGISTRY_IMAGE:latest" -f backend/Dockerfile .
-    - docker push "$CI_REGISTRY_IMAGE:latest"
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-
 deploy_backend:
   stage: deploy
   image: alpine:latest
@@ -54,7 +35,7 @@ deploy_backend:
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
     - ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
   script:
-    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd $DEPLOY_PATH && docker compose pull
-      backend && docker compose up -d backend"
+    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd $DEPLOY_PATH/infra && git -C .. pull
+      && docker compose up -d --build backend"
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
