@@ -61,3 +61,7 @@ tasks:
     desc: Run all tests including integration tests
     cmds:
       - go test -v -tags integration ./...
+  seed:
+    desc: Seed the database with initial data
+    cmds:
+      - go run ./cmd/cli/main.go seed <org-id>

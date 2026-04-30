@@ -64,6 +64,7 @@ func Execute() error {
 	addHTTPCommand(rootCmd, cfg)
 	addCronCommand(rootCmd, cfg)
 	addConfigGenerateCommand(rootCmd)
+	addSeedCommand(rootCmd, cfg)
 
 	return rootCmd.Execute()
 }
