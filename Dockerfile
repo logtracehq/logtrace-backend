@@ -16,7 +16,7 @@ ARG COMMIT=none
 RUN CGO_ENABLED=0
 RUN go install -ldflags="-X main.Version=${VERSION} -X main.Commit=${COMMIT}" ./cmd/...
 
-FROM busybox:1.37.0-uclibc as busybox
+FROM busybox:1.37.0-uclibc AS busybox
 
 FROM gcr.io/distroless/base
 
