@@ -53,22 +53,22 @@ definitions:
     type: object
   logtrace.RevocationType:
     enum:
-    - immediate
-    - day
-    - week
+      - immediate
+      - day
+      - week
     type: string
     x-enum-varnames:
-    - RevocationTypeImmediate
-    - RevocationTypeDay
-    - RevocationTypeWeek
+      - RevocationTypeImmediate
+      - RevocationTypeDay
+      - RevocationTypeWeek
   logtrace.SessionStatus:
     enum:
-    - successful
-    - failed
+      - successful
+      - failed
     type: string
     x-enum-varnames:
-    - SessionStatusSuccessful
-    - SessionStatusFailed
+      - SessionStatusSuccessful
+      - SessionStatusFailed
   logtrace.User:
     properties:
       created_at:
@@ -82,12 +82,12 @@ definitions:
       id:
         type: string
       metadata:
-        $ref: '#/definitions/logtrace.UserMetadata'
+        $ref: "#/definitions/logtrace.UserMetadata"
       phone:
         type: string
       roles:
         items:
-          $ref: '#/definitions/logtrace.UserRole'
+          $ref: "#/definitions/logtrace.UserRole"
         type: array
       status:
         type: string
@@ -119,7 +119,7 @@ definitions:
       message:
         type: string
     required:
-    - message
+      - message
     type: object
   server.AuditLog:
     properties:
@@ -132,7 +132,7 @@ definitions:
       ip_address:
         type: string
       metadata:
-        $ref: '#/definitions/logtrace.Metadata'
+        $ref: "#/definitions/logtrace.Metadata"
       organization_id:
         type: string
       request_id:
@@ -195,9 +195,9 @@ definitions:
       message:
         type: string
       organization:
-        $ref: '#/definitions/logtrace.Organization'
+        $ref: "#/definitions/logtrace.Organization"
     required:
-    - message
+      - message
     type: object
   server.Session:
     properties:
@@ -218,7 +218,7 @@ definitions:
       organization_id:
         type: string
       status:
-        $ref: '#/definitions/logtrace.SessionStatus'
+        $ref: "#/definitions/logtrace.SessionStatus"
       user_id:
         type: string
       username:
@@ -231,14 +231,14 @@ definitions:
       message:
         type: string
     required:
-    - message
+      - message
     type: object
   server.createAPIKeyRequest:
     properties:
       name:
         type: string
     required:
-    - name
+      - name
     type: object
   server.createAuditLogRequest:
     properties:
@@ -247,7 +247,7 @@ definitions:
       ip_address:
         type: string
       metadata:
-        $ref: '#/definitions/logtrace.Metadata'
+        $ref: "#/definitions/logtrace.Metadata"
       organization_id:
         type: string
       request_id:
@@ -305,69 +305,69 @@ definitions:
       value:
         type: string
     required:
-    - message
-    - value
+      - message
+      - value
     type: object
   server.fetchAllSessionsResponse:
     properties:
       message:
         type: string
       meta:
-        $ref: '#/definitions/server.meta'
+        $ref: "#/definitions/server.meta"
       sessions:
         items:
-          $ref: '#/definitions/server.Session'
+          $ref: "#/definitions/server.Session"
         type: array
     required:
-    - message
+      - message
     type: object
   server.fetchEventResponse:
     properties:
       event:
-        $ref: '#/definitions/server.Event'
+        $ref: "#/definitions/server.Event"
       message:
         type: string
     required:
-    - message
+      - message
     type: object
   server.fetchEventsResponse:
     properties:
       events:
         items:
-          $ref: '#/definitions/server.Event'
+          $ref: "#/definitions/server.Event"
         type: array
       message:
         type: string
       meta:
-        $ref: '#/definitions/server.meta'
+        $ref: "#/definitions/server.meta"
     required:
-    - message
+      - message
     type: object
   server.fetchPlanResponse:
     properties:
       message:
         type: string
       plan:
-        $ref: '#/definitions/logtrace.Plan'
+        $ref: "#/definitions/logtrace.Plan"
     required:
-    - message
+      - message
     type: object
   server.fetchUserResponse:
     properties:
       message:
         type: string
       organization:
-        $ref: '#/definitions/logtrace.Organization'
+        $ref: "#/definitions/logtrace.Organization"
       organizations:
         items:
-          $ref: '#/definitions/logtrace.Organization'
+          $ref: "#/definitions/logtrace.Organization"
         type: array
       token:
         type: string
       user:
-        $ref: '#/definitions/logtrace.User'
+        $ref: "#/definitions/logtrace.User"
     required:
-    - message
+      - message
     type: object
   server.inviteUserRequest:
     properties:
@@ -382,48 +382,48 @@ definitions:
     properties:
       keys:
         items:
-          $ref: '#/definitions/server.Key'
+          $ref: "#/definitions/server.Key"
         type: array
       message:
         type: string
     required:
-    - keys
-    - message
+      - keys
+      - message
     type: object
   server.listAllAuditLogs:
     properties:
       audit_logs:
         items:
-          $ref: '#/definitions/server.AuditLog'
+          $ref: "#/definitions/server.AuditLog"
         type: array
       message:
         type: string
       meta:
-        $ref: '#/definitions/server.meta'
+        $ref: "#/definitions/server.meta"
     required:
-    - message
+      - message
     type: object
   server.listAuditLog:
     properties:
       audit_log:
-        $ref: '#/definitions/server.AuditLog'
+        $ref: "#/definitions/server.AuditLog"
       message:
         type: string
     required:
-    - message
+      - message
     type: object
   server.listUsersResponse:
     properties:
       message:
         type: string
       meta:
-        $ref: '#/definitions/server.meta'
+        $ref: "#/definitions/server.meta"
       users:
         items:
-          $ref: '#/definitions/logtrace.User'
+          $ref: "#/definitions/logtrace.User"
         type: array
     required:
-    - message
+      - message
     type: object
   server.loginRequest:
     properties:
@@ -437,9 +437,9 @@ definitions:
   server.meta:
     properties:
       paging:
-        $ref: '#/definitions/server.pagingInfo'
+        $ref: "#/definitions/server.pagingInfo"
     required:
-    - paging
+      - paging
     type: object
   server.pagingInfo:
     properties:
@@ -450,9 +450,9 @@ definitions:
       total:
         type: integer
     required:
-    - page
-    - per_page
-    - total
+      - page
+      - per_page
+      - total
     type: object
   server.planRequest:
     properties:
@@ -474,9 +474,9 @@ definitions:
   server.revokeAPIKeyRequest:
     properties:
       strategy:
-        $ref: '#/definitions/logtrace.RevocationType'
+        $ref: "#/definitions/logtrace.RevocationType"
     required:
-    - strategy
+      - strategy
     type: object
   server.sessionMetricsResponse:
     properties:
@@ -487,7 +487,7 @@ definitions:
       suspicious_count:
         type: integer
     required:
-    - message
+      - message
     type: object
   server.sessionRequest:
     properties:
@@ -529,880 +529,880 @@ paths:
   /auth/account/{reference}:
     patch:
       consumes:
-      - application/json
+        - application/json
       description: Revoke a user's admin role in the organization.
       parameters:
-      - description: User Reference (UUID)
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: User Reference (UUID)
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: User role revoked successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid user reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "403":
           description: User does not belong to your organization
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not update user role
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Users
+        - Users
   /auth/invite:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Invite a user by email.
       parameters:
-      - description: Invite User Request Body
-        in: body
-        name: inviteUserRequest
-        required: true
-        schema:
-          $ref: '#/definitions/server.inviteUserRequest'
+        - description: Invite User Request Body
+          in: body
+          name: inviteUserRequest
+          required: true
+          schema:
+            $ref: "#/definitions/server.inviteUserRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Invitation sent successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: internal server error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Users
+        - Users
   /auth/login/{provider}:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Login handles user authentication via OAuth2 providers.
       parameters:
-      - description: OAuth2 Provider (e.g., google)
-        in: path
-        name: provider
-        required: true
-        type: string
-      - description: Login Request Body
-        in: body
-        name: loginRequest
-        required: true
-        schema:
-          $ref: '#/definitions/server.loginRequest'
+        - description: OAuth2 Provider (e.g., google)
+          in: path
+          name: provider
+          required: true
+          type: string
+        - description: Login Request Body
+          in: body
+          name: loginRequest
+          required: true
+          schema:
+            $ref: "#/definitions/server.loginRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Login successful
           schema:
-            $ref: '#/definitions/server.fetchUserResponse'
+            $ref: "#/definitions/server.fetchUserResponse"
         "400":
           description: Bad request or invalid credentials
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Authenticating
+        - Authenticating
   /auth/me:
     get:
       consumes:
-      - application/json
+        - application/json
       description: FetchCurrentUser retrieves the currently authenticated user's details.
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Fetched current user
           schema:
-            $ref: '#/definitions/server.fetchUserResponse'
+            $ref: "#/definitions/server.fetchUserResponse"
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Users
+        - Users
   /auth/me/users:
     get:
       consumes:
-      - application/json
+        - application/json
       description: List all users in the organization.
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: List of organization users
           schema:
-            $ref: '#/definitions/server.listUsersResponse'
+            $ref: "#/definitions/server.listUsersResponse"
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Users
+        - Users
   /developers/keys:
     get:
       consumes:
-      - application/json
+        - application/json
       description: list api keys
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.listAPIKeysResponse'
+            $ref: "#/definitions/server.listAPIKeysResponse"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - developers
+        - developers
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new api key
       parameters:
-      - description: api key request body
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/server.createAPIKeyRequest'
+        - description: api key request body
+          in: body
+          name: message
+          required: true
+          schema:
+            $ref: "#/definitions/server.createAPIKeyRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.createdAPIKeyResponse'
+            $ref: "#/definitions/server.createdAPIKeyResponse"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - developers
+        - developers
   /developers/keys/{reference}:
     delete:
       consumes:
-      - application/json
+        - application/json
       description: revoke a specific api key
       parameters:
-      - description: api key unique reference.. e.g api_key_
-        in: path
-        name: reference
-        required: true
-        type: string
-      - description: api key request body
-        in: body
-        name: message
-        required: true
-        schema:
-          $ref: '#/definitions/server.revokeAPIKeyRequest'
+        - description: api key unique reference.. e.g api_key_
+          in: path
+          name: reference
+          required: true
+          type: string
+        - description: api key request body
+          in: body
+          name: message
+          required: true
+          schema:
+            $ref: "#/definitions/server.revokeAPIKeyRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - developers
+        - developers
   /v1/audit-logs:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a list of audit log entries with pagination and filtering
       parameters:
-      - description: Search term for filtering audit logs
-        in: query
-        name: search
-        type: string
-      - description: Start date for filtering audit logs (ISO 8601 format)
-        in: query
-        name: start_date
-        type: string
-      - description: End date for filtering audit logs (ISO 8601 format)
-        in: query
-        name: end_date
-        type: string
-      - description: Page number for pagination
-        in: query
-        name: page
-        type: integer
-      - description: Number of items per page for pagination
-        in: query
-        name: per_page
-        type: integer
+        - description: Search term for filtering audit logs
+          in: query
+          name: search
+          type: string
+        - description: Start date for filtering audit logs (ISO 8601 format)
+          in: query
+          name: start_date
+          type: string
+        - description: End date for filtering audit logs (ISO 8601 format)
+          in: query
+          name: end_date
+          type: string
+        - description: Page number for pagination
+          in: query
+          name: page
+          type: integer
+        - description: Number of items per page for pagination
+          in: query
+          name: per_page
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Audit logs fetched successfully
           schema:
-            $ref: '#/definitions/server.listAllAuditLogs'
+            $ref: "#/definitions/server.listAllAuditLogs"
         "400":
           description: Invalid query parameters
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to fetch audit logs
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Audit Logs
+        - Audit Logs
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new audit log entry
       parameters:
-      - description: Audit log creation request
-        in: body
-        name: auditLog
-        required: true
-        schema:
-          $ref: '#/definitions/server.createAuditLogRequest'
+        - description: Audit log creation request
+          in: body
+          name: auditLog
+          required: true
+          schema:
+            $ref: "#/definitions/server.createAuditLogRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Audit log created successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not create audit log at this time. an error occurred
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Audit Logs
+        - Audit Logs
   /v1/audit-logs/{reference}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a specific audit log entry by ID
       parameters:
-      - description: Audit log ID
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: Audit log ID
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Audit log fetched successfully
           schema:
-            $ref: '#/definitions/server.listAuditLog'
+            $ref: "#/definitions/server.listAuditLog"
         "400":
           description: Invalid audit log reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Audit log not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to fetch audit log
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Audit Logs
+        - Audit Logs
   /v1/audit-logs/metrics:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get audit log metrics such as total count of audit logs
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Audit log metrics fetched successfully
           schema:
-            $ref: '#/definitions/server.auditLogMetrics'
+            $ref: "#/definitions/server.auditLogMetrics"
         "500":
           description: Failed to fetch metrics
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Audit Logs
+        - Audit Logs
   /v1/events:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a list of events with optional filters and pagination
       parameters:
-      - description: Filter by HTTP status
-        in: query
-        name: http_status
-        type: string
-      - description: Filter by HTTP method
-        in: query
-        name: http_method
-        type: string
-      - description: Filter by start date (ISO format)
-        in: query
-        name: start_date
-        type: string
-      - description: Filter by end date (ISO format)
-        in: query
-        name: end_date
-        type: string
-      - description: Filter by username
-        in: query
-        name: username
-        type: string
-      - description: Filter by user ID
-        in: query
-        name: user_id
-        type: string
-      - description: Search term for action name or endpoint
-        in: query
-        name: search
-        type: string
+        - description: Filter by HTTP status
+          in: query
+          name: http_status
+          type: string
+        - description: Filter by HTTP method
+          in: query
+          name: http_method
+          type: string
+        - description: Filter by start date (ISO format)
+          in: query
+          name: start_date
+          type: string
+        - description: Filter by end date (ISO format)
+          in: query
+          name: end_date
+          type: string
+        - description: Filter by username
+          in: query
+          name: username
+          type: string
+        - description: Filter by user ID
+          in: query
+          name: user_id
+          type: string
+        - description: Search term for action name or endpoint
+          in: query
+          name: search
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Events fetched successfully
           schema:
-            $ref: '#/definitions/server.fetchEventsResponse'
+            $ref: "#/definitions/server.fetchEventsResponse"
         "500":
           description: Failed to fetch events
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Events
+        - Events
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new event log entry
       parameters:
-      - description: Event creation request
-        in: body
-        name: event
-        required: true
-        schema:
-          $ref: '#/definitions/server.createEventRequest'
+        - description: Event creation request
+          in: body
+          name: event
+          required: true
+          schema:
+            $ref: "#/definitions/server.createEventRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Event created successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not create event at this time. an error occurred
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Events
+        - Events
   /v1/events/{reference}:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a specific event by ID
       parameters:
-      - description: Event ID
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: Event ID
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Event has been fetched successfully
           schema:
-            $ref: '#/definitions/server.fetchEventResponse'
+            $ref: "#/definitions/server.fetchEventResponse"
         "400":
           description: Invalid event reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Event not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to fetch event
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Events
+        - Events
   /v1/invitations:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new invitation
       parameters:
-      - description: Invitation creation request
-        in: body
-        name: invitation
-        required: true
-        schema:
-          $ref: '#/definitions/server.createInvitationRequest'
+        - description: Invitation creation request
+          in: body
+          name: invitation
+          required: true
+          schema:
+            $ref: "#/definitions/server.createInvitationRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Invitation created successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not create invitation at this time. an error occurred
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Invitations
+        - Invitations
   /v1/invitations/{token}/accept:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Accept an invitation by token
       parameters:
-      - description: Invitation token
-        in: path
-        name: token
-        required: true
-        type: string
+        - description: Invitation token
+          in: path
+          name: token
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Invitation accepted successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid invitation token
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Invitation not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to accept invitation
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Invitations
+        - Invitations
   /v1/organizations:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new organization
       parameters:
-      - description: Organization creation request
-        in: body
-        name: organization
-        required: true
-        schema:
-          $ref: '#/definitions/server.createOrgRequest'
+        - description: Organization creation request
+          in: body
+          name: organization
+          required: true
+          schema:
+            $ref: "#/definitions/server.createOrgRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Organization created successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not create organization at this time. an error occurred
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Organization
+        - Organization
   /v1/organizations/{reference}:
     delete:
       consumes:
-      - application/json
+        - application/json
       description: Delete an existing organization by ID
       parameters:
-      - description: Organization ID
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: Organization ID
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Organization deleted successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid organization reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Organization not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to delete organization
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Organization
+        - Organization
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update an existing organization by ID
       parameters:
-      - description: Organization ID
-        in: path
-        name: reference
-        required: true
-        type: string
-      - description: Organization update request
-        in: body
-        name: organization
-        required: true
-        schema:
-          $ref: '#/definitions/server.updateOrgRequest'
+        - description: Organization ID
+          in: path
+          name: reference
+          required: true
+          type: string
+        - description: Organization update request
+          in: body
+          name: organization
+          required: true
+          schema:
+            $ref: "#/definitions/server.updateOrgRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Organization updated successfully
           schema:
-            $ref: '#/definitions/server.OrganizationResponse'
+            $ref: "#/definitions/server.OrganizationResponse"
         "400":
           description: Invalid organization reference or request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Organization not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to update organization
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Organization
+        - Organization
   /v1/plans:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new plan
       parameters:
-      - description: Plan creation request
-        in: body
-        name: plan
-        required: true
-        schema:
-          $ref: '#/definitions/server.planRequest'
+        - description: Plan creation request
+          in: body
+          name: plan
+          required: true
+          schema:
+            $ref: "#/definitions/server.planRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Plan created successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not create plan at this time. an error occurred
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Plans
+        - Plans
   /v1/plans/{reference}:
     delete:
       consumes:
-      - application/json
+        - application/json
       description: Delete an existing plan by ID
       parameters:
-      - description: Plan ID
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: Plan ID
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Plan has been deleted successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid plan reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Plan not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to delete plan
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Plans
+        - Plans
     get:
       consumes:
-      - application/json
+        - application/json
       description: Get a specific plan by ID
       parameters:
-      - description: Plan ID
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: Plan ID
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Plan has been fetched successfully
           schema:
-            $ref: '#/definitions/server.fetchPlanResponse'
+            $ref: "#/definitions/server.fetchPlanResponse"
         "400":
           description: Invalid plan reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Plan not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to fetch plan
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Plans
+        - Plans
     put:
       consumes:
-      - application/json
+        - application/json
       description: Update an existing plan by ID
       parameters:
-      - description: Plan ID
-        in: path
-        name: reference
-        required: true
-        type: string
-      - description: Plan update request
-        in: body
-        name: plan
-        required: true
-        schema:
-          $ref: '#/definitions/server.planRequest'
+        - description: Plan ID
+          in: path
+          name: reference
+          required: true
+          type: string
+        - description: Plan update request
+          in: body
+          name: plan
+          required: true
+          schema:
+            $ref: "#/definitions/server.planRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Plan has been updated successfully
           schema:
-            $ref: '#/definitions/server.fetchPlanResponse'
+            $ref: "#/definitions/server.fetchPlanResponse"
         "400":
           description: Invalid plan reference or request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Plan not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to update plan
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Plans
+        - Plans
   /v1/sessions:
     get:
       consumes:
-      - application/json
+        - application/json
       description: List all sessions with optional filters
       parameters:
-      - description: Filter by session status (ACTIVE or INACTIVE)
-        in: query
-        name: status
-        type: string
-      - description: Filter sessions created after this date (RFC3339 format)
-        in: query
-        name: start_date
-        type: string
-      - description: Filter sessions created before this date (RFC3339 format)
-        in: query
-        name: end_date
-        type: string
-      - description: Search term to filter sessions by user name or IP address
-        in: query
-        name: search
-        type: string
+        - description: Filter by session status (ACTIVE or INACTIVE)
+          in: query
+          name: status
+          type: string
+        - description: Filter sessions created after this date (RFC3339 format)
+          in: query
+          name: start_date
+          type: string
+        - description: Filter sessions created before this date (RFC3339 format)
+          in: query
+          name: end_date
+          type: string
+        - description: Search term to filter sessions by user name or IP address
+          in: query
+          name: search
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Sessions have been fetched successfully
           schema:
-            $ref: '#/definitions/server.fetchAllSessionsResponse'
+            $ref: "#/definitions/server.fetchAllSessionsResponse"
         "400":
           description: Invalid query parameters
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to fetch sessions
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Sessions
+        - Sessions
     post:
       consumes:
-      - application/json
+        - application/json
       description: Create a new session
       parameters:
-      - description: Session creation request
-        in: body
-        name: session
-        required: true
-        schema:
-          $ref: '#/definitions/server.sessionRequest'
+        - description: Session creation request
+          in: body
+          name: session
+          required: true
+          schema:
+            $ref: "#/definitions/server.sessionRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Session created successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid request body
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Could not create session at this time. an error occurred
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Sessions
+        - Sessions
   /v1/sessions/{reference}/logout:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Logout a session by ID
       parameters:
-      - description: Session ID
-        in: path
-        name: reference
-        required: true
-        type: string
+        - description: Session ID
+          in: path
+          name: reference
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Session logged out successfully
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "400":
           description: Invalid session reference
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "404":
           description: Session not found
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
         "500":
           description: Failed to logout session
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Sessions
+        - Sessions
   /v1/sessions/metrics:
     get:
       consumes:
-      - application/json
+        - application/json
       description: Fetch sessions metrics
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Sessions metrics have been fetched successfully
           schema:
-            $ref: '#/definitions/server.sessionMetricsResponse'
+            $ref: "#/definitions/server.sessionMetricsResponse"
         "500":
           description: Failed to fetch sessions metrics
           schema:
-            $ref: '#/definitions/server.APIStatus'
+            $ref: "#/definitions/server.APIStatus"
       tags:
-      - Sessions
+        - Sessions
 schemes:
-- http
-- https
+  - http
+  - https
 swagger: "2.0"
