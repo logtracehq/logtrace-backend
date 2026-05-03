@@ -30,4 +30,6 @@ COPY --from=busybox /bin/sh /bin/sh
 
 COPY --from=build-env /go/bin/cmd /
 
+EXPOSE 8080
+
 CMD ["/cmd", "http"]
