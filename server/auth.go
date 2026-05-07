@@ -297,8 +297,20 @@ func (a *authHandler) fetchCurrentUser(
 		), StatusFailed
 	}
 
+	userResponse := User{
+		ID:        user.ID.String(),
+		Username:  user.FullName,
+		Email:     user.Email.String(),
+		FullName:  user.FullName,
+		CreatedAt: user.CreatedAt,
+		Metadata:  user.Metadata,
+	}
+	if user.Metadata != nil {
+		userResponse.RoleName = string(user.Metadata.UserRole)
+	}
+
 	return fetchUserResponse{
-		User:          *user,
+		User:          userResponse,
 		Organization:  org,
 		Organizations: orgs,
 		APIStatus:     newAPIStatus(http.StatusOK, "fetched current user"),
@@ -368,8 +380,18 @@ func (a *authHandler) generateUserToken(
 		), StatusFailed
 	}
 
+	userResponse := User{
+		ID:        user.ID.String(),
+		Username:  user.FullName,
+		Email:     user.Email.String(),
+		FullName:  user.FullName,
+		CreatedAt: user.CreatedAt,
+		Metadata:  user.Metadata,
+		RoleName:  string(user.Metadata.UserRole),
+	}
+
 	resp := fetchUserResponse{
-		User:      *user,
+		User:      userResponse,
 		APIStatus: newAPIStatus(http.StatusOK, "login successful"),
 		Token:     token.Token,
 	}

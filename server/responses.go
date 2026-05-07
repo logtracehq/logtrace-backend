@@ -81,11 +81,21 @@ type fetchPlansResponse struct {
 }
 
 type fetchUserResponse struct {
-	User          logtrace.User           `json:"user"`
+	User          User                    `json:"user"`
 	Organization  *logtrace.Organization  `json:"organization"`
 	Organizations []logtrace.Organization `json:"organizations"`
 	Token         string                  `json:"token"`
 	APIStatus
+}
+type User struct {
+	ID          string                 `json:"id"`
+	Username    string                 `json:"username"`
+	Email       string                 `json:"email"`
+	FullName    string                 `json:"full_name"`
+	CreatedAt   time.Time              `json:"created_at"`
+	LastLoginAt time.Time              `json:"last_login_at"`
+	Metadata    *logtrace.UserMetadata `json:"metadata"`
+	RoleName    string                 `json:"role_name"`
 }
 
 type Session struct {

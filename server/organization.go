@@ -84,6 +84,19 @@ func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, lo
 		), StatusFailed
 	}
 
+	user := getUserFromContext(ctx)
+	if user.Metadata == nil {
+		user.Metadata = &logtrace.UserMetadata{}
+	}
+	user.Metadata.OrganizationID = append(user.Metadata.OrganizationID, org.ID)
+	if _, err := o.userRepo.Update(ctx, user); err != nil {
+		logger.Error("an error occurred while updating user metadata after org creation", zap.Error(err))
+		return newAPIStatus(
+			http.StatusInternalServerError,
+			"Organization created but could not update user membership",
+		), StatusFailed
+	}
+
 	return newAPIStatus(http.StatusCreated, "Organization created successfully"), StatusSuccess
 }
 
