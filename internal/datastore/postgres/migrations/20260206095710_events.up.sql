@@ -12,14 +12,8 @@ CREATE TABLE
         client_user_agent VARCHAR,
         geo_ip_location VARCHAR,
         action_name VARCHAR,
-        created_at TIMESTAMP,
         metadata JSONB,
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP
-        WITH
-            TIME ZONE
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP WITH TIME ZONE
     );

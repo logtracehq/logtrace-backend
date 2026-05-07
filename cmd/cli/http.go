@@ -68,6 +68,11 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("failed to initialize database connection", zap.Error(err))
 			}
 
+			if err := runMigrations(logger, cfg); err != nil {
+				logger.Fatal("could not run migrations",
+					zap.Error(err))
+			}
+
 			logger.Info("database connection established successfully")
 
 			userRepo := postgres.NewUserRepository(db)
