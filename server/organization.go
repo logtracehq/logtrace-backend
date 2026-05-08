@@ -71,7 +71,7 @@ func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, lo
 		Name:                 req.Name,
 		IsActive:             true,
 		IsSubscriptionActive: false,
-		PlanName:             "free",
+		PlanName:             "Free",
 		ImageURL:             req.ImageURL,
 	}
 
