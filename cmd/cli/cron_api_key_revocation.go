@@ -46,7 +46,7 @@ func revokeAPIKeys(c *cobra.Command, cfg *config.Config) *cobra.Command {
 				zap.String("app", "logtrace"),
 				zap.String("component", "delete-keys"))
 
-			cleanupOtelResources := server.InitOTELCapabilities(util.DeRef(cfg), logger)
+			cleanupOtelResources, _ := server.InitOTELCapabilities(util.DeRef(cfg), logger)
 			defer cleanupOtelResources()
 
 			db, err := postgres.New(cfg, logger)

@@ -312,7 +312,7 @@ func sendScheduledUpdates(c *cobra.Command, cfg *config.Config) *cobra.Command {
 				return fmt.Errorf("failed to setup logger: %w", err)
 			}
 
-			cleanupOtel := server.InitOTELCapabilities(util.DeRef(cfg), logger)
+			cleanupOtel, _ := server.InitOTELCapabilities(util.DeRef(cfg), logger)
 			defer cleanupOtel()
 
 			emailClient, err := awsses.New(cfg)

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gitlab.com/logtrace/logtrace/config"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
@@ -13,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	otelprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -43,7 +45,7 @@ func initResources() (*resource.Resource, error) {
 	)
 }
 
-func InitOTELCapabilities(cfg config.Config, logger *zap.Logger) func() {
+func InitOTELCapabilities(cfg config.Config, logger *zap.Logger) (func(), http.Handler) {
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{},
@@ -131,18 +133,26 @@ func InitOTELCapabilities(cfg config.Config, logger *zap.Logger) func() {
 			zap.Error(err))
 	}
 
+	promExporter, err := otelprometheus.New()
+	if err != nil {
+		logger.Fatal("could not setup prometheus metrics exporter",
+			zap.Error(err))
+	}
+
 	otel.SetMeterProvider(
 		metric.NewMeterProvider(
 			metric.WithResource(resources),
 			metric.WithReader(
-				metric.NewPeriodicReader(metricExporter))))
+				metric.NewPeriodicReader(metricExporter)),
+			metric.WithReader(promExporter),
+		))
 
 	regiterMetrics(logger)
 
 	return func() {
 		_ = traceExporter.Shutdown(context.Background())
 		_ = metricExporter.Shutdown(context.Background())
-	}
+	}, promhttp.Handler()
 }
 
 func regiterMetrics(logger *zap.Logger) {

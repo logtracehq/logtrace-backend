@@ -116,12 +116,15 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 				logger.Fatal("could not set up redis cache", zap.Error(err))
 			}
 
+			cleanupOtel, metricsHandler := server.InitOTELCapabilities(util.DeRef(cfg), logger)
+			defer cleanupOtel()
+
 			srv, cleanupSrv := server.New(
 				logger, util.DeRef(cfg), userRepo,
 				orgRepo, emailRepo, tokenManager, queueHandler,
 				googleAuth, eventRepo, sessionRepo, redisCache,
 				apiKeyRepo, planRepo, passwordRepo,
-				auditLogRepo, organizationUserRepo, invitationRepo,
+				auditLogRepo, organizationUserRepo, invitationRepo, metricsHandler,
 			)
 
 			sig := make(chan os.Signal, 1)

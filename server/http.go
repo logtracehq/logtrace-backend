@@ -36,6 +36,7 @@ func New(
 	redisCache cache.Cache, apiKeyRepo logtrace.APIKeyRepository,
 	planRepo logtrace.PlanRepository, passwordRepo logtrace.PasswordRepository,
 	auditLogRepo logtrace.AuditLogRepository, organizationUserRepo logtrace.OrganizationUserRepository, invitationRepo logtrace.InvitationRepository,
+	metricsHandler http.Handler,
 ) (*http.Server, func(context.Context)) {
 	if err := cfg.Validate(); err != nil {
 		logger.Fatal("invalid configuration", zap.Error(err))
@@ -50,7 +51,7 @@ func New(
 			queueHandler, emailVerificationRepo,
 			googleAuthProvider, eventRepo, sessionRepo, redisCache,
 			apiKeyRepo, planRepo, passwordRepo, auditLogRepo, organizationUserRepo,
-			invitationRepo,
+			invitationRepo, metricsHandler,
 		),
 	}
 
@@ -83,6 +84,7 @@ func setUpRoutes(
 	apiKeyRepo logtrace.APIKeyRepository, planRepo logtrace.PlanRepository,
 	passwordRepo logtrace.PasswordRepository, auditLogRepo logtrace.AuditLogRepository,
 	organizationUserRepo logtrace.OrganizationUserRepository, invitationRepo logtrace.InvitationRepository,
+	metricsHandler http.Handler,
 ) http.Handler {
 	router := chi.NewRouter()
 
@@ -285,5 +287,6 @@ func setUpRoutes(
 			r.Delete("/{reference}", WrapLogtraceHTTPHandler(logger, invitation.Delete, cfg, "Invitation.delete"))
 		})
 	})
+	router.Handle("/prometheus/metrics", metricsHandler)
 	return cors.AllowAll().Handler(router)
 }
