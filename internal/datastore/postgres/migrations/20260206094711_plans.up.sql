@@ -9,13 +9,7 @@ CREATE TABLE
         features JSONB,
         period VARCHAR(20),
         cta VARCHAR(50),
-        created_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP
-        WITH
-            TIME ZONE
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP WITH TIME ZONE
     );

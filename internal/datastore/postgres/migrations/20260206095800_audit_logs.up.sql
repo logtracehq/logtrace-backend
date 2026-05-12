@@ -9,17 +9,14 @@ CREATE TABLE
         metadata JSONB,
         client VARCHAR,
         operating_system VARCHAR(64),
-        timestamp TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL,
-            created_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            request_id VARCHAR,
-            updated_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP
-        WITH
-            TIME ZONE
+        request_id VARCHAR,
+        timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP WITH TIME ZONE
     );
+
+CREATE INDEX idx_audit_logs_organization_id ON audit_logs (organization_id);
+CREATE INDEX idx_audit_logs_user_id ON audit_logs (user_id);
+CREATE INDEX idx_audit_logs_timestamp ON audit_logs (timestamp);
+CREATE INDEX idx_audit_logs_created_at ON audit_logs (created_at);

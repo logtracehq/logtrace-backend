@@ -17,3 +17,8 @@ CREATE TABLE
         updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
         deleted_at TIMESTAMP WITH TIME ZONE
     );
+
+CREATE INDEX idx_events_organization_id ON events (organization_id);
+CREATE INDEX idx_events_user_id ON events (user_id);
+CREATE INDEX idx_events_type ON events (type);
+CREATE INDEX idx_events_created_at ON events (created_at);

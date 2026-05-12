@@ -22,6 +22,7 @@ import (
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"gitlab.com/logtrace/logtrace/server"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // @title Logtrace API
@@ -35,7 +36,9 @@ func addHTTPCommand(c *cobra.Command, cfg *config.Config) {
 		Use:   "http",
 		Short: "Start the HTTP server",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			logger, err := zap.NewProduction()
+			logCfg := zap.NewProductionConfig()
+			logCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+			logger, err := logCfg.Build()
 			if err != nil {
 				return err
 			}

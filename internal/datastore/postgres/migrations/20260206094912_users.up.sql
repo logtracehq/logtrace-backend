@@ -8,16 +8,8 @@ CREATE TABLE
         metadata JSONB,
         phone VARCHAR(20),
         status user_status NOT NULL DEFAULT 'pending',
-        email_verified_at TIMESTAMP
-        WITH
-            TIME ZONE,
-            created_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP
-        WITH
-            TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP
-        WITH
-            TIME ZONE
+        email_verified_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP WITH TIME ZONE
     );

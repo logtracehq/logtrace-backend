@@ -22,6 +22,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/time/rate"
 )
 
@@ -374,7 +375,9 @@ func setupLogger(cfg *config.Config) (*zap.Logger, error) {
 
 	switch mode {
 	case "prod", "production":
-		logger, err = zap.NewProduction()
+		logCfg := zap.NewProductionConfig()
+		logCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		logger, err = logCfg.Build()
 	default:
 		logger, err = zap.NewDevelopment()
 	}

@@ -10,6 +10,7 @@ import (
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"gitlab.com/logtrace/logtrace/server"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func revokeAPIKeys(c *cobra.Command, cfg *config.Config) *cobra.Command {
@@ -22,7 +23,9 @@ func revokeAPIKeys(c *cobra.Command, cfg *config.Config) *cobra.Command {
 
 			switch cfg.Logging.Mode {
 			case config.LogModeProd:
-				logger, err = zap.NewProduction()
+				logCfg := zap.NewProductionConfig()
+				logCfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+				logger, err = logCfg.Build()
 				if err != nil {
 					fmt.Printf(`{"error":%s}`, err)
 					os.Exit(1)

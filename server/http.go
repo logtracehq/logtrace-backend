@@ -177,6 +177,7 @@ func setUpRoutes(
 
 	invitation := &invitationHandler{
 		cfg:            cfg,
+		tokenManager:   jwtTokenManager,
 		invitationRepo: invitationRepo,
 		userRepo:       userRepo,
 	}

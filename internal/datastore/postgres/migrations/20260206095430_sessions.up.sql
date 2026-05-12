@@ -26,3 +26,10 @@ CREATE TABLE
         WITH
             TIME ZONE
     );
+
+CREATE INDEX idx_sessions_user_id ON sessions (user_id);
+CREATE INDEX idx_sessions_organization_id ON sessions (organization_id);
+CREATE INDEX idx_sessions_status ON sessions (status);
+CREATE INDEX idx_sessions_login_at ON sessions (login_at);
+CREATE INDEX idx_sessions_logout_at ON sessions (logout_at);
+CREATE INDEX idx_sessions_ip_address ON sessions (ip_address);

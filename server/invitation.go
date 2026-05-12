@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/logtrace/logtrace"
 	"gitlab.com/logtrace/logtrace/config"
+	"gitlab.com/logtrace/logtrace/internal/pkg/jwttoken"
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -17,6 +18,7 @@ import (
 
 type invitationHandler struct {
 	cfg            config.Config
+	tokenManager   jwttoken.JWTokenManager
 	invitationRepo logtrace.InvitationRepository
 	userRepo       logtrace.UserRepository
 }
@@ -68,18 +70,24 @@ func (i *invitationHandler) Create(ctx context.Context, span trace.Span, logger 
 	}
 
 	orgID := getOrganizationFromContext(ctx).ID
+	tokenData, err := i.tokenManager.GenerateJWToken(jwttoken.JWTokenData{
+		UserID: uuid.New(),
+	})
+	if err != nil {
+		logger.Error("failed to generate invitation token", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to generate invitation token"), StatusFailed
+	}
 
 	invitation := &logtrace.Invitation{
 		Fullname:       req.Fullname,
 		Email:          logtrace.Email(req.Email),
 		OrganizationID: orgID,
 		Role:           logtrace.RoleName(req.Role),
-		Status:         "PENDING",
-		Token:          "token", // TODO: generate a secure token
+		Status:         logtrace.InvitationStatusPending,
+		Token:          tokenData.Token,
 	}
 
-	err := i.invitationRepo.Create(ctx, invitation)
-	if err != nil {
+	if err = i.invitationRepo.Create(ctx, invitation); err != nil {
 		logger.Error("failed to create invitation", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "failed to create invitation"), StatusFailed
 	}
