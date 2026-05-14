@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -75,18 +76,22 @@ func InitOTELCapabilities(cfg config.Config, logger *zap.Logger) (func(), http.H
 	// By default, Otel sends traces and metrics, logs to v1/* paths
 	// but some providers like Grafana have their OTEL collector on a subpath
 	// so /otlp/v1/*
-	// The sdk is pretty stringent as that format does not match the standard
-	// so it doesn't accept, this makes sure to split out the url and make it match
-	splittedEndpoint := strings.Split(cfg.Otel.Endpoint, "/")
-
-	if len(splittedEndpoint) == 2 {
-		// pick out the host
-		cfg.Otel.Endpoint = splittedEndpoint[0]
-
-		// make sure to use the remaining path and prepend to the actual
-		// standard /v1 paths
-		tracesSuffixEndpoint = splittedEndpoint[1] + tracesSuffixEndpoint
-		metricsSuffixEndpoint = splittedEndpoint[1] + metricsSuffixEndpoint
+	// The gRPC exporter expects host:port with no scheme, so strip http(s):// if present
+	// and handle any subpath prefix.
+	if parsedURL, parseErr := url.Parse(cfg.Otel.Endpoint); parseErr == nil && parsedURL.Host != "" {
+		cfg.Otel.Endpoint = parsedURL.Host
+		if subpath := strings.TrimSuffix(parsedURL.Path, "/"); subpath != "" {
+			tracesSuffixEndpoint = subpath + tracesSuffixEndpoint
+			metricsSuffixEndpoint = subpath + metricsSuffixEndpoint
+		}
+	} else {
+		// Fallback: bare host:port/subpath format (no scheme)
+		splittedEndpoint := strings.SplitN(cfg.Otel.Endpoint, "/", 2)
+		if len(splittedEndpoint) == 2 {
+			cfg.Otel.Endpoint = splittedEndpoint[0]
+			tracesSuffixEndpoint = "/" + splittedEndpoint[1] + tracesSuffixEndpoint
+			metricsSuffixEndpoint = "/" + splittedEndpoint[1] + metricsSuffixEndpoint
+		}
 	}
 
 	traceOptions := []otlptracegrpc.Option{

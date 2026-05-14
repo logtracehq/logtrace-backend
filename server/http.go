@@ -101,7 +101,8 @@ func setUpRoutes(
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.Frontend.AppURL, "http://localhost:5173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"},
+		ExposedHeaders:   []string{"X-Request-ID"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by browsers
 	}))
