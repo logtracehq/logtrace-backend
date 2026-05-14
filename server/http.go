@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"time"
@@ -288,6 +289,22 @@ func setUpRoutes(
 			r.Delete("/{reference}", WrapLogtraceHTTPHandler(logger, invitation.Delete, cfg, "Invitation.delete"))
 		})
 	})
-	router.Handle("/prometheus/metrics", metricsHandler)
+	if cfg.HTTP.Metrics.Enabled {
+		router.Handle("/prometheus/metrics", basicAuth(cfg.HTTP.Metrics.Username, cfg.HTTP.Metrics.Password, metricsHandler))
+	}
 	return cors.AllowAll().Handler(router)
+}
+
+func basicAuth(username, password string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		u, p, ok := r.BasicAuth()
+		if !ok ||
+			subtle.ConstantTimeCompare([]byte(u), []byte(username)) != 1 ||
+			subtle.ConstantTimeCompare([]byte(p), []byte(password)) != 1 {
+			w.Header().Set("WWW-Authenticate", `Basic realm="metrics"`)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
