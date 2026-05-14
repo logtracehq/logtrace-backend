@@ -20,6 +20,10 @@ type Otel struct {
 	Endpoint string `yaml:"endpoint" mapstructure:"endpoint"`
 	UseTLS   bool   `yaml:"use_tls" mapstructure:"use_tls"`
 	Headers  string `yaml:"headers" mapstructure:"headers"`
+	Grafana  struct {
+		Username string `yaml:"username" mapstructure:"username"`
+		Password string `yaml:"password" mapstructure:"password"`
+	} `yaml:"grafana" mapstructure:"grafana"`
 }
 
 type HTTP struct {
