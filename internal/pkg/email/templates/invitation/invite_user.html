@@ -1,0 +1,70 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="x-apple-disable-message-reformatting" />
+</head>
+
+<body style="background-color:#ffffff">
+    <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">
+        You've been invited to join {{ .OrganizationName }} on Logtrace
+        <div></div>
+    </div>
+    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+        style="max-width:37.5em;padding-left:12px;padding-right:12px;margin:0 auto">
+        <tbody>
+            <tr style="width:100%">
+                <td>
+                    <h1
+                        style="color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:24px;font-weight:bold;margin:40px 0;padding:0">
+                        You've been invited to join {{ .OrganizationName }}
+                    </h1>
+                    <p
+                        style="font-size:14px;line-height:24px;margin:24px 0;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-bottom:14px">
+                        Hi {{ .FullName }}, <strong>{{ .InviterName }}</strong> has invited you to join the
+                        <strong>{{ .OrganizationName }}</strong> workspace on <strong>Logtrace</strong> &mdash;
+                        the audit trail platform for compliance and security.
+                    </p>
+                    <p
+                        style="font-size:14px;line-height:24px;margin:24px 0;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-bottom:14px">
+                        Once you accept, you'll have access to your team's audit logs, event streams, and session
+                        activity to support compliance, security reviews, and incident investigations.
+                    </p>
+                    <a href="{{ .Link }}"
+                        style="color:#ffffff;background-color:#6366F1;border-radius:6px;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:14px;font-weight:500;display:inline-block;margin:20px 0;padding:12px 20px;text-align:center"
+                        target="_blank">
+                        Accept Invitation
+                    </a>
+                    <p
+                        style="font-size:14px;line-height:24px;margin:24px 0;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-bottom:14px">
+                        Or, copy and paste the link below into your browser:
+                    </p>
+                    <code
+                        style="display:inline-block;padding:16px 4.5%;width:90.5%;background-color:#f4f4f4;border-radius:5px;border:1px solid #eee;color:#333;word-break:break-all">
+              {{ .Link }}
+            </code>
+                    <p
+                        style="font-size:14px;line-height:24px;margin:24px 0;color:#ababab;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:14px;margin-bottom:16px">
+                        If you were not expecting this invitation, you can safely ignore this email.
+                        This link will expire in 7 days.
+                    </p>
+                    <img alt="Logtrace Logo" height="32"
+                        src="https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/logtrace/logos/mtnjuwfl0gb9r11pz5qg.png"
+                        style="display:block;outline:none;border:none;text-decoration:none" />
+                    <p
+                        style="font-size:12px;line-height:22px;margin:16px 0;color:#898989;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:12px;margin-bottom:24px">
+                        <a href="https://logtrace.vc"
+                            style="color:#898989;text-decoration-line:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:14px;text-decoration:underline"
+                            target="_blank">
+                            Logtrace
+                        </a> &mdash; audit trail platform for compliance and security<br />
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

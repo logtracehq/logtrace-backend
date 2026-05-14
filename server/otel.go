@@ -94,6 +94,27 @@ func InitOTELCapabilities(cfg config.Config, logger *zap.Logger) (func(), http.H
 		}
 	}
 
+	// If no endpoint is configured, skip gRPC exporters and only expose Prometheus metrics.
+	if cfg.Otel.Endpoint == "" {
+		logger.Warn("OTEL endpoint not configured; traces and OTLP metrics export disabled")
+
+		promExporter, err := otelprometheus.New()
+		if err != nil {
+			logger.Fatal("could not setup prometheus metrics exporter",
+				zap.Error(err))
+		}
+
+		otel.SetMeterProvider(
+			metric.NewMeterProvider(
+				metric.WithResource(resources),
+				metric.WithReader(promExporter),
+			))
+
+		regiterMetrics(logger)
+
+		return func() {}, promhttp.Handler()
+	}
+
 	traceOptions := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(cfg.Otel.Endpoint),
 		otlptracegrpc.WithHeaders(headers),

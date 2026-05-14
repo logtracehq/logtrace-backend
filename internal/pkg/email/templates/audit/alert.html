@@ -1,0 +1,116 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta name="x-apple-disable-message-reformatting" />
+</head>
+
+<body style="background-color:#ffffff">
+    <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">
+        Logtrace alert: {{ .Action }} detected in {{ .OrganizationName }}
+        <div></div>
+    </div>
+    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+        style="max-width:37.5em;padding-left:12px;padding-right:12px;margin:0 auto">
+        <tbody>
+            <tr style="width:100%">
+                <td>
+                    <p
+                        style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6366F1;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin:40px 0 8px 0;padding:0">
+                        Audit Alert &mdash; {{ .OrganizationName }}
+                    </p>
+                    <h1
+                        style="color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:24px;font-weight:bold;margin:0 0 24px 0;padding:0">
+                        A significant action was recorded
+                    </h1>
+                    <p
+                        style="font-size:14px;line-height:24px;margin:0 0 14px 0;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif">
+                        Hi {{ .RecipientName }}, Logtrace has recorded a notable audit log entry in your workspace that
+                        may require your attention.
+                    </p>
+
+                    <!-- Detail card -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                        style="background-color:#f8f8fc;border:1px solid #e5e5f0;border-radius:8px;margin:20px 0">
+                        <tbody>
+                            <tr>
+                                <td style="padding:20px 24px">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                                        <tbody>
+                                            <tr>
+                                                <td
+                                                    style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#888;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding-bottom:4px;width:120px">
+                                                    Action
+                                                </td>
+                                                <td
+                                                    style="font-size:14px;color:#111;font-family:monospace;font-weight:600;padding-bottom:4px">
+                                                    {{ .Action }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td
+                                                    style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#888;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding-bottom:4px;padding-top:8px">
+                                                    Actor
+                                                </td>
+                                                <td
+                                                    style="font-size:14px;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding-bottom:4px;padding-top:8px">
+                                                    {{ .Actor }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td
+                                                    style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#888;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding-bottom:4px;padding-top:8px">
+                                                    IP Address
+                                                </td>
+                                                <td
+                                                    style="font-size:14px;color:#333;font-family:monospace;padding-bottom:4px;padding-top:8px">
+                                                    {{ .IPAddress }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td
+                                                    style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#888;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;padding-top:8px">
+                                                    Timestamp
+                                                </td>
+                                                <td
+                                                    style="font-size:14px;color:#333;font-family:monospace;padding-top:8px">
+                                                    {{ .Timestamp }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <a href="{{ .Link }}"
+                        style="color:#ffffff;background-color:#6366F1;border-radius:6px;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:14px;font-weight:500;display:inline-block;margin:20px 0;padding:12px 20px;text-align:center"
+                        target="_blank">
+                        View Full Audit Log
+                    </a>
+                    <p
+                        style="font-size:14px;line-height:24px;margin:24px 0;color:#ababab;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:14px;margin-bottom:16px">
+                        You are receiving this alert because audit notifications are enabled for
+                        <strong>{{ .OrganizationName }}</strong>. You can manage your alert settings in your workspace.
+                    </p>
+                    <img alt="Logtrace Logo" height="32"
+                        src="https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/logtrace/logos/mtnjuwfl0gb9r11pz5qg.png"
+                        style="display:block;outline:none;border:none;text-decoration:none" />
+                    <p
+                        style="font-size:12px;line-height:22px;margin:16px 0;color:#898989;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:12px;margin-bottom:24px">
+                        <a href="https://logtrace.vc"
+                            style="color:#898989;text-decoration-line:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:14px;text-decoration:underline"
+                            target="_blank">
+                            Logtrace
+                        </a> &mdash; audit trail platform for compliance and security<br />
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>
