@@ -43,7 +43,7 @@ type sessionRequest struct {
 
 func (sr *sessionRequest) Validate() error {
 	if !sr.Status.IsValid() {
-		return errors.New("invalid status")
+		return errors.New("invalid session status")
 	}
 	return nil
 }

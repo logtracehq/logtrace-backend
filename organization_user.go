@@ -11,7 +11,7 @@ type OrganizationUser struct {
 	ID             uuid.UUID  `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
 	OrganizationID uuid.UUID  `json:"organization_id" bun:"type:uuid,notnull"`
 	UserID         string     `json:"user_id"         bun:"user_id,notnull"`
-	Username       string     `json:"username"            bun:"username, type:varchar(100),notnull"`
+	Username       string     `json:"username" bun:"username,type:varchar(100),notnull"`
 	Metadata       Metadata   `json:"metadata"        bun:"metadata"`
 	CreatedAt      time.Time  `json:"created_at"  bun:"created_at,default:current_timestamp,notnull"`
 	UpdatedAt      time.Time  `json:"updated_at"  bun:"updated_at,default:current_timestamp,notnull"`
