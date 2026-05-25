@@ -48,7 +48,7 @@ func (a *createAuditLogRequest) Validate() error {
 	if util.IsStringEmpty(a.Timestamp) {
 		return errors.New("timestamp is required")
 	}
-	if util.IsStringEmpty(a.UserID) || util.IsStringEmpty(a.UserName) {
+	if util.IsStringEmpty(a.UserID) && util.IsStringEmpty(a.UserName) {
 		return errors.New("at least one of user_id or username is required")
 	}
 	return nil
