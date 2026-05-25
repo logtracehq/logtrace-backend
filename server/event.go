@@ -92,6 +92,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 	event := &logtrace.Event{
 		ActionName:      req.ActionName,
 		HTTPMethod:      req.HTTPMethod,
+		HTTPEndpoint:    req.HTTPEndpoint,
 		Username:        req.Username,
 		UserID:          req.UserID,
 		HTTPStatus:      req.HTTPStatus,
