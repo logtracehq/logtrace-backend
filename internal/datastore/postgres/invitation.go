@@ -36,7 +36,7 @@ func (i *invitationRepo) List(ctx context.Context, opts logtrace.ListInvitationO
 
 	var invitations []*logtrace.Invitation
 	err := i.inner.NewSelect().Model(&invitations).Where("organization_id = ?", opts.OrganizationID.String()).
-		Where("status = ?", "PENDING").Scan(ctx)
+		Where("status = ?", "pending").Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
