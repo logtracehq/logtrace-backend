@@ -45,19 +45,21 @@ func newAPIStatus(code int, s string) APIStatus {
 }
 
 type Event struct {
-	ID              uuid.UUID         `json:"id"`
-	Type            string            `json:"type"`
-	Username        string            `json:"username"`
-	UserID          string            `json:"user_id"`
-	HTTPMethod      string            `json:"http_method"`
-	HTTPStatus      string            `json:"http_status"`
-	HTTPEndpoint    string            `json:"http_endpoint"`
-	ClientIP        string            `json:"client_ip"`
-	ClientUserAgent string            `json:"client_user_agent"`
-	GeoIPLocation   string            `json:"geo_ip_location"`
-	ActionName      string            `json:"action_name"`
-	Metadata        logtrace.Metadata `json:"metadata"`
-	CreatedAt       time.Time         `json:"created_at"`
+	ID                  uuid.UUID         `json:"id"`
+	Type                string            `json:"type"`
+	Username            string            `json:"username"`
+	UserID              string            `json:"user_id"`
+	HTTPMethod          string            `json:"http_method"`
+	HTTPStatusCode      int               `json:"http_status_code"`
+	HTTPEndpoint        string            `json:"http_endpoint"`
+	HTTPRequestDuration string            `json:"http_request_duration"`
+	IPAddress           string            `json:"ip_address"`
+	ClientUserAgent     string            `json:"client_user_agent"`
+	GeoIPLocation       string            `json:"geo_ip_location"`
+	ActionName          string            `json:"action_name"`
+	Metadata            logtrace.Metadata `json:"metadata"`
+	CreatedAt           time.Time         `json:"created_at"`
+	OperatingSystem     string            `json:"operating_system"`
 }
 type fetchEventResponse struct {
 	Event *Event `json:"event"`
@@ -99,18 +101,23 @@ type User struct {
 }
 
 type Session struct {
-	ID         uuid.UUID              `json:"id"`
-	UserID     string                 `json:"user_id"`
-	UserName   string                 `json:"username"`
-	LoginAt    time.Time              `json:"login_at"`
-	LogoutAt   time.Time              `json:"logout_at"`
-	Token      string                 `json:"token"`
-	DeviceInfo string                 `json:"device_info"`
-	IPAddress  string                 `json:"ip_address"`
-	Location   string                 `json:"location"`
-	Status     logtrace.SessionStatus `json:"status"`
-	Metadata   logtrace.Metadata      `json:"metadata"`
-	CreatedAt  time.Time              `json:"created_at"`
+	ID                  uuid.UUID              `json:"id"`
+	UserID              string                 `json:"user_id"`
+	UserName            string                 `json:"username"`
+	LoginAt             time.Time              `json:"login_at"`
+	LogoutAt            time.Time              `json:"logout_at"`
+	Token               string                 `json:"token"`
+	Status              logtrace.SessionStatus `json:"status"`
+	Metadata            logtrace.Metadata      `json:"metadata"`
+	CreatedAt           time.Time              `json:"created_at"`
+	OperatingSystem     string                 `json:"operating_system"`
+	HTTPMethod          string                 `json:"http_method"`
+	HTTPStatusCode      int                    `json:"http_status_code"`
+	HTTPEndpoint        string                 `json:"http_endpoint"`
+	HTTPRequestDuration string                 `json:"http_request_duration"`
+	IPAddress           string                 `json:"ip_address"`
+	ClientUserAgent     string                 `json:"client_user_agent"`
+	GeoIPLocation       string                 `json:"geo_ip_location"`
 }
 
 type fetchSessionResponse struct {
@@ -144,17 +151,23 @@ type listAPIKeysResponse struct {
 }
 
 type AuditLog struct {
-	ID              uuid.UUID         `json:"id"`
-	Action          string            `json:"action"`
-	Timestamp       time.Time         `json:"timestamp"`
-	IPAddress       string            `json:"ip_address"`
-	UserID          string            `json:"user_id"`
-	UserName        string            `json:"username"`
-	CreatedAt       time.Time         `json:"created_at"`
-	RequestID       string            `json:"request_id"`
-	Metadata        logtrace.Metadata `json:"metadata"`
-	Client          string            `json:"client"`
-	OperatingSystem string            `json:"operating_system"`
+	ID                  uuid.UUID         `json:"id"`
+	Action              string            `json:"action"`
+	Timestamp           time.Time         `json:"timestamp"`
+	UserID              string            `json:"user_id"`
+	Description         string            `json:"description"`
+	UserName            string            `json:"username"`
+	Client              string            `json:"client"`
+	HTTPMethod          string            `json:"http_method"`
+	HTTPStatusCode      int               `json:"http_status_code"`
+	HTTPEndpoint        string            `json:"http_endpoint"`
+	HTTPRequestDuration string            `json:"http_request_duration"`
+	IPAddress           string            `json:"ip_address"`
+	ClientUserAgent     string            `json:"client_user_agent"`
+	GeoIPLocation       string            `json:"geo_ip_location"`
+	Metadata            logtrace.Metadata `json:"metadata"`
+	CreatedAt           time.Time         `json:"created_at"`
+	OperatingSystem     string            `json:"operating_system"`
 }
 
 type listAllAuditLogs struct {

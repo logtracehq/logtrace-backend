@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/logtrace/logtrace"
 	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace/internal/pkg/services"
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -29,25 +30,21 @@ type auditLogHandler struct {
 type createAuditLogRequest struct {
 	GenericRequest
 
-	Action          string            `json:"action"`
-	Timestamp       string            `json:"timestamp"`
-	IPAddress       string            `json:"ip_address"`
-	UserID          string            `json:"user_id"`
-	UserName        string            `json:"username"`
-	RequestID       string            `json:"request_id"`
-	Client          string            `json:"client"`
-	OperatingSystem string            `json:"operating_system"`
-	OrganizationID  string            `json:"organization_id"`
-	Metadata        logtrace.Metadata `json:"metadata" `
+	Action         string                  `json:"action"`
+	Timestamp      string                  `json:"timestamp"`
+	UserID         string                  `json:"user_id"`
+	UserName       string                  `json:"username"`
+	Description    string                  `json:"description"`
+	RequestDetails logtrace.RequestDetails `json:"request_details"`
+	OrganizationID string                  `json:"organization_id"`
+	Metadata       logtrace.Metadata       `json:"metadata" `
 }
 
 func (a *createAuditLogRequest) Validate() error {
 	if util.IsStringEmpty(a.Action) {
 		return errors.New("action is required")
 	}
-	if util.IsStringEmpty(a.Timestamp) {
-		return errors.New("timestamp is required")
-	}
+
 	if util.IsStringEmpty(a.UserID) && util.IsStringEmpty(a.UserName) {
 		return errors.New("at least one of user_id or username is required")
 	}
@@ -79,17 +76,29 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 		logger.Error("validation error", zap.Error(err))
 		return newAPIStatus(http.StatusBadRequest, "failed to process request"), StatusFailed
 	}
+	geo, err := services.GeoIPLookup(ctx, req.RequestDetails.IPAddress)
+	if err != nil {
+		logger.Warn("failed to resolve geoip", zap.Error(err))
+	}
+
+	geoLocation := ""
+	if geo != nil {
+		geoLocation = geo.Country
+		if geo.City != "" {
+			geoLocation += ", " + geo.City
+		}
+	}
+
+	req.RequestDetails.GeoIPLocation = geoLocation
 
 	auditLog := &logtrace.AuditLog{
-		Action:          req.Action,
-		IPAddress:       req.IPAddress,
-		Timestamp:       time.Now().UTC(),
-		OrganizationID:  getOrganizationFromContext(r.Context()).ID,
-		UserID:          req.UserID,
-		Metadata:        req.Metadata,
-		RequestID:       req.RequestID,
-		Client:          req.Client,
-		OperatingSystem: req.OperatingSystem,
+		Action:         req.Action,
+		Timestamp:      time.Now().UTC(),
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+		UserID:         req.UserID,
+		Description:    req.Description,
+		Metadata:       req.Metadata,
+		RequestDetails: req.RequestDetails,
 	}
 
 	orgUser, err := a.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
@@ -164,15 +173,21 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 	}
 
 	auditLogResponse := &AuditLog{
-		ID:        auditLog.ID,
-		Action:    auditLog.Action,
-		UserName:  auditLog.UserName,
-		Timestamp: auditLog.Timestamp,
-		IPAddress: auditLog.IPAddress,
-		UserID:    auditLog.UserID,
-		Metadata:  auditLog.Metadata,
-		CreatedAt: auditLog.CreatedAt,
-		RequestID: auditLog.RequestID,
+		ID:              auditLog.ID,
+		Action:          auditLog.Action,
+		UserName:        auditLog.UserName,
+		Description:     auditLog.Description,
+		Timestamp:       auditLog.Timestamp,
+		IPAddress:       auditLog.RequestDetails.IPAddress,
+		UserID:          auditLog.UserID,
+		Metadata:        auditLog.Metadata,
+		CreatedAt:       auditLog.CreatedAt,
+		HTTPMethod:      auditLog.RequestDetails.HTTPMethod,
+		HTTPStatusCode:  auditLog.RequestDetails.HTTPStatusCode,
+		HTTPEndpoint:    auditLog.RequestDetails.HTTPEndpoint,
+		ClientUserAgent: auditLog.RequestDetails.ClientUserAgent,
+		GeoIPLocation:   auditLog.RequestDetails.GeoIPLocation,
+		OperatingSystem: auditLog.RequestDetails.OperatingSystem,
 	}
 
 	return listAuditLog{
@@ -230,14 +245,18 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 			ID:              a.ID,
 			Action:          a.Action,
 			UserName:        a.UserName,
+			Description:     a.Description,
 			Timestamp:       a.Timestamp,
-			IPAddress:       a.IPAddress,
+			IPAddress:       a.RequestDetails.IPAddress,
 			UserID:          a.UserID,
 			Metadata:        a.Metadata,
-			RequestID:       a.RequestID,
 			CreatedAt:       a.CreatedAt,
-			Client:          a.Client,
-			OperatingSystem: a.OperatingSystem,
+			OperatingSystem: a.RequestDetails.OperatingSystem,
+			HTTPMethod:      a.RequestDetails.HTTPMethod,
+			HTTPStatusCode:  a.RequestDetails.HTTPStatusCode,
+			HTTPEndpoint:    a.RequestDetails.HTTPEndpoint,
+			ClientUserAgent: a.RequestDetails.ClientUserAgent,
+			GeoIPLocation:   a.RequestDetails.GeoIPLocation,
 		}
 
 		auditLogResponse = append(auditLogResponse, dto)

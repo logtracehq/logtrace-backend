@@ -14,6 +14,7 @@ import (
 	"gitlab.com/logtrace/logtrace"
 	"gitlab.com/logtrace/logtrace/config"
 	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace/internal/pkg/services"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -30,15 +31,13 @@ type sessionHandler struct {
 type sessionRequest struct {
 	GenericRequest
 
-	LoginAt    string                 `json:"login_at"`
-	DeviceInfo string                 `json:"device_info"`
-	IPAddress  string                 `json:"ip_address"`
-	Location   string                 `json:"location"`
-	Status     logtrace.SessionStatus `json:"status"`
-	UserID     string                 `json:"user_id"`
-	UserName   string                 `json:"username"`
-	Token      string                 `json:"token"`
-	Metadata   logtrace.Metadata      `json:"metadata"`
+	LoginAt        string                  `json:"login_at"`
+	Status         logtrace.SessionStatus  `json:"status"`
+	UserID         string                  `json:"user_id"`
+	UserName       string                  `json:"username"`
+	Token          string                  `json:"token"`
+	RequestDetails logtrace.RequestDetails `json:"request_details"`
+	Metadata       logtrace.Metadata       `json:"metadata"`
 }
 
 func (sr *sessionRequest) Validate() error {
@@ -73,6 +72,23 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	geo, err := services.GeoIPLookup(ctx, req.RequestDetails.IPAddress)
+	if err != nil {
+		logger.Info("this is the request", zap.Any("request details", req))
+		logger.Info("this is the ip address", zap.String("ip address", req.RequestDetails.IPAddress))
+		logger.Warn("failed to resolve geoip", zap.Error(err))
+	}
+
+	geoLocation := ""
+	if geo != nil {
+		geoLocation = geo.Country
+		if geo.City != "" {
+			geoLocation += ", " + geo.City
+		}
+	}
+
+	req.RequestDetails.GeoIPLocation = geoLocation
+
 	loginAt, err := time.Parse("2006-01-02T15:04:05Z07:00", req.LoginAt)
 	if err != nil {
 		logger.Error("invalid login at format", zap.Error(err))
@@ -81,15 +97,13 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 
 	session := &logtrace.Session{
 		UserID:         req.UserID,
-		DeviceInfo:     req.DeviceInfo,
 		UserName:       req.UserName,
-		IPAddress:      req.IPAddress,
-		Location:       req.Location,
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		Status:         strings.ToLower(string(req.Status)),
 		Token:          req.Token,
 		Metadata:       req.Metadata,
 		LoginAt:        loginAt,
+		RequestDetails: req.RequestDetails,
 	}
 
 	orgUser, err := sh.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
@@ -162,18 +176,22 @@ func (sh *sessionHandler) List(ctx context.Context, span trace.Span, logger *zap
 	}
 
 	sessionResponse := &Session{
-		ID:         session.ID,
-		UserID:     session.UserID,
-		UserName:   session.UserName,
-		LoginAt:    session.LoginAt,
-		Token:      session.Token,
-		LogoutAt:   session.LogoutAt,
-		DeviceInfo: session.DeviceInfo,
-		IPAddress:  session.IPAddress,
-		Location:   session.Location,
-		Status:     logtrace.SessionStatus(session.Status),
-		Metadata:   session.Metadata,
-		CreatedAt:  session.CreatedAt,
+		ID:              session.ID,
+		UserID:          session.UserID,
+		UserName:        session.UserName,
+		LoginAt:         session.LoginAt,
+		Token:           session.Token,
+		LogoutAt:        session.LogoutAt,
+		IPAddress:       session.RequestDetails.IPAddress,
+		GeoIPLocation:   session.RequestDetails.GeoIPLocation,
+		Status:          logtrace.SessionStatus(session.Status),
+		Metadata:        session.Metadata,
+		CreatedAt:       session.CreatedAt,
+		HTTPMethod:      session.RequestDetails.HTTPMethod,
+		HTTPStatusCode:  session.RequestDetails.HTTPStatusCode,
+		HTTPEndpoint:    session.RequestDetails.HTTPEndpoint,
+		ClientUserAgent: session.RequestDetails.ClientUserAgent,
+		OperatingSystem: session.RequestDetails.OperatingSystem,
 	}
 
 	return fetchSessionResponse{
@@ -222,18 +240,22 @@ func (sh *sessionHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	sessionResponses := make([]*Session, 0, len(sessions))
 	for _, session := range sessions {
 		sessionResponses = append(sessionResponses, &Session{
-			ID:         session.ID,
-			UserID:     session.UserID,
-			UserName:   session.UserName,
-			LoginAt:    session.LoginAt,
-			Token:      session.Token,
-			LogoutAt:   session.LogoutAt,
-			DeviceInfo: session.DeviceInfo,
-			IPAddress:  session.IPAddress,
-			Location:   session.Location,
-			Status:     logtrace.SessionStatus(session.Status),
-			Metadata:   session.Metadata,
-			CreatedAt:  session.CreatedAt,
+			ID:              session.ID,
+			UserID:          session.UserID,
+			UserName:        session.UserName,
+			LoginAt:         session.LoginAt,
+			Token:           session.Token,
+			LogoutAt:        session.LogoutAt,
+			IPAddress:       session.RequestDetails.IPAddress,
+			GeoIPLocation:   session.RequestDetails.GeoIPLocation,
+			Status:          logtrace.SessionStatus(session.Status),
+			Metadata:        session.Metadata,
+			CreatedAt:       session.CreatedAt,
+			HTTPMethod:      session.RequestDetails.HTTPMethod,
+			HTTPStatusCode:  session.RequestDetails.HTTPStatusCode,
+			HTTPEndpoint:    session.RequestDetails.HTTPEndpoint,
+			ClientUserAgent: session.RequestDetails.ClientUserAgent,
+			OperatingSystem: session.RequestDetails.OperatingSystem,
 		})
 	}
 

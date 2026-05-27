@@ -135,8 +135,6 @@ func generateCreateAuditLogTestTable() []struct {
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
 				UserName:  testAuditLogUserName,
-				IPAddress: "192.168.1.1",
-				RequestID: "req_123",
 				Metadata: logtrace.Metadata{
 					"event":       "login",
 					"type":        "authentication",
@@ -163,8 +161,6 @@ func generateCreateAuditLogTestTable() []struct {
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
 				UserName:  testAuditLogUserName,
-				IPAddress: "192.168.1.1",
-				RequestID: "req_123",
 				Metadata: logtrace.Metadata{
 					"event":       "login",
 					"type":        "authentication",
@@ -257,11 +253,9 @@ func generateListAuditLogTestTable() []struct {
 						ID:             testAuditLogID,
 						Action:         "user.login",
 						Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
-						IPAddress:      "192.168.1.1",
 						UserID:         testUserID.String(),
 						UserName:       testAuditLogUserName,
 						OrganizationID: testOrgID,
-						RequestID:      "req_123",
 					}, nil)
 			},
 			expectedStatusCode: http.StatusOK,
@@ -339,11 +333,9 @@ func generateListAllAuditLogsTestTable() []struct {
 							ID:             testAuditLogID,
 							Action:         "user.login",
 							Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
-							IPAddress:      "192.168.1.1",
 							UserID:         testUserID.String(),
 							UserName:       testAuditLogUserName,
 							OrganizationID: testOrgID,
-							RequestID:      "req_123",
 						},
 					}, int64(1), nil)
 			},

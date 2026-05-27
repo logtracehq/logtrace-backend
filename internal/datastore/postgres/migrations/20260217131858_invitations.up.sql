@@ -11,7 +11,7 @@ CREATE TABLE invitations (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP WITH TIME ZONE
-)
+);
 
 CREATE INDEX idx_invitations_organization_id ON invitations (organization_id);
 CREATE INDEX idx_invitations_email ON invitations (email);

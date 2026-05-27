@@ -12,6 +12,7 @@ import (
 	"gitlab.com/logtrace/logtrace"
 	"gitlab.com/logtrace/logtrace/config"
 	queue "gitlab.com/logtrace/logtrace/internal/pkg/queues"
+	"gitlab.com/logtrace/logtrace/internal/pkg/services"
 	"gitlab.com/logtrace/logtrace/internal/pkg/util"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -29,38 +30,21 @@ type eventHander struct {
 type createEventRequest struct {
 	GenericRequest
 
-	ActionName      string            `json:"action_name"`
-	UserID          string            `json:"user_id"`
-	Username        string            `json:"username"`
-	HTTPMethod      string            `json:"http_method"`
-	HTTPStatus      string            `json:"http_status"`
-	HTTPEndpoint    string            `json:"http_endpoint"`
-	ClientIP        string            `json:"client_ip"`
-	ClientUserAgent string            `json:"client_user_agent"`
-	Type            string            `json:"type"`
-	GeoIpLocation   string            `json:"geo_ip_location"`
-	Metadata        logtrace.Metadata `json:"metadata"`
+	ActionName     string                  `json:"action_name"`
+	UserID         string                  `json:"user_id"`
+	Username       string                  `json:"username"`
+	RequestDetails logtrace.RequestDetails `json:"request_details"`
+	Type           string                  `json:"type"`
+	Metadata       logtrace.Metadata       `json:"metadata"`
 }
 
 func (e *createEventRequest) Validate() error {
 	if util.IsStringEmpty(e.ActionName) {
 		return errors.New("action name is required")
 	}
-	if util.IsStringEmpty(e.HTTPMethod) {
-		return errors.New("http method is required")
-	}
-	if util.IsStringEmpty(e.HTTPStatus) {
-		return errors.New("http status is required")
-	}
-	if util.IsStringEmpty(e.ClientIP) {
-		return errors.New("client IP is required")
-	}
+
 	if util.IsStringEmpty(e.Username) && util.IsStringEmpty(e.UserID) {
 		return errors.New("user information (username or user_id) is required")
-	}
-
-	if util.IsStringEmpty(e.ClientUserAgent) {
-		return errors.New("client user agent is required")
 	}
 
 	return nil
@@ -89,19 +73,29 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	geo, err := services.GeoIPLookup(ctx, req.RequestDetails.IPAddress)
+	if err != nil {
+		logger.Warn("failed to resolve geoip", zap.Error(err))
+	}
+
+	geoLocation := ""
+	if geo != nil {
+		geoLocation = geo.Country
+		if geo.City != "" {
+			geoLocation += ", " + geo.City
+		}
+	}
+
+	req.RequestDetails.GeoIPLocation = geoLocation
+
 	event := &logtrace.Event{
-		ActionName:      req.ActionName,
-		HTTPMethod:      req.HTTPMethod,
-		HTTPEndpoint:    req.HTTPEndpoint,
-		Username:        req.Username,
-		UserID:          req.UserID,
-		HTTPStatus:      req.HTTPStatus,
-		ClientIP:        req.ClientIP,
-		OrganizationID:  getOrganizationFromContext(r.Context()).ID,
-		ClientUserAgent: req.ClientUserAgent,
-		GeoIPLocation:   req.GeoIpLocation,
-		Type:            req.Type,
-		Metadata:        req.Metadata,
+		ActionName:     req.ActionName,
+		Username:       req.Username,
+		UserID:         req.UserID,
+		OrganizationID: getOrganizationFromContext(r.Context()).ID,
+		Type:           req.Type,
+		Metadata:       req.Metadata,
+		RequestDetails: req.RequestDetails,
 	}
 
 	orgUser, err := e.orgUserRepo.Find(ctx, &logtrace.FindOrganizationUserOptions{
@@ -179,15 +173,16 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 		Type:            event.Type,
 		Username:        event.Username,
 		UserID:          event.UserID,
-		HTTPMethod:      event.HTTPMethod,
-		HTTPStatus:      event.HTTPStatus,
-		HTTPEndpoint:    event.HTTPEndpoint,
-		ClientIP:        event.ClientIP,
-		ClientUserAgent: event.ClientUserAgent,
-		GeoIPLocation:   event.GeoIPLocation,
+		HTTPMethod:      event.RequestDetails.HTTPMethod,
+		HTTPStatusCode:  event.RequestDetails.HTTPStatusCode,
+		HTTPEndpoint:    event.RequestDetails.HTTPEndpoint,
+		IPAddress:       event.RequestDetails.IPAddress,
+		ClientUserAgent: event.RequestDetails.ClientUserAgent,
+		GeoIPLocation:   event.RequestDetails.GeoIPLocation,
 		ActionName:      event.ActionName,
 		Metadata:        event.Metadata,
 		CreatedAt:       event.CreatedAt,
+		OperatingSystem: event.RequestDetails.OperatingSystem,
 	}
 
 	return fetchEventResponse{
@@ -246,17 +241,18 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 		eventResponses = append(eventResponses, &Event{
 			ID:              event.ID,
 			Type:            event.Type,
-			HTTPMethod:      event.HTTPMethod,
-			HTTPStatus:      event.HTTPStatus,
+			HTTPMethod:      event.RequestDetails.HTTPMethod,
+			HTTPStatusCode:  event.RequestDetails.HTTPStatusCode,
 			Username:        event.Username,
 			UserID:          event.UserID,
-			HTTPEndpoint:    event.HTTPEndpoint,
-			ClientIP:        event.ClientIP,
-			ClientUserAgent: event.ClientUserAgent,
-			GeoIPLocation:   event.GeoIPLocation,
+			HTTPEndpoint:    event.RequestDetails.HTTPEndpoint,
+			IPAddress:       event.RequestDetails.IPAddress,
+			ClientUserAgent: event.RequestDetails.ClientUserAgent,
+			GeoIPLocation:   event.RequestDetails.GeoIPLocation,
 			ActionName:      event.ActionName,
 			Metadata:        event.Metadata,
 			CreatedAt:       event.CreatedAt,
+			OperatingSystem: event.RequestDetails.OperatingSystem,
 		})
 	}
 
