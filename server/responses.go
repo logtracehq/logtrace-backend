@@ -25,7 +25,7 @@ type meta struct {
 
 type APIStatus struct {
 	statusCode int
-	Message    string `json:"message," validate:"required"`
+	Message    string `json:"message" validate:"required"`
 }
 
 func (a APIStatus) Render(w http.ResponseWriter, r *http.Request) error {
