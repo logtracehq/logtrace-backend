@@ -12,7 +12,7 @@ import (
 
 // ENUM(billing_trial_ending,billing_create_customer,
 // invite_team_member,subscription_expired, verify_email,
-// save_event, save_audit_log, save_session)
+// save_event, save_audit_log, save_session, alert, reset_password, reset_password_success)
 type QueueTopic string
 
 type Message struct {
@@ -78,4 +78,17 @@ type SaveAuditLogOptions struct {
 
 type SaveSessionOptions struct {
 	Session *logtrace.Session
+}
+
+type AlertOptions struct {
+	Organization *logtrace.Organization
+	Recipient    string
+	Actor        string
+	IPAddress    string
+	Timestamp    string
+}
+
+type ResetPasswordOptions struct {
+	UserID uuid.UUID
+	Token  string
 }

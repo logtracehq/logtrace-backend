@@ -192,7 +192,7 @@ func getFetchCurrentUserData() []struct {
 			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name: "listed organizations with current workspace",
+			name: "listed organizations with current organization",
 			mockFn: func(orgRepo *logtrace_mocks.MockOrganizationRepository) {
 				orgRepo.EXPECT().ListAll(gomock.Any(), gomock.Any()).
 					Times(1).

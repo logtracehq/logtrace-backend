@@ -9,7 +9,7 @@
 
 <body style="background-color:#ffffff">
     <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">
-        You've been invited to join {{ .OrganizationName }} on Logtrace
+        You've been invited to join {{ .Organization }} on Logtrace
         <div></div>
     </div>
     <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
@@ -19,12 +19,12 @@
                 <td>
                     <h1
                         style="color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:24px;font-weight:bold;margin:40px 0;padding:0">
-                        You've been invited to join {{ .OrganizationName }}
+                        You've been invited to join {{ .Organization }}
                     </h1>
                     <p
                         style="font-size:14px;line-height:24px;margin:24px 0;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-bottom:14px">
-                        Hi {{ .FullName }}, <strong>{{ .InviterName }}</strong> has invited you to join the
-                        <strong>{{ .OrganizationName }}</strong> workspace on <strong>Logtrace</strong> &mdash;
+                        Hi {{ .FullName }}, <strong>{{ .Inviter }}</strong> has invited you to join the
+                        <strong>{{ .Organization }}</strong> organization on <strong>Logtrace</strong> &mdash;
                         the audit trail platform for compliance and security.
                     </p>
                     <p
@@ -50,16 +50,54 @@
                         If you were not expecting this invitation, you can safely ignore this email.
                         This link will expire in 7 days.
                     </p>
-                    <img alt="Logtrace Logo" height="32"
-                        src="https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/logtrace/logos/mtnjuwfl0gb9r11pz5qg.png"
-                        style="display:block;outline:none;border:none;text-decoration:none" />
+
+                    <img alt="Logtrace Logo" height="16" src="https://logtracehq.com/logtrace_logo.svg"
+                        style="display:block;outline:none;border:none;text-decoration:none; margin: bottom 16px;" />
+
+
+                    <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+                        style="margin-bottom:12px; margin-top:16px;">
+                        <tbody>
+                            <tr>
+                                <td style="padding-right:12px">
+                                    <a href="https://github.com/logtracehq" target="_blank"
+                                        style="color:#6366F1;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:13px;">
+                                        GitHub
+                                    </a>
+                                </td>
+                                <td style="color:#ccc;font-size:13px;padding-right:12px">&bull;</td>
+                                <td style="padding-right:12px">
+                                    <a href="https://www.linkedin.com/company/logtrace/" target="_blank"
+                                        style="color:#6366F1;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:13px;">
+                                        LinkedIn
+                                    </a>
+                                </td>
+                                <td style="color:#ccc;font-size:13px;padding-right:12px">&bull;</td>
+                                <td>
+                                    <a href="https://twitter.com/logtracehq" target="_blank"
+                                        style="color:#6366F1;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:13px;">
+                                        Twitter
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
                     <p
                         style="font-size:12px;line-height:22px;margin:16px 0;color:#898989;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:12px;margin-bottom:24px">
-                        <a href="https://logtrace.vc"
+                        <a href="https://logtracehq.com"
                             style="color:#898989;text-decoration-line:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:14px;text-decoration:underline"
                             target="_blank">
                             Logtrace
                         </a> &mdash; audit trail platform for compliance and security<br />
+                    </p>
+
+                    <p
+                        style="font-size:12px;line-height:22px;margin:0 0 24px;color:#898989;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+                        <a href="mailto:team@logtracehq.com"
+                            style="color:#898989;font-size:12px;text-decoration:underline;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+                            team@logtracehq.com
+                        </a>
                     </p>
                 </td>
             </tr>

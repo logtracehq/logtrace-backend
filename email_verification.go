@@ -34,4 +34,6 @@ func NewEmailVerification(u *User) (*EmailVerification, error) {
 
 type EmailVerificationRepository interface {
 	Create(context.Context, *EmailVerification) error
+	Delete(ctx context.Context, token string) error
+	List(ctx context.Context, token string) (*EmailVerification, error)
 }

@@ -14,11 +14,11 @@ import (
 var templatesFS embed.FS
 
 var (
-	DashboardSharingTemplate  = mustReadTemplate("templates/sharing/dashboard_share.html")
 	BillingTrialTemplate      = mustReadTemplate("templates/billing/trial.html")
 	BillingEndedTemplate      = mustReadTemplate("templates/billing/expired.html")
 	EmailVerificationTemplate = mustReadTemplate("templates/auth/email_verify.html")
 	InviteUserTemplate        = mustReadTemplate("templates/invitation/invite_user.html")
+	ResetPasswordTemplate     = mustReadTemplate("templates/auth/password_reset.html")
 )
 
 func mustReadTemplate(path string) string {

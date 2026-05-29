@@ -27,6 +27,12 @@ const (
 	QueueTopicSaveAuditLog QueueTopic = "save_audit_log"
 	// QueueTopicSaveSession is a QueueTopic of type save_session.
 	QueueTopicSaveSession QueueTopic = "save_session"
+	// QueueTopicAlert is a QueueTopic of type alert.
+	QueueTopicAlert QueueTopic = "alert"
+	// QueueTopicResetPassword is a QueueTopic of type reset_password.
+	QueueTopicResetPassword QueueTopic = "reset_password"
+	// QueueTopicResetPasswordSuccess is a QueueTopic of type reset_password_success.
+	QueueTopicResetPasswordSuccess QueueTopic = "reset_password_success"
 )
 
 var ErrInvalidQueueTopic = errors.New("not a valid QueueTopic")
@@ -52,6 +58,9 @@ var _QueueTopicValue = map[string]QueueTopic{
 	"save_event":              QueueTopicSaveEvent,
 	"save_audit_log":          QueueTopicSaveAuditLog,
 	"save_session":            QueueTopicSaveSession,
+	"alert":                   QueueTopicAlert,
+	"reset_password":          QueueTopicResetPassword,
+	"reset_password_success":  QueueTopicResetPasswordSuccess,
 }
 
 // ParseQueueTopic attempts to convert a string to a QueueTopic.

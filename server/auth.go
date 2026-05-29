@@ -302,6 +302,7 @@ func (a *authHandler) fetchCurrentUser(
 		Username:  user.FullName,
 		Email:     user.Email.String(),
 		FullName:  user.FullName,
+		Phone:     user.Phone,
 		CreatedAt: user.CreatedAt,
 		Metadata:  user.Metadata,
 	}
@@ -687,4 +688,149 @@ func (a *authHandler) revokeUserRole(ctx context.Context, span trace.Span, logge
 	}
 
 	return newAPIStatus(http.StatusOK, "user role revoked successfully"), StatusSuccess
+}
+
+type resetPasswordRequest struct {
+	GenericRequest
+	Token           string `json:"token"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirm_password"`
+}
+
+func (r *resetPasswordRequest) Validate() error {
+	if util.IsStringEmpty(r.Token) {
+		return errors.New("token is required")
+	}
+	if util.IsStringEmpty(r.Password) {
+		return errors.New("password is required")
+	}
+	if r.Password != r.ConfirmPassword {
+		return errors.New("passwords do not match")
+	}
+	if passwd.Strength(r.Password) < passwd.Moderate {
+		return errors.New("password is too weak")
+	}
+	return nil
+}
+
+type requestPasswordResetRequest struct {
+	GenericRequest
+	Email string `json:"email"`
+}
+
+func (r *requestPasswordResetRequest) Validate() error {
+	if util.IsStringEmpty(r.Email) {
+		return errors.New("email is required")
+	}
+	if err := checkmail.ValidateFormat(r.Email); err != nil {
+		return errors.New("invalid email format")
+	}
+	return nil
+}
+
+// @Description RequestPasswordReset sends a password reset email to the user.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param requestPasswordResetRequest body requestPasswordResetRequest true "Password Reset Request Body"
+// @Success 200 {object} APIStatus "Password reset email sent"
+// @Failure 400 {object} APIStatus "Bad request"
+// @Failure 500 {object} APIStatus "Internal server error"
+// @Router /auth/password/reset [post]
+func (a *authHandler) requestPasswordReset(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("requesting password reset")
+
+	req := new(requestPasswordResetRequest)
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	user, err := a.userRepo.List(ctx, &logtrace.FindUserOptions{
+		Email: logtrace.Email(req.Email),
+	})
+	if err != nil {
+		if errors.Is(err, logtrace.ErrUserNotFound) {
+			logger.Debug("password reset requested for unknown email", zap.String("email", req.Email))
+			return newAPIStatus(http.StatusOK, "if an account exists, a reset email has been sent"), StatusSuccess
+		}
+		logger.Error("error fetching user for password reset", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "an error occurred"), StatusFailed
+	}
+
+	tokenData, err := a.tokenManager.GeneratePasswordResetToken(jwttoken.JWTokenData{
+		UserID: user.ID,
+	})
+	if err != nil {
+		logger.Error("could not generate password reset token", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not generate reset token"), StatusFailed
+	}
+
+	if err := a.queue.Add(ctx, queue.QueueTopicResetPassword, queue.ResetPasswordOptions{
+		UserID: user.ID,
+		Token:  tokenData.Token,
+	}); err != nil {
+		logger.Error("failed to queue password reset email", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to send reset email"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "if an account exists, a reset email has been sent"), StatusSuccess
+}
+
+// @Description ResetPassword applies a new password using a valid reset token.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param resetPasswordRequest body resetPasswordRequest true "Reset Password Request Body"
+// @Success 200 {object} APIStatus "Password reset successfully"
+// @Failure 400 {object} APIStatus "Bad request or invalid/expired token"
+// @Failure 500 {object} APIStatus "Internal server error"
+// @Router /auth/password/confirm [post]
+func (a *authHandler) resetPassword(
+	ctx context.Context,
+	span trace.Span,
+	logger *zap.Logger,
+	w http.ResponseWriter,
+	r *http.Request,
+) (render.Renderer, Status) {
+	logger.Debug("resetting password")
+
+	req := new(resetPasswordRequest)
+	if err := render.Bind(r, req); err != nil {
+		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
+	}
+
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+	}
+
+	tokenData, err := a.tokenManager.ParsePasswordResetToken(req.Token)
+	if err != nil {
+		logger.Debug("invalid or expired reset token", zap.Error(err))
+		return newAPIStatus(http.StatusBadRequest, "invalid or expired reset token"), StatusFailed
+	}
+
+	hashedPassword, err := logtrace.HashPassword(req.Password)
+	if err != nil {
+		logger.Error("failed to hash password", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to process new password"), StatusFailed
+	}
+
+	if err := a.passwordRepo.Update(ctx, &logtrace.Password{
+		UserID:       tokenData.UserID,
+		UserPassword: hashedPassword,
+	}); err != nil {
+		logger.Error("failed to update password", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not update password"), StatusFailed
+	}
+
+	return newAPIStatus(http.StatusOK, "password reset successfully"), StatusSuccess
 }

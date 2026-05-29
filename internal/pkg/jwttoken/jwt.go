@@ -28,6 +28,8 @@ type jwtokenManager struct {
 type JWTokenManager interface {
 	GenerateJWToken(JWTokenData) (JWTokenData, error)
 	ParseJWToken(string) (JWTokenData, error)
+	GeneratePasswordResetToken(JWTokenData) (JWTokenData, error)
+	ParsePasswordResetToken(string) (JWTokenData, error)
 }
 
 func New(cfg *config.Config) JWTokenManager {
@@ -108,5 +110,61 @@ func (t *jwtokenManager) ParseJWToken(JWToken string) (JWTokenData, error) {
 	return JWTokenData{
 		UserID:    userID,
 		ExpiresAt: expiresTime,
+	}, nil
+}
+
+func (t *jwtokenManager) GeneratePasswordResetToken(data JWTokenData) (JWTokenData, error) {
+	claims := jwt.MapClaims{
+		"signer":  "logtrace",
+		"id":      data.UserID,
+		"aud":     "logtrace",
+		"purpose": "password_reset",
+		"exp":     time.Now().Add(time.Minute * 60).Unix(),
+	}
+
+	jwtoken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token, err := jwtoken.SignedString([]byte(t.signingKey))
+	if err != nil {
+		return JWTokenData{}, fmt.Errorf("GeneratePasswordResetToken/SignedString: %w", err)
+	}
+
+	data.Token = token
+	data.ExpiresAt = time.Now().Add(time.Minute * 60)
+	return data, nil
+}
+
+func (t *jwtokenManager) ParsePasswordResetToken(rawToken string) (JWTokenData, error) {
+	parsed, err := jwt.Parse(rawToken, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("ParsePasswordResetToken: unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(t.signingKey), nil
+	})
+	if err != nil {
+		return JWTokenData{}, fmt.Errorf("ParsePasswordResetToken/Parse: %w", err)
+	}
+
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+	if !ok {
+		return JWTokenData{}, errors.New("ParsePasswordResetToken: invalid claims")
+	}
+
+	purpose, ok := claims["purpose"].(string)
+	if !ok || purpose != "password_reset" {
+		return JWTokenData{}, errors.New("ParsePasswordResetToken: invalid token purpose")
+	}
+
+	id, ok := claims["id"].(string)
+	if !ok {
+		return JWTokenData{}, errors.New("ParsePasswordResetToken: user_id not found")
+	}
+
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return JWTokenData{}, fmt.Errorf("ParsePasswordResetToken: invalid user_id: %w", err)
+	}
+
+	return JWTokenData{
+		UserID: userID,
 	}, nil
 }

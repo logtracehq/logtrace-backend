@@ -9,7 +9,7 @@
 
 <body style="background-color:#ffffff">
     <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">
-        Logtrace alert: {{ .Action }} detected in {{ .OrganizationName }}
+        Logtrace alert: {{ .Action }} detected in {{ .Organization }}
         <div></div>
     </div>
     <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
@@ -19,7 +19,7 @@
                 <td>
                     <p
                         style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6366F1;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin:40px 0 8px 0;padding:0">
-                        Audit Alert &mdash; {{ .OrganizationName }}
+                        Audit Alert &mdash; {{ .Organization }}
                     </p>
                     <h1
                         style="color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:24px;font-weight:bold;margin:0 0 24px 0;padding:0">
@@ -27,13 +27,13 @@
                     </h1>
                     <p
                         style="font-size:14px;line-height:24px;margin:0 0 14px 0;color:#333;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif">
-                        Hi {{ .RecipientName }}, Logtrace has recorded a notable audit log entry in your workspace that
+                        Hi {{ .Recipient }}, Logtrace has recorded a notable audit log entry in your organization
+                        that
                         may require your attention.
                     </p>
 
                     <!-- Detail card -->
-                    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
-                        style="background-color:#f8f8fc;border:1px solid #e5e5f0;border-radius:8px;margin:20px 0">
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                         <tbody>
                             <tr>
                                 <td style="padding:20px 24px">
@@ -94,18 +94,56 @@
                     <p
                         style="font-size:14px;line-height:24px;margin:24px 0;color:#ababab;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:14px;margin-bottom:16px">
                         You are receiving this alert because audit notifications are enabled for
-                        <strong>{{ .OrganizationName }}</strong>. You can manage your alert settings in your workspace.
+                        <strong>{{ .Organization }}</strong>.
                     </p>
-                    <img alt="Logtrace Logo" height="32"
-                        src="https://res.cloudinary.com/dwkjke5ea/image/upload/v1742121952/logtrace/logos/mtnjuwfl0gb9r11pz5qg.png"
-                        style="display:block;outline:none;border:none;text-decoration:none" />
+                    <img alt="Logtrace Logo" height="16" src="https://logtracehq.com/logtrace_logo.svg"
+                        style="display:block;outline:none;border:none;text-decoration:none; margin: bottom 16px;" />
+
+
+                    <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+                        style="margin-bottom:12px; margin-top:16px;">
+                        <tbody>
+                            <tr>
+                                <td style="padding-right:12px">
+                                    <a href="https://github.com/logtracehq" target="_blank"
+                                        style="color:#6366F1;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:13px;">
+                                        GitHub
+                                    </a>
+                                </td>
+                                <td style="color:#ccc;font-size:13px;padding-right:12px">&bull;</td>
+                                <td style="padding-right:12px">
+                                    <a href="https://www.linkedin.com/company/logtrace/" target="_blank"
+                                        style="color:#6366F1;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:13px;">
+                                        LinkedIn
+                                    </a>
+                                </td>
+                                <td style="color:#ccc;font-size:13px;padding-right:12px">&bull;</td>
+                                <td>
+                                    <a href="https://twitter.com/logtracehq" target="_blank"
+                                        style="color:#6366F1;text-decoration:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:13px;">
+                                        Twitter
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
                     <p
                         style="font-size:12px;line-height:22px;margin:16px 0;color:#898989;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;margin-top:12px;margin-bottom:24px">
-                        <a href="https://logtrace.vc"
+                        <a href="https://logtracehq.com"
                             style="color:#898989;text-decoration-line:none;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;font-size:14px;text-decoration:underline"
                             target="_blank">
                             Logtrace
                         </a> &mdash; audit trail platform for compliance and security<br />
+                    </p>
+
+                    <p
+                        style="font-size:12px;line-height:22px;margin:0 0 24px;color:#898989;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+                        <a href="mailto:team@logtracehq.com"
+                            style="color:#898989;font-size:12px;text-decoration:underline;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;">
+                            team@logtracehq.com
+                        </a>
                     </p>
                 </td>
             </tr>

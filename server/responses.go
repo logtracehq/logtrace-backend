@@ -94,6 +94,7 @@ type User struct {
 	Username    string                 `json:"username"`
 	Email       string                 `json:"email"`
 	FullName    string                 `json:"full_name"`
+	Phone       string                 `json:"phone"`
 	CreatedAt   time.Time              `json:"created_at"`
 	LastLoginAt time.Time              `json:"last_login_at"`
 	Metadata    *logtrace.UserMetadata `json:"metadata"`

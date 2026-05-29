@@ -28,7 +28,7 @@ func (t *WatermillClient) sendSubExpiredEmail(msg *message.Message) error {
 	}
 
 	logger := t.logger.With(zap.String("method", "sendSubExpiredEmail"),
-		zap.String("workspace_id", opts.Organization.ID.String()))
+		zap.String("organization_id", opts.Organization.ID.String()))
 
 	logger.Debug("sending sub expired email")
 
@@ -42,8 +42,8 @@ func (t *WatermillClient) sendSubExpiredEmail(msg *message.Message) error {
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, map[string]string{
-		"WorkspaceName": opts.Organization.Name,
-		"Link":          link,
+		"Organization": opts.Organization.Name,
+		"Link":         link,
 	}); err != nil {
 		logger.Error("could not embed content in template", zap.Error(err))
 		return err
@@ -86,7 +86,7 @@ func (t *WatermillClient) sendBillingTrialEmail(msg *message.Message) error {
 	}
 
 	logger := t.logger.With(zap.String("method", "sendBillingTrialEmail"),
-		zap.String("workspace_id", opts.Organization.ID.String()))
+		zap.String("organization_id", opts.Organization.ID.String()))
 
 	logger.Debug("sending email to user for free trial")
 
@@ -96,13 +96,13 @@ func (t *WatermillClient) sendBillingTrialEmail(msg *message.Message) error {
 		return err
 	}
 
-	link := t.cfg.Frontend.AppURL + "/settings?tab=billing"
+	link := t.cfg.Frontend.AppURL + "/settings/billing"
 
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, map[string]string{
-		"WorkspaceName": opts.Organization.Name,
-		"Link":          link,
-		"Expiration":    opts.Expiration,
+		"Organization": opts.Organization.Name,
+		"Link":         link,
+		"Expiration":   opts.Expiration,
 	}); err != nil {
 		logger.Error("could not embed content in template", zap.Error(err))
 		return err
@@ -178,6 +178,71 @@ func (t *WatermillClient) sendEmailVerification(msg *message.Message) error {
 		Sender:    t.cfg.Email.Sender,
 		Recipient: user.Email,
 		Subject:   "Verify your account to get started with Logtrace",
+		DKIM: struct {
+			Sign       bool
+			PrivateKey []byte
+		}{
+			Sign:       false,
+			PrivateKey: []byte(""),
+		},
+	}
+
+	_, err = t.emailClient.Send(ctx, emailOpts)
+	if err != nil {
+		logger.Error("could not send email", zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
+func (t *WatermillClient) sendPasswordResetEmail(msg *message.Message) error {
+	ctx, span := tracer.Start(context.Background(),
+		"sendPasswordResetEmail")
+
+	defer span.End()
+
+	var opts queue.ResetPasswordOptions
+
+	if err := json.NewDecoder(bytes.NewBuffer(msg.Payload)).
+		Decode(&opts); err != nil {
+		return err
+	}
+
+	logger := t.logger.With(zap.String("method", "sendPasswordResetEmail"))
+
+	logger.Debug("sending email to user")
+
+	tmpl, err := template.New("template").Parse(email.ResetPasswordTemplate)
+	if err != nil {
+		logger.Error("could not parse email template", zap.Error(err))
+		return err
+	}
+
+	user, err := t.userRepo.List(ctx, &logtrace.FindUserOptions{
+		ID: opts.UserID,
+	})
+	if err != nil {
+		logger.Error("could not fetch user from database", zap.Error(err))
+		return err
+	}
+
+	link := t.cfg.Frontend.AppURL + "/reset-password?token=" + opts.Token
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, map[string]string{
+		"FullName": strings.Split(user.FullName, " ")[0],
+		"Link":     link,
+	}); err != nil {
+		logger.Error("could not embed content in template", zap.Error(err))
+		return err
+	}
+
+	emailOpts := email.SendOptions{
+		HTML:      buf.String(),
+		Sender:    t.cfg.Email.Sender,
+		Recipient: user.Email,
+		Subject:   "Reset your Logtrace password",
 		DKIM: struct {
 			Sign       bool
 			PrivateKey []byte
