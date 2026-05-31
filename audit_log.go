@@ -28,7 +28,7 @@ type AuditLog struct {
 	CreatedAt      time.Time      `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	OrganizationID uuid.UUID      `json:"organization_id" bun:"type:uuid"`
 	UpdatedAt      time.Time      `json:"updated_at"  bun:"default:current_timestamp,notnull"`
-	DeletedAt      *time.Time     `json:"-,omitempty" bun:",soft_delete,nullzero"`
+	DeletedAt      *time.Time     `json:"-" bun:",soft_delete,nullzero"`
 	bun.BaseModel  `json:"-" bun:"table:audit_logs"`
 }
 
