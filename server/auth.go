@@ -758,7 +758,7 @@ func (a *authHandler) requestPasswordReset(ctx context.Context, span trace.Span,
 	if err != nil {
 		if errors.Is(err, logtrace.ErrUserNotFound) {
 			logger.Debug("password reset requested for unknown email", zap.String("email", req.Email))
-			return newAPIStatus(http.StatusOK, "if an account exists, a reset email has been sent"), StatusSuccess
+			return newAPIStatus(http.StatusOK, "if an account exists, a reset email will be sent"), StatusSuccess
 		}
 		logger.Error("error fetching user for password reset", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError, "an error occurred"), StatusFailed

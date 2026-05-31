@@ -163,6 +163,12 @@ func (t *WatermillClient) setUpRoutes(router *message.Router,
 		subscriber,
 		t.saveSession,
 	)
+	router.AddConsumerHandler(
+		queue.QueueTopicResetPassword.String(),
+		queue.QueueTopicResetPassword.String(),
+		subscriber,
+		t.sendPasswordResetEmail,
+	)
 }
 
 func (t *WatermillClient) Add(ctx context.Context,
