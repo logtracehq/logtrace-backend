@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/badoux/checkmail"
 	"github.com/go-chi/chi/v5"
@@ -414,11 +415,13 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	twoWeeksLater := time.Now().AddDate(0, 0, 14)
 	saveOrg := &logtrace.Organization{
-		Name:                 req.Organization,
-		IsActive:             true,
-		IsSubscriptionActive: false,
-		PlanName:             "free",
+		Name:                  req.Organization,
+		IsActive:              true,
+		IsSubscriptionActive:  false,
+		SubscriptionExpiresAt: &twoWeeksLater,
+		PlanName:              "free",
 	}
 
 	opts := logtrace.FindOrganizationOptions{
@@ -426,7 +429,6 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 	}
 
 	existingOrg, err := a.orgRepo.List(ctx, opts)
-
 	if existingOrg.Name == saveOrg.Name {
 		logger.Error("business name is taken")
 		return newAPIStatus(http.StatusConflict, "Business name is already taken"), StatusFailed
@@ -737,11 +739,7 @@ func (r *requestPasswordResetRequest) Validate() error {
 // @Failure 400 {object} APIStatus "Bad request"
 // @Failure 500 {object} APIStatus "Internal server error"
 // @Router /auth/password/reset [post]
-func (a *authHandler) requestPasswordReset(
-	ctx context.Context,
-	span trace.Span,
-	logger *zap.Logger,
-	w http.ResponseWriter,
+func (a *authHandler) requestPasswordReset(ctx context.Context, span trace.Span, logger *zap.Logger, w http.ResponseWriter,
 	r *http.Request,
 ) (render.Renderer, Status) {
 	logger.Debug("requesting password reset")

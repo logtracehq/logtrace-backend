@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/render"
 	"gitlab.com/logtrace/logtrace"
@@ -29,11 +30,12 @@ type createOrgRequest struct {
 type updateOrgRequest struct {
 	GenericRequest
 
-	Name                 string `json:"name"`
-	ImageURL             string `json:"image_url"`
-	IsSubscriptionActive bool   `json:"is_subscription_active"`
-	PlanName             string `json:"plan_name"`
-	IsActive             bool   `json:"is_active"`
+	Name                  string `json:"name"`
+	ImageURL              string `json:"image_url"`
+	IsSubscriptionActive  bool   `json:"is_subscription_active"`
+	PlanName              string `json:"plan_name"`
+	IsActive              bool   `json:"is_active"`
+	SubscriptionExpiresAt time.Time
 }
 
 func (c *createOrgRequest) Validate() error {
@@ -67,12 +69,14 @@ func (o *orgHandler) createOrganization(ctx context.Context, span trace.Span, lo
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	twoWeeksLater := time.Now().AddDate(0, 0, 14)
 	org := &logtrace.Organization{
-		Name:                 req.Name,
-		IsActive:             true,
-		IsSubscriptionActive: false,
-		PlanName:             "Free",
-		ImageURL:             req.ImageURL,
+		Name:                  req.Name,
+		IsActive:              true,
+		IsSubscriptionActive:  false,
+		PlanName:              "Free",
+		ImageURL:              req.ImageURL,
+		SubscriptionExpiresAt: &twoWeeksLater,
 	}
 
 	org, err := o.orgRepo.Create(ctx, org)
@@ -128,12 +132,13 @@ func (o *orgHandler) updateOrganization(ctx context.Context, span trace.Span, lo
 	}
 
 	org := &logtrace.Organization{
-		ID:                   opts.ID,
-		Name:                 req.Name,
-		ImageURL:             req.ImageURL,
-		IsSubscriptionActive: req.IsSubscriptionActive,
-		PlanName:             req.PlanName,
-		IsActive:             req.IsActive,
+		ID:                    opts.ID,
+		Name:                  req.Name,
+		ImageURL:              req.ImageURL,
+		IsSubscriptionActive:  req.IsSubscriptionActive,
+		SubscriptionExpiresAt: &req.SubscriptionExpiresAt,
+		PlanName:              req.PlanName,
+		IsActive:              req.IsActive,
 	}
 
 	updatedOrg, err := o.orgRepo.Update(ctx, org)

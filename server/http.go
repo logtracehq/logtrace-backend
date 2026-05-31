@@ -203,6 +203,7 @@ func setUpRoutes(
 			r.Post("/connect/{provider}", WrapLogtraceHTTPHandler(logger, auth.login, cfg, "Auth.provider"))
 			r.Post("/register", WrapLogtraceHTTPHandler(logger, auth.emailSignUp, cfg, "Auth.register"))
 			r.Post("/reset-password", WrapLogtraceHTTPHandler(logger, auth.resetPassword, cfg, "Auth.resetPassword"))
+			r.Post("/forgot-password", WrapLogtraceHTTPHandler(logger, auth.requestPasswordReset, cfg, "Auth.requestPasswordReset"))
 		})
 
 		r.Route("/auth/account", func(r chi.Router) {

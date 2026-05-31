@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -105,13 +106,7 @@ func hasOrganizationMembership(user *logtrace.User, orgID uuid.UUID) bool {
 		return false
 	}
 
-	for _, id := range userOrganizationIDs(user) {
-		if id == orgID {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(userOrganizationIDs(user), orgID)
 }
 
 func selectedOrganizationIDFromRequest(r *http.Request) (uuid.UUID, error) {
