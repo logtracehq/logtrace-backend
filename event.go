@@ -34,7 +34,7 @@ type Event struct {
 	UserID         string         `json:"user_id"`
 	OrganizationID uuid.UUID      `json:"organization_id" bun:"type:uuid,notnull"`
 	RequestDetails RequestDetails `json:"request_details" bun:"type:jsonb"`
-	ActionName     string         `json:"action_name"`
+	Name           string         `json:"name"`
 	Metadata       Metadata       `json:"metadata"    bun:"type:jsonb"`
 	CreatedAt      time.Time      `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	UpdatedAt      time.Time      `json:"updated_at"  bun:"default:current_timestamp,notnull"`
@@ -45,7 +45,7 @@ type Event struct {
 
 type ListEventOptions struct {
 	ID             uuid.UUID `json:"id"`
-	Action         string    `json:"action"`
+	Name           string    `json:"name"`
 	OrganizationID uuid.UUID `json:"organization_id"`
 	Paginator      Paginator `json:"paginator"`
 	HTTPStatus     string    `json:"http_status"`

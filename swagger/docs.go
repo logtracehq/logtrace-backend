@@ -1581,7 +1581,7 @@ const docTemplate = `{
         "server.Event": {
             "type": "object",
             "properties": {
-                "action_name": {
+                "name": {
                     "type": "string"
                 },
                 "client_ip": {
@@ -1728,7 +1728,7 @@ const docTemplate = `{
         "server.createAuditLogRequest": {
             "type": "object",
             "properties": {
-                "action": {
+                "name": {
                     "type": "string"
                 },
                 "ip_address": {
@@ -1757,7 +1757,7 @@ const docTemplate = `{
         "server.createEventRequest": {
             "type": "object",
             "properties": {
-                "action_name": {
+                "name": {
                     "type": "string"
                 },
                 "client_ip": {

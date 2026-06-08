@@ -30,7 +30,7 @@ type auditLogHandler struct {
 type createAuditLogRequest struct {
 	GenericRequest
 
-	Action         string                  `json:"action"`
+	Name           string                  `json:"name"`
 	Timestamp      string                  `json:"timestamp"`
 	UserID         string                  `json:"user_id"`
 	UserName       string                  `json:"username"`
@@ -41,8 +41,8 @@ type createAuditLogRequest struct {
 }
 
 func (a *createAuditLogRequest) Validate() error {
-	if util.IsStringEmpty(a.Action) {
-		return errors.New("action is required")
+	if util.IsStringEmpty(a.Name) {
+		return errors.New("audit log name is required")
 	}
 
 	if util.IsStringEmpty(a.UserID) && util.IsStringEmpty(a.UserName) {
@@ -74,7 +74,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 
 	if err := req.Validate(); err != nil {
 		logger.Error("validation error", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, "failed to process request"), StatusFailed
+		return newAPIStatus(http.StatusBadRequest, "failed to process request: %v", err.Error()), StatusFailed
 	}
 	geo, err := services.GeoIPLookup(ctx, req.RequestDetails.IPAddress)
 	if err != nil {
@@ -92,7 +92,7 @@ func (a *auditLogHandler) Create(ctx context.Context, span trace.Span, logger *z
 	req.RequestDetails.GeoIPLocation = geoLocation
 
 	auditLog := &logtrace.AuditLog{
-		Action:         req.Action,
+		Name:           req.Name,
 		Timestamp:      time.Now().UTC(),
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
 		UserID:         req.UserID,
@@ -174,7 +174,7 @@ func (a *auditLogHandler) List(ctx context.Context, span trace.Span, logger *zap
 
 	auditLogResponse := &AuditLog{
 		ID:              auditLog.ID,
-		Action:          auditLog.Action,
+		Name:            auditLog.Name,
 		UserName:        auditLog.UserName,
 		Description:     auditLog.Description,
 		Timestamp:       auditLog.Timestamp,
@@ -243,7 +243,7 @@ func (a *auditLogHandler) ListAll(ctx context.Context, span trace.Span, logger *
 	for _, a := range auditLogs {
 		dto := &AuditLog{
 			ID:              a.ID,
-			Action:          a.Action,
+			Name:            a.Name,
 			UserName:        a.UserName,
 			Description:     a.Description,
 			Timestamp:       a.Timestamp,

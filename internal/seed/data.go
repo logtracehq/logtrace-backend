@@ -11,7 +11,7 @@ func EventSeedData() []logtrace.Event {
 	now := time.Now().UTC()
 	return []logtrace.Event{
 		{
-			ActionName: "user.login", Type: "authentication",
+			Name: "user.login", Type: "authentication",
 			Username: "alice morgan", UserID: "usr_001",
 			Metadata:  logtrace.Metadata{"browser": "Chrome", "os": "Windows 10"},
 			CreatedAt: now,
@@ -27,7 +27,7 @@ func EventSeedData() []logtrace.Event {
 			},
 		},
 		{
-			ActionName: "user.logout", Type: "authentication",
+			Name: "user.logout", Type: "authentication",
 			Username: "bob hartley", UserID: "usr_002",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -44,7 +44,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "payment.initiated", Type: "transaction",
+			Name: "payment.initiated", Type: "transaction",
 			Username: "carol nguyen", UserID: "usr_003",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -60,7 +60,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "profile.updated", Type: "account",
+			Name: "profile.updated", Type: "account",
 			Username: "david okafor", UserID: "usr_004",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -76,7 +76,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "document.uploaded", Type: "file",
+			Name: "document.uploaded", Type: "file",
 			Username: "emily svensson", UserID: "usr_005",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -92,7 +92,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "api_key.created", Type: "developer",
+			Name: "api_key.created", Type: "developer",
 			Username: "frank delacroix", UserID: "usr_006",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -108,7 +108,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "password.reset", Type: "security",
+			Name: "password.reset", Type: "security",
 			Username: "grace kimani", UserID: "usr_007",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -124,7 +124,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "report.exported", Type: "data",
+			Name: "report.exported", Type: "data",
 			Username: "henry walker", UserID: "usr_008",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -140,7 +140,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "webhook.triggered", Type: "integration",
+			Name: "webhook.triggered", Type: "integration",
 			Username: "isabella costa", UserID: "usr_009",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -156,7 +156,7 @@ func EventSeedData() []logtrace.Event {
 			CreatedAt: now,
 		},
 		{
-			ActionName: "organization.created", Type: "admin",
+			Name: "organization.created", Type: "admin",
 			Username: "james otieno", UserID: "usr_010",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  time.Now().UTC(),
@@ -349,7 +349,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 	now := time.Now().UTC()
 	return []logtrace.AuditLog{
 		{
-			Action: "user.created", UserID: "usr_001", UserName: "alice morgan",
+			Name: "user.created", UserID: "usr_001", UserName: "alice morgan",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-2 * time.Hour),
 				HTTPMethod: "POST", HTTPEndpoint: "/users",
@@ -364,7 +364,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-2 * time.Hour),
 		},
 		{
-			Action: "user.role_changed", UserID: "usr_002", UserName: "bob hartley",
+			Name: "user.role_changed", UserID: "usr_002", UserName: "bob hartley",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-90 * time.Minute),
 				HTTPMethod: "PATCH", HTTPEndpoint: "/users/role",
@@ -379,7 +379,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-90 * time.Minute),
 		},
 		{
-			Action: "api_key.revoked", UserID: "usr_003", UserName: "carol nguyen",
+			Name: "api_key.revoked", UserID: "usr_003", UserName: "carol nguyen",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-80 * time.Minute),
 				HTTPMethod: "DELETE", HTTPEndpoint: "/api-keys",
@@ -394,7 +394,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-80 * time.Minute),
 		},
 		{
-			Action: "billing.subscription_upgraded", UserID: "usr_004", UserName: "david okafor",
+			Name: "billing.subscription_upgraded", UserID: "usr_004", UserName: "david okafor",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-70 * time.Minute),
 				HTTPMethod: "PUT", HTTPEndpoint: "/billing/subscription",
@@ -409,7 +409,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-70 * time.Minute),
 		},
 		{
-			Action: "organization.settings_updated", UserID: "usr_005", UserName: "emily svensson",
+			Name: "organization.settings_updated", UserID: "usr_005", UserName: "emily svensson",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-60 * time.Minute),
 				HTTPMethod: "PATCH", HTTPEndpoint: "/organization/settings",
@@ -424,7 +424,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-60 * time.Minute),
 		},
 		{
-			Action: "invitation.sent", UserID: "usr_006", UserName: "frank delacroix",
+			Name: "invitation.sent", UserID: "usr_006", UserName: "frank delacroix",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-50 * time.Minute),
 				HTTPMethod: "POST", HTTPEndpoint: "/invitations",
@@ -439,7 +439,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-50 * time.Minute),
 		},
 		{
-			Action: "two_factor.enabled", UserID: "usr_007", UserName: "grace kimani",
+			Name: "two_factor.enabled", UserID: "usr_007", UserName: "grace kimani",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-40 * time.Minute),
 				HTTPMethod: "POST", HTTPEndpoint: "/settings/2fa",
@@ -454,7 +454,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-40 * time.Minute),
 		},
 		{
-			Action: "data.export_requested", UserID: "usr_008", UserName: "henry walker",
+			Name: "data.export_requested", UserID: "usr_008", UserName: "henry walker",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-30 * time.Minute),
 				HTTPMethod: "POST", HTTPEndpoint: "/data/export",
@@ -469,7 +469,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-30 * time.Minute),
 		},
 		{
-			Action: "webhook.deleted", UserID: "usr_009", UserName: "isabella costa",
+			Name: "webhook.deleted", UserID: "usr_009", UserName: "isabella costa",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-20 * time.Minute),
 				HTTPMethod: "DELETE", HTTPEndpoint: "/webhooks",
@@ -484,7 +484,7 @@ func AuditLogSeedData() []logtrace.AuditLog {
 			Timestamp: now.Add(-20 * time.Minute),
 		},
 		{
-			Action: "session.force_logout", UserID: "usr_010", UserName: "james otieno",
+			Name: "session.force_logout", UserID: "usr_010", UserName: "james otieno",
 			RequestDetails: logtrace.RequestDetails{
 				Timestamp:  now.Add(-10 * time.Minute),
 				HTTPMethod: "POST", HTTPEndpoint: "/session/force-logout",

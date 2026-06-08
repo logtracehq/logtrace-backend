@@ -26,7 +26,7 @@ type APIKey struct {
 	ExpiresAt      *time.Time `json:"expires_at,omitempty" bun:",nullzero"`
 	CreatedAt      time.Time  `json:"created_at"           bun:",nullzero,notnull,default:current_timestamp"`
 	UpdatedAt      time.Time  `json:"updated_at"           bun:",nullzero,notnull,default:current_timestamp"`
-	DeletedAt      *time.Time `json:"-,omitempty"          bun:",soft_delete,nullzero"`
+	DeletedAt      *time.Time `json:"-"          bun:",soft_delete,nullzero"`
 
 	bun.BaseModel `json:"-"`
 }

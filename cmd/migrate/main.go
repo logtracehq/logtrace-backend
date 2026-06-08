@@ -21,7 +21,7 @@ func main() {
 	)
 
 	flag.StringVar(&path, "path", "./migrations", "Path to migrations directory")
-	flag.StringVar(&action, "action", "up", "Action: up | down | force | version")
+	flag.StringVar(&action, "action", "up", "Name: up | down | force | version")
 	flag.IntVar(&steps, "steps", 1, "Number of steps for down action")
 	flag.IntVar(&version, "version", -1, "Version for force action")
 	flag.Parse()

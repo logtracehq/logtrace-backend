@@ -30,7 +30,7 @@ type eventHander struct {
 type createEventRequest struct {
 	GenericRequest
 
-	ActionName     string                  `json:"action_name"`
+	Name           string                  `json:"name"`
 	UserID         string                  `json:"user_id"`
 	Username       string                  `json:"username"`
 	RequestDetails logtrace.RequestDetails `json:"request_details"`
@@ -39,8 +39,8 @@ type createEventRequest struct {
 }
 
 func (e *createEventRequest) Validate() error {
-	if util.IsStringEmpty(e.ActionName) {
-		return errors.New("action name is required")
+	if util.IsStringEmpty(e.Name) {
+		return errors.New("event name is required")
 	}
 
 	if util.IsStringEmpty(e.Username) && util.IsStringEmpty(e.UserID) {
@@ -70,7 +70,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 	}
 
 	if err := req.Validate(); err != nil {
-		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+		return newAPIStatus(http.StatusBadRequest, "failed to validate request payload: %v", err.Error()), StatusFailed
 	}
 
 	geo, err := services.GeoIPLookup(ctx, req.RequestDetails.IPAddress)
@@ -89,7 +89,7 @@ func (e *eventHander) Create(ctx context.Context, span trace.Span, logger *zap.L
 	req.RequestDetails.GeoIPLocation = geoLocation
 
 	event := &logtrace.Event{
-		ActionName:     req.ActionName,
+		Name:           req.Name,
 		Username:       req.Username,
 		UserID:         req.UserID,
 		OrganizationID: getOrganizationFromContext(r.Context()).ID,
@@ -179,7 +179,7 @@ func (e *eventHander) List(ctx context.Context, span trace.Span, logger *zap.Log
 		IPAddress:       event.RequestDetails.IPAddress,
 		ClientUserAgent: event.RequestDetails.ClientUserAgent,
 		GeoIPLocation:   event.RequestDetails.GeoIPLocation,
-		ActionName:      event.ActionName,
+		Name:            event.Name,
 		Metadata:        event.Metadata,
 		CreatedAt:       event.CreatedAt,
 		OperatingSystem: event.RequestDetails.OperatingSystem,
@@ -249,7 +249,7 @@ func (e *eventHander) ListAll(ctx context.Context, span trace.Span, logger *zap.
 			IPAddress:       event.RequestDetails.IPAddress,
 			ClientUserAgent: event.RequestDetails.ClientUserAgent,
 			GeoIPLocation:   event.RequestDetails.GeoIPLocation,
-			ActionName:      event.ActionName,
+			Name:            event.Name,
 			Metadata:        event.Metadata,
 			CreatedAt:       event.CreatedAt,
 			OperatingSystem: event.RequestDetails.OperatingSystem,

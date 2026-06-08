@@ -1361,7 +1361,7 @@
     "server.AuditLog": {
       "type": "object",
       "properties": {
-        "action": {
+        "name": {
           "type": "string"
         },
         "created_at": {
@@ -1396,7 +1396,7 @@
     "server.Event": {
       "type": "object",
       "properties": {
-        "action_name": {
+        "name": {
           "type": "string"
         },
         "client_ip": {
@@ -1537,7 +1537,7 @@
     "server.createAuditLogRequest": {
       "type": "object",
       "properties": {
-        "action": {
+        "name": {
           "type": "string"
         },
         "ip_address": {
@@ -1566,7 +1566,7 @@
     "server.createEventRequest": {
       "type": "object",
       "properties": {
-        "action_name": {
+        "name": {
           "type": "string"
         },
         "client_ip": {

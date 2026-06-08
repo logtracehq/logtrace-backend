@@ -146,7 +146,7 @@ definitions:
     type: object
   server.Event:
     properties:
-      action_name:
+      name:
         type: string
       client_ip:
         type: string
@@ -261,7 +261,7 @@ definitions:
     type: object
   server.createEventRequest:
     properties:
-      action_name:
+      name:
         type: string
       client_ip:
         type: string

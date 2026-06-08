@@ -18,7 +18,7 @@ type Metadata map[string]any
 
 type AuditLog struct {
 	ID             uuid.UUID      `json:"id"          bun:"type:uuid,default:uuid_generate_v4(),pk"`
-	Action         string         `json:"action"      bun:",notnull"`
+	Name           string         `json:"name"      bun:",notnull"`
 	Timestamp      time.Time      `json:"timestamp"   bun:",notnull"`
 	RequestDetails RequestDetails `json:"request_details" bun:"type:jsonb"`
 	UserID         string         `json:"user_id" bun:"user_id"`

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -37,7 +38,11 @@ type APIError struct {
 	APIStatus
 }
 
-func newAPIStatus(code int, s string) APIStatus {
+func newAPIStatus(code int, s string, args ...any) APIStatus {
+	if len(args) > 0 {
+		s = fmt.Sprintf(s, args...)
+	}
+
 	return APIStatus{
 		statusCode: code,
 		Message:    s,
@@ -56,7 +61,7 @@ type Event struct {
 	IPAddress           string            `json:"ip_address"`
 	ClientUserAgent     string            `json:"client_user_agent"`
 	GeoIPLocation       string            `json:"geo_ip_location"`
-	ActionName          string            `json:"action_name"`
+	Name                string            `json:"name"`
 	Metadata            logtrace.Metadata `json:"metadata"`
 	CreatedAt           time.Time         `json:"created_at"`
 	OperatingSystem     string            `json:"operating_system"`
@@ -153,7 +158,7 @@ type listAPIKeysResponse struct {
 
 type AuditLog struct {
 	ID                  uuid.UUID         `json:"id"`
-	Action              string            `json:"action"`
+	Name                string            `json:"name"`
 	Timestamp           time.Time         `json:"timestamp"`
 	UserID              string            `json:"user_id"`
 	Description         string            `json:"description"`

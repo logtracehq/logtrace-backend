@@ -47,8 +47,8 @@ func (e *eventRepo) List(ctx context.Context, opts logtrace.ListEventOptions) (*
 		sel = sel.Where("id = ?", opts.ID.String())
 	}
 
-	if !util.IsStringEmpty(opts.Action) {
-		sel = sel.Where("action_name = ?", opts.Action)
+	if !util.IsStringEmpty(opts.Name) {
+		sel = sel.Where("name = ?", opts.Name)
 	}
 
 	err := sel.Scan(ctx)
@@ -83,8 +83,8 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logtrace.ListEventOptions
 			q = q.Where("http_method = ?", opts.HTTPMethod)
 		}
 
-		if !util.IsStringEmpty(opts.Action) {
-			q = q.Where("action_name = ?", opts.Action)
+		if !util.IsStringEmpty(opts.Name) {
+			q = q.Where("name = ?", opts.Name)
 		}
 
 		if !util.IsStringEmpty(opts.UserID) {
@@ -122,7 +122,7 @@ func (e *eventRepo) ListAll(ctx context.Context, opts *logtrace.ListEventOptions
 				return q.WhereOr("user_id::text ILIKE ?", searchTerm).
 					WhereOr("http_status ILIKE ?", searchTerm).
 					WhereOr("http_method ILIKE ?", searchTerm).
-					WhereOr("action_name ILIKE ?", searchTerm).
+					WhereOr("name ILIKE ?", searchTerm).
 					WhereOr("username ILIKE ?", searchTerm).
 					WhereOr("client_user_agent ILIKE ?", searchTerm).
 					WhereOr("geo_ip_location ILIKE ?", searchTerm).

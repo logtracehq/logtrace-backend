@@ -85,7 +85,7 @@ func (a *auditLogRepo) ListAll(ctx context.Context, opts logtrace.FindAuditLogOp
 				return q.
 					WhereOr("user_id::text ILIKE ?", searchTerm).
 					WhereOr("username ILIKE ?", searchTerm).
-					WhereOr("action ILIKE ?", searchTerm).
+					WhereOr("name ILIKE ?", searchTerm).
 					WhereOr("ip_address ILIKE ?", searchTerm)
 			})
 		}

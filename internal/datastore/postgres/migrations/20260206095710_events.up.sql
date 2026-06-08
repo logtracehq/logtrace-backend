@@ -5,7 +5,7 @@ CREATE TABLE
         username VARCHAR,
         user_id VARCHAR,
         organization_id UUID NOT NULL,
-        action_name VARCHAR,
+        name VARCHAR,
         request_details JSONB DEFAULT '{}'::JSONB,
         metadata JSONB,
         created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

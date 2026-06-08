@@ -100,7 +100,7 @@ func generateCreateAuditLogTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
-				Action:   "user.login",
+				Name:     "user.login",
 				UserID:   testUserID.String(),
 				UserName: testAuditLogUserName,
 			},
@@ -111,7 +111,7 @@ func generateCreateAuditLogTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusBadRequest,
 			req: createAuditLogRequest{
-				Action:    "user.login",
+				Name:      "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserName:  testAuditLogUserName,
 			},
@@ -131,7 +131,7 @@ func generateCreateAuditLogTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: createAuditLogRequest{
-				Action:    "user.login",
+				Name:      "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
 				UserName:  testAuditLogUserName,
@@ -157,7 +157,7 @@ func generateCreateAuditLogTestTable() []struct {
 			},
 			expectedStatusCode: http.StatusAccepted,
 			req: createAuditLogRequest{
-				Action:    "user.login",
+				Name:      "user.login",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 				UserID:    testUserID.String(),
 				UserName:  testAuditLogUserName,
@@ -251,7 +251,7 @@ func generateListAuditLogTestTable() []struct {
 					Times(1).
 					Return(&logtrace.AuditLog{
 						ID:             testAuditLogID,
-						Action:         "user.login",
+						Name:           "user.login",
 						Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
 						UserID:         testUserID.String(),
 						UserName:       testAuditLogUserName,
@@ -331,7 +331,7 @@ func generateListAllAuditLogsTestTable() []struct {
 					Return([]*logtrace.AuditLog{
 						{
 							ID:             testAuditLogID,
-							Action:         "user.login",
+							Name:           "user.login",
 							Timestamp:      time.Date(2026, 1, 7, 12, 0, 0, 0, time.UTC),
 							UserID:         testUserID.String(),
 							UserName:       testAuditLogUserName,

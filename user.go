@@ -50,7 +50,7 @@ type User struct {
 	Roles           []UserRole    `json:"roles"       bun:"rel:has-many,join:id=user_id"`
 	CreatedAt       time.Time     `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	UpdatedAt       time.Time     `json:"updated_at"  bun:"default:current_timestamp,notnull"`
-	DeletedAt       *time.Time    `json:"-,omitempty" bun:",soft_delete,nullzero"`
+	DeletedAt       *time.Time    `json:"-" bun:",soft_delete,nullzero"`
 	bun.BaseModel   `json:"-" bun:"table:users"`
 }
 

@@ -24,7 +24,7 @@ func Run(
 	for i := range events {
 		events[i].OrganizationID = orgUUID
 		if err := eventRepo.Create(ctx, &events[i]); err != nil {
-			return fmt.Errorf("failed to seed event %q: %w", events[i].ActionName, err)
+			return fmt.Errorf("failed to seed event %q: %w", events[i].Name, err)
 		}
 	}
 	fmt.Printf("seeded %d events\n", len(events))
@@ -42,7 +42,7 @@ func Run(
 	for i := range auditLogs {
 		auditLogs[i].OrganizationID = orgUUID
 		if err := auditLogRepo.Create(ctx, &auditLogs[i]); err != nil {
-			return fmt.Errorf("failed to seed audit log %q: %w", auditLogs[i].Action, err)
+			return fmt.Errorf("failed to seed audit log %q: %w", auditLogs[i].Name, err)
 		}
 	}
 	fmt.Printf("seeded %d audit logs\n", len(auditLogs))

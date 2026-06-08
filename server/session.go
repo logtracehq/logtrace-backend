@@ -69,7 +69,7 @@ func (sh *sessionHandler) Create(ctx context.Context, span trace.Span, logger *z
 
 	if err := req.Validate(); err != nil {
 		logger.Error("create session request validation failed", zap.Error(err))
-		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
+		return newAPIStatus(http.StatusBadRequest, "failed to validate request payload: %v", err.Error()), StatusFailed
 	}
 
 	geo, err := services.GeoIPLookup(ctx, req.RequestDetails.IPAddress)

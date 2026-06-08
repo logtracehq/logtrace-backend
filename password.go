@@ -29,7 +29,7 @@ type PasswordReset struct {
 	UserID    uuid.UUID  `json:"user_id"     bun:"type:uuid,notnull"`
 	CreatedAt time.Time  `json:"created_at"  bun:"default:current_timestamp,notnull"`
 	UpdatedAt time.Time  `json:"updated_at"  bun:"default:current_timestamp,notnull"`
-	DeletedAt *time.Time `json:"-,omitempty" bun:"soft_delete,nullzero"`
+	DeletedAt *time.Time `json:"-" bun:"soft_delete,nullzero"`
 
 	bun.BaseModel ` bun:"table:user_password_resets" json:"-"`
 }

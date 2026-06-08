@@ -142,7 +142,6 @@ func TestOrganizationModel(t *testing.T) {
 			PlanName:             "pro",
 			CreatedAt:            now,
 			IsSubscriptionActive: true,
-			UpdatedAt:            now,
 			DeletedAt:            nil,
 		}
 
@@ -151,7 +150,9 @@ func TestOrganizationModel(t *testing.T) {
 		require.True(t, org.IsActive)
 		require.Equal(t, "pro", org.PlanName)
 		require.True(t, org.IsSubscriptionActive)
+		require.Equal(t, org.CreatedAt, now)
 		require.Nil(t, org.DeletedAt)
+		require.NotNil(t, org.UpdatedAt)
 	})
 
 	t.Run("organization with deleted timestamp", func(t *testing.T) {

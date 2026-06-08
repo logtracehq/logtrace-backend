@@ -1,7 +1,7 @@
 CREATE TABLE
     audit_logs (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
-        action VARCHAR,
+        name VARCHAR,
         organization_id UUID REFERENCES organizations (id),
         user_id VARCHAR,
         username VARCHAR,
