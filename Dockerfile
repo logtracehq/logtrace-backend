@@ -4,32 +4,23 @@ WORKDIR /go/logtrace
 
 LABEL org.opencontainers.image.description="Logtrace helps businesses stay compliant"
 
-COPY ./go.mod /go/logtrace
-
-COPY ./go.sum /go/logtrace
-
-RUN go mod download
-
-RUN go mod verify
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
 
 COPY . .
 
 ARG VERSION=dev
-
 ARG COMMIT=none
 
-RUN CGO_ENABLED=0
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w -X main.Version=${VERSION} -X main.Commit=${COMMIT}" \
+    -o /go/bin/logtrace ./cmd/...
 
-RUN go install -ldflags="-X main.Version=${VERSION} -X main.Commit=${COMMIT}" ./cmd/...
+FROM gcr.io/distroless/static-debian12
 
-FROM busybox:1.37.0-uclibc AS busybox
-
-FROM gcr.io/distroless/base
-
-COPY --from=busybox /bin/sh /bin/sh
-
-COPY --from=build-env /go/bin/cmd /
+COPY --from=build-env /go/bin/logtrace /logtrace
 
 EXPOSE 8080
 
-CMD ["/cmd", "http"]
+ENTRYPOINT ["/logtrace"]
+CMD ["http"]
