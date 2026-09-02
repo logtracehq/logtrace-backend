@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/uptrace/bun"
 	"gitlab.com/logtrace/logtrace"
@@ -26,6 +27,9 @@ func (org *orgRepo) Create(ctx context.Context, organization *logtrace.Organizat
 
 	_, err := org.inner.NewInsert().Model(organization).Exec(ctx)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") || strings.Contains(err.Error(), "already exists") {
+			return nil, logtrace.ErrOrganizationExists
+		}
 		return nil, err
 	}
 

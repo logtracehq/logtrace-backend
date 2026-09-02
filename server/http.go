@@ -36,8 +36,8 @@ func New(
 	eventRepo logtrace.EventRepository, sessionRepo logtrace.SessionRepository,
 	redisCache cache.Cache, apiKeyRepo logtrace.APIKeyRepository,
 	planRepo logtrace.PlanRepository, passwordRepo logtrace.PasswordRepository,
-	auditLogRepo logtrace.AuditLogRepository, organizationUserRepo logtrace.OrganizationUserRepository, invitationRepo logtrace.InvitationRepository,
-	metricsHandler http.Handler,
+	auditLogRepo logtrace.AuditLogRepository, organizationUserRepo logtrace.OrganizationUserRepository,
+	invitationRepo logtrace.InvitationRepository, metricsHandler http.Handler,
 ) (*http.Server, func(context.Context)) {
 	if err := cfg.Validate(); err != nil {
 		logger.Fatal("invalid configuration", zap.Error(err))
@@ -84,8 +84,8 @@ func setUpRoutes(
 	sessionRepo logtrace.SessionRepository, _ cache.Cache,
 	apiKeyRepo logtrace.APIKeyRepository, planRepo logtrace.PlanRepository,
 	passwordRepo logtrace.PasswordRepository, auditLogRepo logtrace.AuditLogRepository,
-	organizationUserRepo logtrace.OrganizationUserRepository, invitationRepo logtrace.InvitationRepository,
-	metricsHandler http.Handler,
+	organizationUserRepo logtrace.OrganizationUserRepository,
+	invitationRepo logtrace.InvitationRepository, metricsHandler http.Handler,
 ) http.Handler {
 	router := chi.NewRouter()
 

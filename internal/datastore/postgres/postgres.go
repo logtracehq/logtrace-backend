@@ -23,6 +23,7 @@ var timeout time.Duration
 func withContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(ctx, timeout)
 }
+
 func New(cfg *config.Config, logger *zap.Logger) (*bun.DB, error) {
 	pgdb := sql.OpenDB(
 		pgdriver.NewConnector(
