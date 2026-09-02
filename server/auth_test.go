@@ -203,6 +203,29 @@ func getFetchCurrentUserData() []struct {
 	}
 }
 
+func TestSignUpRequest_Validate_DoesNotMutatePassword(t *testing.T) {
+	req := signUpRequest{
+		FullName:        "Test User",
+		Email:           logtrace.Email("test@example.com"),
+		Password:        "StrongPassword123!",
+		ConfirmPassword: "StrongPassword123!",
+		Organization:    "Test Company",
+	}
+
+	require.NoError(t, req.Validate())
+	require.Equal(t, "StrongPassword123!", req.Password)
+}
+
+func TestUpdateUserRequest_Validate_CurrentPasswordRequiredForPasswordChange(t *testing.T) {
+	req := updateUserRequest{
+		FullName:        "Updated User",
+		Password:        "StrongPassword123!",
+		CurrentPassword: "",
+	}
+
+	require.EqualError(t, req.Validate(), "current password is required to change password")
+}
+
 func TestAuthHandler_EmailSignup(t *testing.T) {
 	for _, v := range generateEmailSignupTestTable() {
 		t.Run(v.name, func(t *testing.T) {
@@ -413,6 +436,24 @@ func generateEmailSignupTestTable() []struct {
 				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				queueMock.EXPECT().Add(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
 				tokenManager.EXPECT().GenerateJWToken(gomock.Any()).Times(1).Return(jwttoken.JWTokenData{}, errors.New("token error"))
+			},
+			expectedStatusCode: http.StatusInternalServerError,
+			req: signUpRequest{
+				FullName:        "Test User",
+				Email:           logtrace.Email("test@example.com"),
+				Password:        "StrongPassword123!",
+				ConfirmPassword: "StrongPassword123!",
+				Organization:    "Test Company",
+			},
+		},
+		{
+			name: "verification email creation failed",
+			mockFn: func(userRepo *logtrace_mocks.MockUserRepository, tokenManager *jwttoken_mocks.MockJWTokenManager, emailVerification *logtrace_mocks.MockEmailVerificationRepository, queueMock *logtrace_mocks.MockQueueHandler, orgRepo *logtrace_mocks.MockOrganizationRepository, passwordRepo *logtrace_mocks.MockPasswordRepository) {
+				orgRepo.EXPECT().List(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{}, nil)
+				orgRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.Organization{ID: uuid.MustParse("11111111-1111-1111-1111-111111111111")}, nil)
+				userRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(&logtrace.User{ID: userID}, nil)
+				passwordRepo.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+				emailVerification.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("email verification store failed"))
 			},
 			expectedStatusCode: http.StatusInternalServerError,
 			req: signUpRequest{

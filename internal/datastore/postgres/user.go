@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -34,6 +34,18 @@ func (r *userRepo) Create(ctx context.Context, u *logtrace.User) (*logtrace.User
 	return u, nil
 }
 
+func organizationIDFilter(orgID uuid.UUID) (string, error) {
+	if orgID == uuid.Nil {
+		return "", nil
+	}
+
+	payload, err := json.Marshal([]uuid.UUID{orgID})
+	if err != nil {
+		return "", err
+	}
+	return string(payload), nil
+}
+
 func (r *userRepo) ListAll(ctx context.Context, opts *logtrace.FindUserOptions) ([]*logtrace.User, int64, error) {
 	ctx, cancel := withContext(ctx)
 	defer cancel()
@@ -46,7 +58,11 @@ func (r *userRepo) ListAll(ctx context.Context, opts *logtrace.FindUserOptions) 
 		countSelect = countSelect.Where("email = ?", opts.Email)
 	}
 	if opts.OrganizationID != uuid.Nil {
-		countSelect = countSelect.Where("metadata->'organization_id' @> ?::jsonb", fmt.Sprintf("[\"%s\"]", opts.OrganizationID.String()))
+		orgIDJSON, err := organizationIDFilter(opts.OrganizationID)
+		if err != nil {
+			return nil, 0, err
+		}
+		countSelect = countSelect.Where("metadata->'organization_id' @> ?::jsonb", orgIDJSON)
 	}
 
 	selectUser := r.inner.NewSelect().Model(&users).Relation("Roles")
@@ -54,7 +70,11 @@ func (r *userRepo) ListAll(ctx context.Context, opts *logtrace.FindUserOptions) 
 		selectUser = selectUser.Where("email = ?", opts.Email)
 	}
 	if opts.OrganizationID != uuid.Nil {
-		selectUser = selectUser.Where("metadata->'organization_id' @> ?::jsonb", fmt.Sprintf("[\"%s\"]", opts.OrganizationID.String()))
+		orgIDJSON, err := organizationIDFilter(opts.OrganizationID)
+		if err != nil {
+			return nil, 0, err
+		}
+		selectUser = selectUser.Where("metadata->'organization_id' @> ?::jsonb", orgIDJSON)
 	}
 
 	totalCount, err := countSelect.Count(ctx)
@@ -86,7 +106,11 @@ func (r *userRepo) List(ctx context.Context, opts *logtrace.FindUserOptions) (*l
 		selectUser = selectUser.Where("id = ?", opts.ID)
 	}
 	if opts.OrganizationID != uuid.Nil {
-		selectUser = selectUser.Where("metadata->'organization_id' @> ?::jsonb", fmt.Sprintf("[\"%s\"]", opts.OrganizationID.String()))
+		orgIDJSON, err := organizationIDFilter(opts.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		selectUser = selectUser.Where("metadata->'organization_id' @> ?::jsonb", orgIDJSON)
 	}
 
 	err := selectUser.Scan(ctx)

@@ -49,9 +49,20 @@ type signUpRequest struct {
 type updateUserRequest struct {
 	GenericRequest
 
-	FullName string `json:"full_name"`
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
+	FullName        string `json:"full_name"`
+	Password        string `json:"password"`
+	CurrentPassword string `json:"current_password"`
+	Phone           string `json:"phone"`
+}
+
+func (ur *updateUserRequest) Validate() error {
+	if !util.IsStringEmpty(ur.Password) && util.IsStringEmpty(ur.CurrentPassword) {
+		return errors.New("current password is required to change password")
+	}
+	if !util.IsStringEmpty(ur.Password) && passwd.Strength(ur.Password) < passwd.Moderate {
+		return errors.New("password is too weak")
+	}
+	return nil
 }
 
 func (sr *signUpRequest) Validate() error {
@@ -82,13 +93,6 @@ func (sr *signUpRequest) Validate() error {
 	if passwd.Strength(sr.Password) < passwd.Moderate {
 		return errors.New("password is too weak")
 	}
-
-	hashedPassword, err := logtrace.HashPassword(sr.Password)
-	if err != nil {
-		return errors.New("could not hash password")
-	}
-
-	sr.Password = hashedPassword
 
 	return nil
 }
@@ -324,41 +328,67 @@ func (a authHandler) editProfile(ctx context.Context, span trace.Span, logger *z
 ) (render.Renderer, Status) {
 	logger.Debug("updating the user profile")
 
-	currentUsuser := getUserFromContext(ctx)
+	currentUser := getUserFromContext(ctx)
 	req := new(updateUserRequest)
 
 	if err := render.Bind(r, req); err != nil {
 		return newAPIStatus(http.StatusBadRequest, "invalid request body"), StatusFailed
 	}
-
-	user := &logtrace.User{
-		ID:       currentUsuser.ID,
-		FullName: req.FullName,
-		Phone:    req.Phone,
+	if err := req.Validate(); err != nil {
+		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
-	updatedUser, err := a.userRepo.Update(ctx, user)
+	if req.Password != "" {
+		storedPassword, err := a.passwordRepo.List(ctx, currentUser.ID)
+		if err != nil {
+			logger.Error("error fetching user password", zap.Error(err))
+			return newAPIStatus(http.StatusInternalServerError, "failed to validate current password"), StatusFailed
+		}
+
+		passwordMatches, err := logtrace.ComparePasswordAndHash(req.CurrentPassword, storedPassword.UserPassword)
+		if err != nil || !passwordMatches {
+			logger.Debug("current password validation failed", zap.Error(err))
+			return newAPIStatus(http.StatusUnauthorized, "current password is incorrect"), StatusFailed
+		}
+
+		hashedPassword, err := logtrace.HashPassword(req.Password)
+		if err != nil {
+			logger.Debug("failed to hash password", zap.Error(err))
+			return newAPIStatus(http.StatusInternalServerError, "failed to hash password"), StatusFailed
+		}
+
+		password := &logtrace.Password{
+			UserID:       currentUser.ID,
+			UserPassword: hashedPassword,
+		}
+
+		if err = a.passwordRepo.Update(ctx, password); err != nil {
+			logger.Debug("failed to update the password", zap.Error(err))
+			return newAPIStatus(http.StatusInternalServerError, "failed to update user password"), StatusFailed
+		}
+	}
+
+	if req.FullName == "" && req.Phone == "" {
+		return newAPIStatus(http.StatusOK, "User details updated successfully"), StatusSuccess
+	}
+
+	storedUser, err := a.userRepo.List(ctx, &logtrace.FindUserOptions{ID: currentUser.ID})
+	if err != nil {
+		logger.Error("an error occurred while fetching the user", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "Could not update user details"), StatusFailed
+	}
+	if req.FullName != "" {
+		storedUser.FullName = req.FullName
+	}
+	if req.Phone != "" {
+		storedUser.Phone = req.Phone
+	}
+
+	updatedUser, err := a.userRepo.Update(ctx, storedUser)
 	if err != nil {
 		logger.Error("an error occurred while updating the user", zap.Error(err))
 		return newAPIStatus(http.StatusInternalServerError,
 			"Could not update user details"), StatusFailed
-	}
-
-	hashedPassword, err := logtrace.HashPassword(req.Password)
-	if err != nil {
-		logger.Debug("failed to hash password", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to hash password"), StatusFailed
-	}
-
-	password := &logtrace.Password{
-		UserID:       currentUsuser.ID,
-		UserPassword: hashedPassword,
-	}
-
-	err = a.passwordRepo.Update(ctx, password)
-	if err != nil {
-		logger.Debug("failed to update the password", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to update user paasword"), StatusFailed
 	}
 
 	return UserResponse{
@@ -415,6 +445,12 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusBadRequest, err.Error()), StatusFailed
 	}
 
+	hashedPassword, err := logtrace.HashPassword(req.Password)
+	if err != nil {
+		logger.Error("failed to hash password", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "failed to save password"), StatusFailed
+	}
+
 	twoWeeksLater := time.Now().AddDate(0, 0, 14)
 	saveOrg := &logtrace.Organization{
 		Name:                  req.Organization,
@@ -424,18 +460,12 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		PlanName:              "free",
 	}
 
-	opts := logtrace.FindOrganizationOptions{
-		Name: saveOrg.Name,
-	}
-
-	existingOrg, err := a.orgRepo.List(ctx, opts)
-	if existingOrg.Name == saveOrg.Name {
-		logger.Error("business name is taken")
-		return newAPIStatus(http.StatusConflict, "Business name is already taken"), StatusFailed
-	}
-
 	org, err := a.orgRepo.Create(ctx, saveOrg)
 	if err != nil {
+		if errors.Is(err, logtrace.ErrOrganizationExists) {
+			logger.Error("business name is taken")
+			return newAPIStatus(http.StatusConflict, "Business name is already taken"), StatusFailed
+		}
 		logger.Error("an error occurred while creating organization", zap.Error(err))
 		return newAPIStatus(
 			http.StatusInternalServerError,
@@ -476,14 +506,8 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		), StatusFailed
 	}
 
-	hashPassword, err := logtrace.HashPassword(req.Password)
-	if err != nil {
-		logger.Error("failed to save passsword", zap.Error(err))
-		return newAPIStatus(http.StatusInternalServerError, "failed to save password"), StatusFailed
-	}
-
 	userPassword := &logtrace.Password{
-		UserPassword: hashPassword,
+		UserPassword: hashedPassword,
 		UserID:       user.ID,
 	}
 
@@ -493,7 +517,10 @@ func (a *authHandler) emailSignUp(ctx context.Context, span trace.Span, logger *
 		return newAPIStatus(http.StatusInternalServerError, "failed to save password"), StatusFailed
 	}
 
-	_ = a.sendVerificationEmail(user, logger)
+	if err := a.sendVerificationEmail(user, logger); err != nil {
+		logger.Error("could not send verification email", zap.Error(err))
+		return newAPIStatus(http.StatusInternalServerError, "could not send verification email"), StatusFailed
+	}
 
 	return a.generateUserToken(user, logger)
 }
@@ -506,7 +533,7 @@ func (a *authHandler) sendVerificationEmail(user *logtrace.User, logger *zap.Log
 	token, err := logtrace.NewEmailVerification(user)
 	if err != nil {
 		logger.Error("could not generate email verification token", zap.Error(err))
-		return nil
+		return err
 	}
 
 	if err := a.emailVerification.Create(context.Background(), token); err != nil {
@@ -567,8 +594,11 @@ func (a *authHandler) inviteUserByEmail(ctx context.Context, span trace.Span, lo
 	}
 
 	findOpts := &logtrace.FindUserOptions{Email: req.Email}
-	_, err := a.userRepo.List(ctx, findOpts)
+	existingUser, err := a.userRepo.List(ctx, findOpts)
 	if err == nil {
+		if hasOrganizationMembership(existingUser, getOrganizationFromContext(ctx).ID) {
+			return newAPIStatus(http.StatusConflict, "User already exists in this organization"), StatusFailed
+		}
 		return newAPIStatus(http.StatusConflict, "User already exists"), StatusFailed
 	}
 	if !errors.Is(err, logtrace.ErrUserNotFound) {
