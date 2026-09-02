@@ -42,17 +42,10 @@ var (
 	xRealIP       = http.CanonicalHeaderKey("X-Real-IP")
 )
 
-// Key to use when setting the request ID.
 type ctxKeyRequestID int
 
-// RequestIDKey is the key that holds the unique request ID in a request context.
 const RequestIDKey ctxKeyRequestID = 0
 
-// HTTPThrottleKeyFunc throttles unauthenticated users by their IP.
-// It goes through cloudflare, X-Forwarded-For and X-Real-IP to determine the
-// correct IP
-//
-// For authenticated requests, it throttles individually instead of IP wild
 func HTTPThrottleKeyFunc(r *http.Request) (string, error) {
 	if doesUserExistInContext(r.Context()) {
 		return getUserFromContext(r.Context()).ID.String(), nil
